@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1730" />
+  <title>FactoryPulse - OEE & Production Tracker</title>
+  <style>
+    :root {
+      --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
+      --hero: linear-gradient(135deg, #27488a 0%, #3560b8 100%);
+      --text: #f8fafc; --muted: #93a4c3; --accent: #38bdf8;
+      --accent-green: #22c55e; --danger: #ef4444; --border: rgba(148, 163, 184, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top right, #13254c 0%, var(--bg) 55%);
+      color: var(--text); padding: 16px; min-height: 100vh;
+    }
+    .container { max-width: 1240px; margin: 0 auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .brand-title { font-size: 1.35rem; font-weight: 700; margin: 0; }
+    .brand-sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+      color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
+      padding: 6px 10px; border-radius: 999px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
+    .user-badge {
+      display: flex; align-items: center; gap: 10px; background: var(--panel);
+      border: 1px solid var(--border); padding: 6px 12px; border-radius: 10px; font-size: 0.85rem;
+    }
+    .login-box {
+      max-width: 400px; margin: 56px auto; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+    }
+    .pass-wrap { position: relative; display: flex; align-items: center; }
+    .pass-wrap input { padding-right: 65px; }
+    .toggle-pass {
+      position: absolute; right: 8px; background: #1e293b; color: var(--muted);
+      border: 1px solid var(--border); padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;
+    }
+    .filter-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .filter-item { min-width: 150px; flex: 1; }
+    .oee-showcase { display: grid; grid-template-columns: 1.15fr 1.85fr; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 820px) { .oee-showcase { grid-template-columns: 1fr; } }
+    .oee-hero {
+      background: var(--hero); border-radius: 16px; padding: 20px; display: flex;
+      flex-direction: column; justify-content: space-between; min-height: 210px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .hero-top { display: flex; justify-content: space-between; align-items: center; }
+    .hero-label { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
+    .hero-scope { font-size: 0.8rem; background: rgba(9, 17, 36, 0.35); padding: 4px 10px; border-radius: 999px; }
+    .hero-val { font-size: clamp(2.8rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.05; margin: 12px 0; }
+    .hero-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; opacity: 0.92; }
+    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .sub-grid { grid-template-columns: 1fr; } }
+    .metric-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .metric-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .metric-val { font-size: 1.75rem; font-weight: 800; margin: 8px 0 4px; color: #4ade80; }
+    .metric-val.sky { color: var(--accent); }
+    .metric-val.light { color: var(--text); }
+    .metric-sub { font-size: 0.78rem; color: var(--muted); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--muted); }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    input, select {
+      width: 100%; padding: 8px 9px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card-2); color: var(--text); font-size: 0.9rem;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    .batch-table input, .batch-table select { padding: 6px 8px; font-size: 0.85rem; min-width: 72px; }
+    .mc-cell { display: flex; gap: 4px; align-items: center; min-width: 150px; }
+    .batch-table select.mc-select { min-width: 74px; padding: 6px 4px; }
+    .batch-table input.mc-input { min-width: 72px; text-transform: uppercase; }
+    .batch-table input.num-input { min-width: 64px; text-align: right; }
+    .batch-table select.status-input { min-width: 165px; }
+    .batch-table input.reason-input { min-width: 135px; }
+    button {
+      background: var(--accent); color: #041827; border: none; border-radius: 8px;
+      padding: 9px 15px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.secondary { background: #1e293b; color: var(--text); border: 1px solid var(--border); }
+    button.small { padding: 6px 10px; font-size: 0.8rem; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .msg { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; display: none; }
+    .msg.ok { display: block; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--accent-green); color: #86efac; }
+    .msg.err { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; }
+    th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .badge-planned {
+      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
+      background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.4); color: #fcd34d;
+    }
+    .table-wrap { overflow-x: auto; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loginSection" class="login-box">
+    <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
+    <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE App</p>
+    <form id="loginForm">
+      <div style="margin-bottom: 12px;">
+        <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
+        <input id="loginUser" type="text" placeholder="เช่น admin, shiftA, shiftB" required autocomplete="username" />
+      </div>
+      <div style="margin-bottom: 14px;">
+        <label for="loginPass">รหัสผ่าน (Password)</label>
+        <div class="pass-wrap">
+          <input id="loginPass" type="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password" />
+          <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
+        </div>
+      </div>
+      <button type="submit" style="width: 100%;">เข้าสู่ระบบ</button>
+      <div id="loginMsg" class="msg"></div>
+    </form>
+  </div>
+
+  <div id="appSection" class="container hidden">
+    <div class="topbar">
+      <div>
+        <div class="brand-title">FactoryPulse OEE App</div>
+        <div class="brand-sub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกข้อมูลเข้า Google Sheets</div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-pill"><span class="dot"></span><span id="liveStatusText">READY</span></div>
+        <div class="user-badge">
+          <span>ผู้ใช้: <strong id="currentUserLabel">-</strong></span>
+          <button type="button" class="secondary small" id="logoutBtn">ออกจากระบบ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-item">
+        <label for="filterShift">กรองตามกะ</label>
+        <select id="filterShift">
+          <option value="ALL">ทุกกะ (All Shifts)</option>
+          <option value="กะ A">กะ A</option>
+          <option value="กะ B">กะ B</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="filterMachine">กรองตามเครื่องจักร</label>
+        <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
+      </div>
+      <div class="filter-item" style="max-width: 160px;">
+        <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
+        <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
+      </div>
+      <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
+    </div>
+
+    <div class="oee-showcase">
+      <div class="oee-hero">
+        <div class="hero-top">
+          <span class="hero-label">OEE</span>
+          <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
+        </div>
+        <div class="hero-val" id="kpiOee">-</div>
+        <div class="hero-foot">
+          <span id="kpiTargetText">Target 85.00%</span>
+          <span id="kpiDiffText">-</span>
+        </div>
+      </div>
+      <div class="sub-grid">
+        <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
+        <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
+        <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
+        <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
+        <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
+        <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
+      <form id="batchForm">
+        <div class="grid-3">
+          <div>
+            <label for="batchShift">กะการทำงาน (Shift)</label>
+            <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
+          </div>
+          <div>
+            <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
+            <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
+          </div>
+          <div>
+            <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
+            <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+          </div>
+        </div>
+        <div class="preset-bar">
+          <span>เลือกเครื่องยกชุด 10 แถว:</span>
+          <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
+          <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
+          <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
+          <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
+          <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
+        </div>
+        <div class="table-wrap">
+          <table class="batch-table">
+            <thead>
+              <tr>
+                <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
+                <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
+                <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
+              </tr>
+            </thead>
+            <tbody id="batchRowsBody"></tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
+          <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
+        </div>
+        <div id="msgBox" class="msg"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
+          </thead>
+          <tbody id="logBody">
+            <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
+    const USERS = { admin: "1234", shiftA: "1111", shiftB: "2222" };
+    const SESSION_KEY = "factorypulse_logged_user";
+    const ROW_COUNT = 10;
+    const MACHINE_GROUPS = {
+      BE: Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
+      BW: Array.from({ length: 10 }, (_, i) => `BW${i + 1}`),
+      DW: Array.from({ length: 10 }, (_, i) => `DW${i + 1}`)
+    };
+    let allSheetRows = [];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
+
+    $("togglePassBtn").addEventListener("click", () => {
+      const inp = $("loginPass");
+      const show = inp.type === "password";
+      inp.type = show ? "text" : "password";
+      $("togglePassBtn").textContent = show ? "ซ่อน" : "แสดง";
+    });
+
+    function buildDropdown() {
+      const grp = (l, a) => `<optgroup label="${l}">${a.map((m) => `<option value="${m}">${m}</option>`).join("")}</optgroup>`;
+      return `<option value="">เลือก</option>${grp("BE 1-10", MACHINE_GROUPS.BE)}${grp("BW 1-10", MACHINE_GROUPS.BW)}${grp("DW 1-10", MACHINE_GROUPS.DW)}`;
+    }
+
+    function buildBatchRows() {
+      const ct = Number($("defaultCycle").value || 3.45);
+      const dd = buildDropdown();
+      $("batchRowsBody").innerHTML = Array.from({ length: ROW_COUNT }, (_, idx) => {
+        const i = idx + 1;
+        return `<tr data-row-index="${i}">
+          <td style="color:var(--muted);font-weight:700;">${i}</td>
+          <td><div class="mc-cell"><select class="mc-select">${dd}</select><input type="text" class="mc-input" placeholder="เช่น BE${i}" /></div></td>
+          <td><input type="number" class="num-input ok-input" min="0" value="0" /></td>
+          <td><input type="number" class="num-input ng-input" min="0" value="0" /></td>
+          <td><input type="number" class="num-input dt-input" min="0" step="0.1" value="0" /></td>
+          <td><input type="number" class="num-input pdt-input" min="0" step="1" value="0" placeholder="เช่น 60" /></td>
+          <td><input type="number" class="num-input ct-input" min="0.01" step="0.01" value="${ct}" /></td>
+          <td><select class="status-input">
+            <option value="เดินเครื่องปกติ (Running)">เดินเครื่องปกติ (Running)</option>
+            <option value="หยุดตามแผน / ขัดพิมพ์">หยุดตามแผน / ขัดพิมพ์</option>
+            <option value="หยุดเครื่องชั่วคราว (Downtime)">หยุดเครื่องชั่วคราว (Downtime)</option>
+            <option value="เปลี่ยนโมลด์/ไซส์">เปลี่ยนโมลด์/ไซส์</option>
+          </select></td>
+          <td><input type="text" class="reason-input" placeholder="เช่น หยุดขัดพิมพ์ 60 นาที" /></td>
+        </tr>`;
+      }).join("");
+
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const sel = tr.querySelector(".mc-select"), inp = tr.querySelector(".mc-input");
+        const st = tr.querySelector(".status-input"), pdt = tr.querySelector(".pdt-input"), rs = tr.querySelector(".reason-input");
+        sel.addEventListener("change", () => { if (sel.value) inp.value = sel.value; });
+        inp.addEventListener("blur", () => { inp.value = inp.value.trim().toUpperCase(); });
+        st.addEventListener("change", () => {
+          if (st.value === "หยุดตามแผน / ขัดพิมพ์") {
+            if (!pdt.value || Number(pdt.value) === 0) pdt.value = "60";
+            if (!rs.value.trim()) rs.value = "หยุดขัดพิมพ์ 60 นาที";
+          }
+        });
+      });
+    }
+
+    function showMsg(text, ok = true) {
+      const box = $("msgBox");
+      box.className = "msg " + (ok ? "ok" : "err");
+      box.textContent = text;
+    }
+
+    $("applyPrint60Btn").addEventListener("click", () => {
+      let n = 0;
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const mc = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim();
+        if (mc) {
+          tr.querySelector(".pdt-input").value = "60";
+          tr.querySelector(".status-input").value = "หยุดตามแผน / ขัดพิมพ์";
+          if (!tr.querySelector(".reason-input").value.trim()) tr.querySelector(".reason-input").value = "หยุดขัดพิมพ์ 60 นาที";
+          n++;
+        }
+      });
+      showMsg(n ? `ตั้งค่าหยุดขัดพิมพ์ 60 นาทีให้เครื่องที่เลือกแล้ว ${n} แถวครับ` : "กรุณาเลือกหรือกรอกรหัสเครื่องจักรอย่างน้อย 1 แถวก่อนครับ", Boolean(n));
+    });
+
+    const applyPreset = (k) => {
+      const list = MACHINE_GROUPS[k] || [];
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr, i) => {
+        tr.querySelector(".mc-select").value = list[i] || "";
+        tr.querySelector(".mc-input").value = list[i] || "";
+      });
+    };
+    $("presetBE").addEventListener("click", () => applyPreset("BE"));
+    $("presetBW").addEventListener("click", () => applyPreset("BW"));
+    $("presetDW").addEventListener("click", () => applyPreset("DW"));
+    $("defaultCycle").addEventListener("change", () => {
+      const v = Number($("defaultCycle").value || 3.45);
+      $("batchRowsBody").querySelectorAll(".ct-input").forEach((i) => { i.value = v; });
+    });
+    $("clearBatchBtn").addEventListener("click", () => { buildBatchRows(); $("msgBox").className = "msg"; });
+    buildBatchRows();
+
+    function showApp(user) {
+      $("currentUserLabel").textContent = user;
+      if (user === "shiftB") { $("batchShift").value = "กะ B"; $("filterShift").value = "กะ B"; }
+      else if (user === "shiftA") { $("batchShift").value = "กะ A"; $("filterShift").value = "กะ A"; }
+      $("loginSection").classList.add("hidden");
+      $("appSection").classList.remove("hidden");
+    }
+
+    $("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const u = $("loginUser").value.trim();
+      const p = $("loginPass").value.trim();
+      if (USERS[u] && USERS[u] === p) {
+        try { sessionStorage.setItem(SESSION_KEY, u); } catch (_) {}
+        $("loginMsg").className = "msg";
+        showApp(u);
+        loadLogs();
+      } else {
+        $("loginMsg").className = "msg err";
+        $("loginMsg").textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องครับ (admin/1234, shiftA/1111, shiftB/2222)";
+      }
+    });
+
+    $("logoutBtn").addEventListener("click", () => {
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+      $("appSection").classList.add("hidden");
+      $("loginSection").classList.remove("hidden");
+      $("loginForm").reset();
+      $("loginMsg").className = "msg";
+    });
+
+    const fmtDur = (m) => { const t = Math.max(0, Number(m) || 0), h = Math.floor(t / 60), r = Math.round(t % 60); return h > 0 ? `${h}h ${r}m` : `${r}m`; };
+    const fmtTime = (v) => { if (!v) return ""; const d = new Date(v); return !isNaN(d.getTime()) ? d.toLocaleString("th-TH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : String(v); };
+    const normShift = (s) => { const x = String(s || "").trim(); if (x === "B" || x.toLowerCase() === "shiftb" || x === "กะB") return "กะ B"; if (x === "A" || x.toLowerCase() === "shifta" || x === "กะA") return "กะ A"; return x; };
+
+    function normRec(item) {
+      if (Array.isArray(item)) {
+        const st = String(item[7] || "").trim(), plCol = toNum(item[8], 0), isPl = st.includes("หยุดตามแผน") || st.includes("ขัดพิมพ์");
+        return {
+          time: fmtTime(item[0]), shift: normShift(item[1]), machine: String(item[2] || "").trim().toUpperCase(),
+          ok: toNum(item[3]), ng: toNum(item[4]),
+          downtime: isPl && plCol === 0 ? 0 : toNum(item[5]),
+          plannedDowntime: plCol > 0 ? plCol : (isPl ? toNum(item[5]) : 0),
+          cycleTime: toNum(item[6], 3.45), status: st, reason: String(item[9] || "").trim()
+        };
+      }
+      const st = String(item.Status || item.status || "").trim();
+      const rs = String(item.Reason || item.reason || item.Note || item.note || "").trim();
+      const isPl = `${st} ${rs}`.includes("หยุดตามแผน") || `${st} ${rs}`.includes("ขัดพิมพ์") || String(item.Downtime_Type || "").toLowerCase() === "planned";
+      const exPl = toNum(item.Planned_Downtime ?? item.plannedDowntime ?? item.planned_downtime, 0);
+      const dt = toNum(item.Downtime ?? item.downtime, 0);
+      return {
+        time: fmtTime(item.Timestamp || item.timestamp || item.time || ""), shift: normShift(item.Shift || item.shift || ""),
+        machine: String(item.Machine_ID || item.machineId || item.machine_id || item.machine || "").trim().toUpperCase(),
+        ok: toNum(item.OK ?? item.ok), ng: toNum(item.NG ?? item.ng),
+        downtime: isPl && exPl === 0 ? 0 : dt, plannedDowntime: exPl > 0 ? exPl : (isPl ? dt : 0),
+        cycleTime: toNum(item.Cycle_Time ?? item.cycleTime ?? item.cycle_time, 3.45), status: st, reason: rs
+      };
+    }
+
+    function calcRowOEE(r) {
+      const ok = toNum(r.ok, 0);
+      const ng = toNum(r.ng, 0);
+      const totalQty = ok + ng;
+      const cycleMin = toNum(r.cycleTime, 3.45) > 0 ? toNum(r.cycleTime, 3.45) : 3.45;
+      const plannedMin = 480;
+      const plannedStopMin = toNum(r.plannedDowntime, 0);
+      const unplannedStopMin = toNum(r.downtime, 0);
+
+      const netPlannedMin = Math.max(0, plannedMin - plannedStopMin);
+      const runTimeMin = Math.max(0, netPlannedMin - unplannedStopMin);
+      const standardTimeMin = totalQty * cycleMin;
+
+      const availability = netPlannedMin > 0 ? runTimeMin / netPlannedMin : 0;
+      const performance = runTimeMin > 0 ? standardTimeMin / runTimeMin : 0;
+      const quality = totalQty > 0 ? ok / totalQty : 1;
+      const oee = availability * performance * quality;
+
+      return {
+        totalQty,
+        netPlannedMin,
+        runTimeMin,
+        standardTimeMin,
+        availabilityPct: availability * 100,
+        performancePct: performance * 100,
+        qualityPct: quality * 100,
+        oeePct: oee * 100
+      };
+    }
+
+    function summarizeOEE(records) {
+      let ok = 0, ng = 0, dt = 0, pdt = 0, ideal = 0, totalNetPlanned = 0, totalRun = 0;
+      const mcs = new Set();
+
+      records.forEach((r) => {
+        const c = calcRowOEE(r);
+        ok += r.ok;
+        ng += r.ng;
+        dt += r.downtime;
+        pdt += r.plannedDowntime;
+        ideal += c.standardTimeMin;
+        totalNetPlanned += c.netPlannedMin;
+        totalRun += c.runTimeMin;
+        if (r.machine) mcs.add(r.machine);
+      });
+
+      const out = ok + ng;
+      const avail = totalNetPlanned > 0 ? (totalRun / totalNetPlanned) * 100 : 0;
+      const perf = totalRun > 0 ? (ideal / totalRun) * 100 : 0;
+      const qual = out > 0 ? (ok / out) * 100 : 100;
+      const oee = (avail / 100) * (perf / 100) * (qual / 100) * 100;
+
+      return { ok, ng, out, dt, pdt, avail, perf, qual, oee, machineCount: mcs.size };
+    }
+
+    function calcDailyAverageOEE(records) {
+      const grouped = new Map();
+      records.forEach((r) => {
+        const key = r.time || "-";
+        const { oeePct } = calcRowOEE(r);
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(oeePct);
+      });
+      return Array.from(grouped.entries()).map(([date, arr]) => ({
+        date,
+        avgOeePct: arr.reduce((a, b) => a + b, 0) / arr.length
+      }));
+    }
+
+    function renderDashboard(rows) {
+      const sf = $("filterShift").value, mf = $("filterMachine").value.trim().toUpperCase(), tgt = toNum($("targetOeeInput").value, 85);
+      const filtered = rows.map(normRec)
+        .filter((r) => r.machine || r.ok > 0 || r.ng > 0 || r.downtime > 0 || r.plannedDowntime > 0)
+        .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
+
+      const sum = summarizeOEE(filtered);
+      const diff = (sum.oee - tgt).toFixed(1);
+
+      $("kpiOee").textContent = sum.oee.toFixed(1) + "%";
+      $("kpiAvail").textContent = sum.avail.toFixed(1) + "%";
+      $("kpiPerf").textContent = sum.perf.toFixed(1) + "%";
+      $("kpiQual").textContent = sum.qual.toFixed(1) + "%";
+      $("kpiOutput").textContent = sum.out.toLocaleString();
+      $("kpiOkNgSub").textContent = `OK ${sum.ok.toLocaleString()} / NG ${sum.ng.toLocaleString()} pieces`;
+      $("kpiDowntime").textContent = fmtDur(sum.dt);
+      $("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtDur(sum.pdt)} • ${sum.machineCount} / 40 machines logged`;
+      $("kpiRecords").textContent = filtered.length.toLocaleString();
+      $("kpiTargetText").textContent = `Target ${tgt.toFixed(2)}%`;
+      $("kpiDiffText").textContent = `${Number(diff) >= 0 ? "+" : ""}${diff} pts`;
+      $("kpiScopeLabel").textContent = `${sf === "ALL" ? "ทุกกะ" : sf}${mf ? " • " + mf : ""}`;
+
+      const recent = filtered.slice(-15).reverse();
+      $("logBody").innerHTML = recent.length ? recent.map((r) => `<tr>
+        <td>${esc(r.time)}</td><td>${esc(r.shift)}</td><td><strong>${esc(r.machine)}</strong></td>
+        <td>${r.ok}</td><td>${r.ng}</td><td>${r.downtime} น.</td>
+        <td>${r.plannedDowntime > 0 ? `<span class="badge-planned">${r.plannedDowntime} น.</span>` : "0 น."}</td>
+        <td>${esc(r.status)}${r.reason ? " - " + esc(r.reason) : ""}</td>
+      </tr>`).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+    }
+
+    $("filterShift").addEventListener("change", () => {
+      if ($("filterShift").value === "กะ A" || $("filterShift").value === "กะ B") $("batchShift").value = $("filterShift").value;
+      renderDashboard(allSheetRows);
+    });
+    $("filterMachine").addEventListener("input", () => renderDashboard(allSheetRows));
+    $("targetOeeInput").addEventListener("input", () => renderDashboard(allSheetRows));
+
+    async function loadLogs() {
+      $("liveStatusText").textContent = "LOADING...";
+      $("refreshBtn").disabled = true;
+      try {
+        const res = await fetch(WEB_APP_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
+        if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
+        allSheetRows = raw;
+        renderDashboard(allSheetRows);
+        $("liveStatusText").textContent = "LIVE";
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showMsg("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้: " + err.message, false);
+      } finally {
+        $("refreshBtn").disabled = false;
+      }
+    }
+    $("refreshBtn").addEventListener("click", loadLogs);
+
+    $("batchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const shift = $("batchShift").value, note = $("batchNote").value.trim(), user = $("currentUserLabel").textContent || "unknown";
+      const records = [];
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const machine = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim().toUpperCase();
+        const ok = toNum(tr.querySelector(".ok-input").value), ng = toNum(tr.querySelector(".ng-input").value);
+        const downtime = toNum(tr.querySelector(".dt-input").value), plannedDowntime = toNum(tr.querySelector(".pdt-input").value);
+        const cycleTime = toNum(tr.querySelector(".ct-input").value, 3.45), status = tr.querySelector(".status-input").value;
+        const rowReason = tr.querySelector(".reason-input").value.trim();
+        const reason = [rowReason, note].filter(Boolean).join(" | ");
+        if (machine && (ok > 0 || ng > 0 || downtime > 0 || plannedDowntime > 0 || rowReason)) {
+          records.push({ timestamp: new Date().toISOString(), shift, machine, ok, ng, downtime, plannedDowntime, cycleTime, status, reason, user });
+        }
+      });
+      if (!records.length) return showMsg("กรุณาระบุรหัสเครื่องจักรและยอดผลิต หรือเวลาหยุดอย่างน้อย 1 แถวก่อนบันทึกครับ", false);
+
+      $("submitBatchBtn").disabled = true;
+      $("submitBatchBtn").textContent = "กำลังบันทึก...";
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "batchInsert", records })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
+        buildBatchRows();
+        $("batchNote").value = "";
+        await loadLogs();
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showMsg("บันทึกข้อมูลไม่สำเร็จ: " + err.message, false);
+      } finally {
+        $("submitBatchBtn").disabled = false;
+        $("submitBatchBtn").textContent = "บันทึกทั้งหมดเข้า Google Sheets";
+      }
+    });
+
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved && USERS[saved]) { showApp(saved); loadLogs(); }
+    } catch (_) {}
+  </script>
+</body>
+</html>
