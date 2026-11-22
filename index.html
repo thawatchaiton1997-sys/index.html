@@ -425,7 +425,7 @@
       const standardTimeMin = totalQty * cycleMin;
 
       const availability = netPlannedMin > 0 ? runTimeMin / netPlannedMin : 0;
-      const performance = runTimeMin > 0 ? standardTimeMin / runTimeMin : 0;
+      const performance = runTimeMin > 0 ? Math.min(1, standardTimeMin / runTimeMin) : 0;
       const quality = totalQty > 0 ? ok / totalQty : 1;
       const oee = availability * performance * quality;
 
@@ -459,7 +459,7 @@
 
       const out = ok + ng;
       const avail = totalNetPlanned > 0 ? (totalRun / totalNetPlanned) * 100 : 0;
-      const perf = totalRun > 0 ? (ideal / totalRun) * 100 : 0;
+      const perf = totalRun > 0 ? Math.min(100, (ideal / totalRun) * 100) : 0;
       const qual = out > 0 ? (ok / out) * 100 : 100;
       const oee = (avail / 100) * (perf / 100) * (qual / 100) * 100;
 
