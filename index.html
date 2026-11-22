@@ -43,6 +43,14 @@
       position: absolute; right: 8px; background: #1e293b; color: var(--muted);
       border: 1px solid var(--border); padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;
     }
+    .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tab-btn {
+      background: var(--panel); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 10px; padding: 9px 16px; font-weight: 700; cursor: pointer; font-size: 0.88rem;
+    }
+    .tab-btn.active {
+      background: var(--hero); color: var(--text); border-color: rgba(56, 189, 248, 0.45);
+    }
     .filter-bar {
       display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel);
       border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
@@ -62,6 +70,9 @@
     .hero-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; opacity: 0.92; }
     .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     @media (max-width: 640px) { .sub-grid { grid-template-columns: 1fr; } }
+    .kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 960px) { .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .kpi-grid-4 { grid-template-columns: 1fr; } }
     .metric-card {
       background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
       padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;
@@ -73,6 +84,7 @@
     .metric-sub { font-size: 0.78rem; color: var(--muted); }
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
     .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--muted); }
     label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
     input, select {
@@ -101,11 +113,19 @@
     .msg.ok { display: block; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--accent-green); color: #86efac; }
     .msg.err { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; }
-    th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; }
     .badge-planned {
       display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
       background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.4); color: #fcd34d;
+    }
+    .badge-ok {
+      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
+      background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac;
+    }
+    .badge-low {
+      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
+      background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;
     }
     .table-wrap { overflow-x: auto; }
     .hidden { display: none; }
@@ -114,7 +134,7 @@
 <body>
   <div id="loginSection" class="login-box">
     <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-    <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE App</p>
+    <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE & Packing Tube Line</p>
     <form id="loginForm">
       <div style="margin-bottom: 12px;">
         <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
@@ -135,8 +155,8 @@
   <div id="appSection" class="container hidden">
     <div class="topbar">
       <div>
-        <div class="brand-title">FactoryPulse OEE App</div>
-        <div class="brand-sub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกข้อมูลเข้า Google Sheets</div>
+        <div class="brand-title">FactoryPulse OEE & Packing Tube Line</div>
+        <div class="brand-sub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & หมวดแพ็คกิ่ง (Packing tube line)</div>
       </div>
       <div class="topbar-right">
         <div class="live-pill"><span class="dot"></span><span id="liveStatusText">READY</span></div>
@@ -147,104 +167,233 @@
       </div>
     </div>
 
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label for="filterShift">กรองตามกะ</label>
-        <select id="filterShift">
-          <option value="ALL">ทุกกะ (All Shifts)</option>
-          <option value="กะ A">กะ A</option>
-          <option value="กะ B">กะ B</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label for="filterMachine">กรองตามเครื่องจักร</label>
-        <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
-      </div>
-      <div class="filter-item" style="max-width: 160px;">
-        <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
-        <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
-      </div>
-      <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
+    <div class="tab-bar">
+      <button type="button" class="tab-btn active" id="tabOeeBtn" onclick="switchTab('oee')">หมวด OEE (การผลิต & เครื่องจักร)</button>
+      <button type="button" class="tab-btn" id="tabPackingBtn" onclick="switchTab('packing')">หมวดแพ็คกิ่ง (Packing tube line)</button>
     </div>
 
-    <div class="oee-showcase">
-      <div class="oee-hero">
-        <div class="hero-top">
-          <span class="hero-label">OEE</span>
-          <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
+    <div id="oeeTabContent">
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label for="filterShift">กรองตามกะ</label>
+          <select id="filterShift">
+            <option value="ALL">ทุกกะ (All Shifts)</option>
+            <option value="กะ A">กะ A</option>
+            <option value="กะ B">กะ B</option>
+          </select>
         </div>
-        <div class="hero-val" id="kpiOee">-</div>
-        <div class="hero-foot">
-          <span id="kpiTargetText">Target 85.00%</span>
-          <span id="kpiDiffText">-</span>
+        <div class="filter-item">
+          <label for="filterMachine">กรองตามเครื่องจักร</label>
+          <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
         </div>
+        <div class="filter-item" style="max-width: 160px;">
+          <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
+          <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
+        </div>
+        <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
       </div>
-      <div class="sub-grid">
-        <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
-        <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
-        <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
-        <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
-        <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
-        <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
-      </div>
-    </div>
 
-    <div class="card">
-      <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
-      <form id="batchForm">
-        <div class="grid-3">
-          <div>
-            <label for="batchShift">กะการทำงาน (Shift)</label>
-            <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
+      <div class="oee-showcase">
+        <div class="oee-hero">
+          <div class="hero-top">
+            <span class="hero-label">OEE</span>
+            <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
           </div>
-          <div>
-            <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
-            <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
-          </div>
-          <div>
-            <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
-            <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+          <div class="hero-val" id="kpiOee">-</div>
+          <div class="hero-foot">
+            <span id="kpiTargetText">Target 85.00%</span>
+            <span id="kpiDiffText">-</span>
           </div>
         </div>
-        <div class="preset-bar">
-          <span>เลือกเครื่องยกชุด 10 แถว:</span>
-          <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
-          <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
-          <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
-          <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
-          <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
+        <div class="sub-grid">
+          <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
+          <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
+          <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
+          <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
+          <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
+          <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
+        <form id="batchForm">
+          <div class="grid-3">
+            <div>
+              <label for="batchShift">กะการทำงาน (Shift)</label>
+              <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
+            </div>
+            <div>
+              <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
+              <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
+            </div>
+            <div>
+              <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
+              <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+            </div>
+          </div>
+          <div class="preset-bar">
+            <span>เลือกเครื่องยกชุด 10 แถว:</span>
+            <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
+            <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
+            <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
+            <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
+            <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
+          </div>
+          <div class="table-wrap">
+            <table class="batch-table">
+              <thead>
+                <tr>
+                  <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
+                  <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
+                  <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
+                </tr>
+              </thead>
+              <tbody id="batchRowsBody"></tbody>
+            </table>
+          </div>
+          <div class="actions">
+            <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
+            <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
+          </div>
+          <div id="msgBox" class="msg"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
         <div class="table-wrap">
-          <table class="batch-table">
+          <table>
             <thead>
-              <tr>
-                <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
-                <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
-                <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
-              </tr>
+              <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
             </thead>
-            <tbody id="batchRowsBody"></tbody>
+            <tbody id="logBody">
+              <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
+            </tbody>
           </table>
         </div>
-        <div class="actions">
-          <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
-          <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
-        </div>
-        <div id="msgBox" class="msg"></div>
-      </form>
+      </div>
     </div>
 
-    <div class="card">
-      <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
-          </thead>
-          <tbody id="logBody">
-            <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
-          </tbody>
-        </table>
+    <div id="packingTabContent" class="hidden">
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
+          <select id="packingStatusFilter" onchange="renderPackingTable()">
+            <option value="ALL">ทุกวันที่มีข้อมูล (14 วัน)</option>
+            <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (10 วัน)</option>
+            <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (4 วัน)</option>
+            <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (6 วัน)</option>
+            <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว (3 วัน)</option>
+            <option value="CURE_ONLY">มียอดอบอย่างเดียว (1 วัน)</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="packingDayFilter">กรองตามวันในสัปดาห์</label>
+          <select id="packingDayFilter" onchange="renderPackingTable()">
+            <option value="ALL">ทุกวันในสัปดาห์</option>
+            <option value="จันทร์">จันทร์</option>
+            <option value="อังคาร">อังคาร</option>
+            <option value="พุธ">พุธ</option>
+            <option value="พฤหัส">พฤหัส</option>
+            <option value="ศุกร์">ศุกร์</option>
+            <option value="เสาร์">เสาร์</option>
+          </select>
+        </div>
+        <div><button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button></div>
+      </div>
+
+      <div class="kpi-grid-4">
+        <div class="metric-card">
+          <div class="metric-title">ยอดแพ็ครวม (13 วันที่มีข้อมูล)</div>
+          <div class="metric-val" id="pkTotalVal">121,849 เส้น</div>
+          <div class="metric-sub" id="pkTotalSub">เฉลี่ย 9,373.0 / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">สัดส่วนแพ็ค / ยอดอบ (10 วันคู่)</div>
+          <div class="metric-val sky" id="pkRatioVal">88.82%</div>
+          <div class="metric-sub" id="pkRatioSub">แพ็ค 92,759 เทียบอบ 104,439 เส้น (-11,680)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">ยอดแพ็คสูงสุด (จ. 16 พ.ย. 2026)</div>
+          <div class="metric-val light">12,245 เส้น</div>
+          <div class="metric-sub">อิงชีต Packing tube line</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">ยอดแพ็คต่ำสุด (พ. 18 พ.ย. 2026)</div>
+          <div class="metric-val light">1,389 เส้น</div>
+          <div class="metric-sub">เทียบยอดอบ 8,904 เส้น (-7,515)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
+        <div class="grid-4">
+          <div>
+            <label for="pkDateInput">วันที่ (YYYY-MM-DD)</label>
+            <input id="pkDateInput" type="date" value="2026-11-19" />
+          </div>
+          <div>
+            <label for="pkDayLabelInput">วันเดือนปี (เช่น พฤหัส 19 พ.ย. 2026)</label>
+            <input id="pkDayLabelInput" type="text" placeholder="เช่น พฤหัส 19 พ.ย. 2026" />
+          </div>
+          <div>
+            <label for="pkCureInput">ยอดอบยางใน (เส้น)</label>
+            <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+          </div>
+          <div>
+            <label for="pkPackInput">ยอดแพ็คยางใน (เส้น)</label>
+            <input id="pkPackInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+          </div>
+        </div>
+        <div class="grid-3">
+          <div style="grid-column: span 2;">
+            <label for="pkRemarkInput">หมายเหตุ</label>
+            <input id="pkRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม" />
+          </div>
+          <div style="display: flex; align-items: end;">
+            <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
+          </div>
+        </div>
+        <div id="pkMsgBox" class="msg"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>วันเดือนปี</th>
+                <th>ยอดอบยางใน (เส้น)</th>
+                <th>ยอดแพ็คยางใน (เส้น)</th>
+                <th>ส่วนต่าง (แพ็ค - อบ)</th>
+                <th>สัดส่วน แพ็ค/อบ (%)</th>
+                <th>สถานะข้อมูล</th>
+                <th>หมายเหตุ</th>
+              </tr>
+            </thead>
+            <tbody id="packingTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ค่าเฉลี่ยยอดแพ็คแยกตามวันในสัปดาห์ (อิงเฉพาะวันที่มียอดแพ็คในชีต Packing tube line)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>วันในสัปดาห์</th>
+                <th>จำนวนวันที่มีข้อมูลแพ็ค</th>
+                <th>ยอดแพ็ครวม (เส้น)</th>
+                <th>ค่าเฉลี่ยยอดแพ็ค / วัน (เส้น)</th>
+              </tr>
+            </thead>
+            <tbody id="packingDayAvgBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -259,11 +408,37 @@
       BW: Array.from({ length: 10 }, (_, i) => `BW${i + 1}`),
       DW: Array.from({ length: 10 }, (_, i) => `DW${i + 1}`)
     };
+    const INITIAL_PACKING_TUBE_LINE = [
+      { date: "2026-11-02", dayLabel: "จันทร์ 2 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 9615, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
+      { date: "2026-11-03", dayLabel: "อังคาร 3 พ.ย. 2026", dayName: "อังคาร", cure: 10718, pack: 8537, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-04", dayLabel: "พุธ 4 พ.ย. 2026", dayName: "พุธ", cure: 11220, pack: 9510, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-05", dayLabel: "พฤหัส 5 พ.ย. 2026", dayName: "พฤหัส", cure: 8782, pack: 11609, remark: "ยอดแพ็คสูงกว่ายอดอบ (+2,827 เส้น)" },
+      { date: "2026-11-06", dayLabel: "ศุกร์ 6 พ.ย. 2026", dayName: "ศุกร์", cure: 10890, pack: 8799, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-09", dayLabel: "จันทร์ 9 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 7230, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
+      { date: "2026-11-10", dayLabel: "อังคาร 10 พ.ย. 2026", dayName: "อังคาร", cure: 11110, pack: 12080, remark: "ยอดแพ็คสูงกว่ายอดอบ (+970 เส้น)" },
+      { date: "2026-11-11", dayLabel: "พุธ 11 พ.ย. 2026", dayName: "พุธ", cure: 10450, pack: 10593, remark: "ยอดแพ็คสูงกว่ายอดอบ (+143 เส้น)" },
+      { date: "2026-11-12", dayLabel: "พฤหัส 12 พ.ย. 2026", dayName: "พฤหัส", cure: 12000, pack: 9587, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-13", dayLabel: "ศุกร์ 13 พ.ย. 2026", dayName: "ศุกร์", cure: 9810, pack: 11565, remark: "ยอดแพ็คสูงกว่ายอดอบ (+1,755 เส้น)" },
+      { date: "2026-11-14", dayLabel: "เสาร์ 14 พ.ย. 2026", dayName: "เสาร์", cure: 11260, pack: null, remark: "มียอดอบ ไม่มียอดแพ็คในตาราง" },
+      { date: "2026-11-16", dayLabel: "จันทร์ 16 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 12245, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
+      { date: "2026-11-17", dayLabel: "อังคาร 17 พ.ย. 2026", dayName: "อังคาร", cure: 10555, pack: 9090, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-18", dayLabel: "พุธ 18 พ.ย. 2026", dayName: "พุธ", cure: 8904, pack: 1389, remark: "ยอดแพ็คต่ำกว่ายอดอบ (-7,515 เส้น)" }
+    ];
+    let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
     let allSheetRows = [];
 
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
+
+    function switchTab(tab) {
+      const isPacking = tab === "packing";
+      $("oeeTabContent").classList.toggle("hidden", isPacking);
+      $("packingTabContent").classList.toggle("hidden", !isPacking);
+      $("tabOeeBtn").classList.toggle("active", !isPacking);
+      $("tabPackingBtn").classList.toggle("active", isPacking);
+      if (isPacking) renderPackingTable();
+    }
 
     $("togglePassBtn").addEventListener("click", () => {
       const inp = $("loginPass");
@@ -320,6 +495,12 @@
       box.textContent = text;
     }
 
+    function showPkMsg(text, ok = true) {
+      const box = $("pkMsgBox");
+      box.className = "msg " + (ok ? "ok" : "err");
+      box.textContent = text;
+    }
+
     $("applyPrint60Btn").addEventListener("click", () => {
       let n = 0;
       $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
@@ -357,6 +538,7 @@
       else if (user === "shiftA") { $("batchShift").value = "กะ A"; $("filterShift").value = "กะ A"; }
       $("loginSection").classList.add("hidden");
       $("appSection").classList.remove("hidden");
+      renderPackingTable();
     }
 
     $("loginForm").addEventListener("submit", (e) => {
@@ -430,10 +612,7 @@
       const oee = availability * performance * quality;
 
       return {
-        totalQty,
-        netPlannedMin,
-        runTimeMin,
-        standardTimeMin,
+        totalQty, netPlannedMin, runTimeMin, standardTimeMin,
         availabilityPct: availability * 100,
         performancePct: performance * 100,
         qualityPct: quality * 100,
@@ -447,13 +626,8 @@
 
       records.forEach((r) => {
         const c = calcRowOEE(r);
-        ok += r.ok;
-        ng += r.ng;
-        dt += r.downtime;
-        pdt += r.plannedDowntime;
-        ideal += c.standardTimeMin;
-        totalNetPlanned += c.netPlannedMin;
-        totalRun += c.runTimeMin;
+        ok += r.ok; ng += r.ng; dt += r.downtime; pdt += r.plannedDowntime;
+        ideal += c.standardTimeMin; totalNetPlanned += c.netPlannedMin; totalRun += c.runTimeMin;
         if (r.machine) mcs.add(r.machine);
       });
 
@@ -464,20 +638,6 @@
       const oee = (avail / 100) * (perf / 100) * (qual / 100) * 100;
 
       return { ok, ng, out, dt, pdt, avail, perf, qual, oee, machineCount: mcs.size };
-    }
-
-    function calcDailyAverageOEE(records) {
-      const grouped = new Map();
-      records.forEach((r) => {
-        const key = r.time || "-";
-        const { oeePct } = calcRowOEE(r);
-        if (!grouped.has(key)) grouped.set(key, []);
-        grouped.get(key).push(oeePct);
-      });
-      return Array.from(grouped.entries()).map(([date, arr]) => ({
-        date,
-        avgOeePct: arr.reduce((a, b) => a + b, 0) / arr.length
-      }));
     }
 
     function renderDashboard(rows) {
@@ -509,6 +669,142 @@
         <td>${r.plannedDowntime > 0 ? `<span class="badge-planned">${r.plannedDowntime} น.</span>` : "0 น."}</td>
         <td>${esc(r.status)}${r.reason ? " - " + esc(r.reason) : ""}</td>
       </tr>`).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+    }
+
+    function getPackingStatusLabel(row) {
+      const hasCure = typeof row.cure === "number" && !Number.isNaN(row.cure);
+      const hasPack = typeof row.pack === "number" && !Number.isNaN(row.pack);
+      if (hasCure && hasPack) {
+        if (row.pack > row.cure) return '<span class="badge-ok">แพ็คสูงกว่ายอดอบ</span>';
+        if (row.pack < row.cure) return '<span class="badge-low">แพ็คน้อยกว่ายอดอบ</span>';
+        return '<span class="badge-planned">ยอดเท่ากัน</span>';
+      }
+      if (hasPack) return '<span class="badge-planned">แพ็คอย่างเดียว</span>';
+      if (hasCure) return '<span class="badge-planned">อบอย่างเดียว</span>';
+      return "-";
+    }
+
+    function renderPackingTable() {
+      const stFilter = $("packingStatusFilter") ? $("packingStatusFilter").value : "ALL";
+      const dayFilter = $("packingDayFilter") ? $("packingDayFilter").value : "ALL";
+
+      const filtered = packingRecords.filter((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        if (dayFilter !== "ALL" && r.dayName !== dayFilter) return false;
+        if (stFilter === "BOTH") return hasCure && hasPack;
+        if (stFilter === "PACK_GT_CURE") return hasCure && hasPack && r.pack > r.cure;
+        if (stFilter === "PACK_LT_CURE") return hasCure && hasPack && r.pack < r.cure;
+        if (stFilter === "PACK_ONLY") return hasPack && !hasCure;
+        if (stFilter === "CURE_ONLY") return hasCure && !hasPack;
+        return true;
+      });
+
+      $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasCure && hasPack) ? (r.pack - r.cure) : null;
+        const pct = (hasCure && hasPack && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(2) + "%" : "-";
+        return `<tr>
+          <td>${esc(r.date)}</td>
+          <td>${esc(r.dayLabel)}</td>
+          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td>
+          <td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
+          <td>${diff !== null ? (diff > 0 ? "+" + diff.toLocaleString() : diff.toLocaleString()) : "-"}</td>
+          <td>${pct}</td>
+          <td>${getPackingStatusLabel(r)}</td>
+          <td>${esc(r.remark || "-")}</td>
+        </tr>`;
+      }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
+
+      const packRows = packingRecords.filter((r) => typeof r.pack === "number" && !Number.isNaN(r.pack));
+      const totalPack = packRows.reduce((a, b) => a + b.pack, 0);
+      const avgPack = packRows.length ? (totalPack / packRows.length).toFixed(1) : "0.0";
+      $("pkTotalVal").textContent = `${totalPack.toLocaleString()} เส้น`;
+      $("pkTotalSub").textContent = `เฉลี่ย ${Number(avgPack).toLocaleString()} / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)`;
+
+      const pairRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure) && typeof r.pack === "number" && !Number.isNaN(r.pack));
+      const pairCure = pairRows.reduce((a, b) => a + b.cure, 0);
+      const pairPack = pairRows.reduce((a, b) => a + b.pack, 0);
+      const pairDiff = pairPack - pairCure;
+      const pairPct = pairCure > 0 ? ((pairPack / pairCure) * 100).toFixed(2) + "%" : "-";
+      $("pkRatioVal").textContent = pairPct;
+      $("pkRatioSub").textContent = `แพ็ค ${pairPack.toLocaleString()} เทียบอบ ${pairCure.toLocaleString()} เส้น (${pairDiff > 0 ? "+" + pairDiff.toLocaleString() : pairDiff.toLocaleString()})`;
+
+      const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      $("packingDayAvgBody").innerHTML = days.map((d) => {
+        const list = packRows.filter((r) => r.dayName === d);
+        const sum = list.reduce((a, b) => a + b.pack, 0);
+        const avg = list.length ? Math.round(sum / list.length).toLocaleString() : "-";
+        return `<tr>
+          <td>${esc(d)}</td>
+          <td>${list.length}</td>
+          <td>${list.length ? sum.toLocaleString() : "-"}</td>
+          <td>${avg}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function addPackingRow() {
+      const dateStr = $("pkDateInput").value || "2026-11-19";
+      const dayLabelRaw = $("pkDayLabelInput").value.trim();
+      const cureRaw = $("pkCureInput").value;
+      const packRaw = $("pkPackInput").value;
+      const remarkRaw = $("pkRemarkInput").value.trim();
+
+      if (cureRaw === "" && packRaw === "") {
+        return showPkMsg("กรุณากรอกยอดอบยางใน หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
+      }
+
+      const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
+      const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
+      const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      const dt = new Date(dateStr + "T00:00:00");
+      const inferredDay = !Number.isNaN(dt.getTime()) ? dayNames[dt.getDay()] : "พฤหัส";
+      const matchedDay = dayNames.find((d) => dayLabelRaw.includes(d)) || inferredDay;
+
+      packingRecords.push({
+        date: dateStr,
+        dayLabel: dayLabelRaw || `${matchedDay} ${dateStr}`,
+        dayName: matchedDay,
+        cure: cureNum,
+        pack: packNum,
+        remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
+      });
+
+      $("pkDayLabelInput").value = "";
+      $("pkCureInput").value = "";
+      $("pkPackInput").value = "";
+      $("pkRemarkInput").value = "";
+      showPkMsg(`เพิ่มข้อมูลวันที่ ${dateStr} ลงตาราง Packing tube line เรียบร้อยครับ`, true);
+      renderPackingTable();
+    }
+
+    function exportPackingCsv() {
+      const headers = ["Date", "Day_Label", "Cure_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
+      const rows = [headers.join(",")];
+      packingRecords.forEach((r) => {
+        const hasC = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasC && hasP) ? (r.pack - r.cure) : "";
+        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(2) + "%" : "";
+        rows.push([
+          r.date,
+          `"${String(r.dayLabel || "").replace(/"/g, '""')}"`,
+          hasC ? r.cure : "",
+          hasP ? r.pack : "",
+          diff,
+          pct,
+          `"${String(r.remark || "").replace(/"/g, '""')}"`
+        ].join(","));
+      });
+      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "packing_tube_line_nov_2026.csv";
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     $("filterShift").addEventListener("change", () => {
