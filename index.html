@@ -1129,4 +1129,510 @@
         if (row.pack < row.cure) return '<span class="badge-low">ต่ำกว่าแผน / แพ็คน้อยกว่าอบ</span>';
         return '<span class="badge-planned">ยอดเท่ากัน</span>';
       }
-      if (hasPack) return '<span class="badge-planned">แพ็คสต็อกสะ
+      if (hasPack) return '<span class="badge-planned">แพ็คสต็อกสะสม</span>';
+      if (hasCure) return '<span class="badge-planned">รอการบรรจุ</span>';
+      return "-";
+    }
+
+    function renderPackingTable() {
+      const stFilter = $("packingStatusFilter") ? $("packingStatusFilter").value : "ALL";
+      const dayFilter = $("packingDayFilter") ? $("packingDayFilter").value : "ALL";
+      const filtered = packingRecords.filter((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        if (dayFilter !== "ALL" && r.dayName !== dayFilter) return false;
+        if (stFilter === "BOTH") return hasCure && hasPack;
+        if (stFilter === "PACK_GT_CURE") return hasCure && hasPack && r.pack > r.cure;
+        if (stFilter === "PACK_LT_CURE") return hasCure && hasPack && r.pack < r.cure;
+        if (stFilter === "PACK_ONLY") return hasPack && !hasCure;
+        if (stFilter === "CURE_ONLY") return hasCure && !hasPack;
+        return true;
+      });
+
+      $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasCure && hasPack) ? (r.pack - r.cure) : (hasPack ? r.pack : (hasCure ? -r.cure : null));
+        const pct = (hasCure && hasPack && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasCure && !hasPack ? "0.0%" : "-");
+        return `<tr>
+          <td>${esc(r.date)}</td><td>${esc(r.dayLabel)}</td>
+          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td><td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
+          <td>${diff !== null ? (diff > 0 ? "+" + diff.toLocaleString() : diff.toLocaleString()) : "-"}</td>
+          <td>${pct}</td><td>${getPackingStatusLabel(r)}</td><td>${esc(r.remark || "-")}</td>
+        </tr>`;
+      }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
+
+      const cureRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure));
+      const packRows = packingRecords.filter((r) => typeof r.pack === "number" && !Number.isNaN(r.pack));
+      const totalCure = cureRows.reduce((a, b) => a + b.cure, 0);
+      const totalPack = packRows.reduce((a, b) => a + b.pack, 0);
+      const avgCure = cureRows.length ? Math.round(totalCure / cureRows.length).toLocaleString() : "0";
+      const netDiff = totalPack - totalCure;
+      const totalPct = totalCure > 0 ? ((totalPack / totalCure) * 100).toFixed(1) + "%" : "-";
+
+      $("pkCureTotalVal").textContent = `${totalCure.toLocaleString()} เส้น`;
+      $("pkCureTotalSub").textContent = `เฉลี่ย ${avgCure} เส้น/วัน | ยอดแพ็ครวม ${totalPack.toLocaleString()} เส้น`;
+      $("pkRatioVal").textContent = totalPct;
+      $("pkRatioSub").textContent = `แพ็ค ${totalPack.toLocaleString()} เทียบอบ ${totalCure.toLocaleString()} เส้น (${netDiff > 0 ? "+" + netDiff.toLocaleString() : netDiff.toLocaleString()})`;
+
+      const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      $("packingDayAvgBody").innerHTML = days.map((d) => {
+        const list = packRows.filter((r) => r.dayName === d);
+        const sum = list.reduce((a, b) => a + b.pack, 0);
+        const avg = list.length ? Math.round(sum / list.length).toLocaleString() : "-";
+        return `<tr><td>${esc(d)}</td><td>${list.length}</td><td>${list.length ? sum.toLocaleString() : "-"}</td><td>${avg}</td></tr>`;
+      }).join("");
+    }
+
+    function addPackingRow() {
+      const dateStr = $("pkDateInput").value || "2026-11-23";
+      const cureRaw = $("pkCureInput").value, packRaw = $("pkPackInput").value, remarkRaw = $("pkRemarkInput").value.trim();
+      if (cureRaw === "" && packRaw === "") return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
+      const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
+      const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
+      const { dayName, dayLabel } = formatThaiDayLabel(dateStr);
+      packingRecords.push({
+        date: dateStr, dayLabel, dayName, cure: cureNum, pack: packNum,
+        remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
+      });
+      $("pkCureInput").value = ""; $("pkPackInput").value = ""; $("pkRemarkInput").value = "";
+      showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ`, true);
+      renderPackingTable();
+    }
+
+    function exportPackingCsv() {
+      const headers = ["Date", "Day_Label", "Cure_OK_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
+      const rows = [headers.join(",")];
+      packingRecords.forEach((r) => {
+        const hasC = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasC && hasP) ? (r.pack - r.cure) : (hasP ? r.pack : (hasC ? -r.cure : ""));
+        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasC && !hasP ? "0.0%" : "");
+        rows.push([r.date, `"${String(r.dayLabel || "").replace(/"/g, '""')}"`, hasC ? r.cure : "", hasP ? r.pack : "", diff, pct, `"${String(r.remark || "").replace(/"/g, '""')}"`].join(","));
+      });
+      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "packing_tube_line_nov_2026.csv"; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // --- EXTRUSION QUEUE & STOCK LOGIC ---
+    function saveExtrusionQueue() {
+      try { localStorage.setItem(EXTRUSION_QUEUE_STORAGE_KEY, JSON.stringify(extrusionQueueItems)); } catch (_) {}
+    }
+
+    function resetExtrusionQueueDefault() {
+      extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
+      if ($("eqRatePerMold")) $("eqRatePerMold").value = "300";
+      if ($("eqDailyCap")) $("eqDailyCap").value = "12000";
+      if ($("eqTargetDays")) $("eqTargetDays").value = "3";
+      saveExtrusionQueue();
+      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการตามชีต Extudtion เรียบร้อยครับ", true);
+      renderExtrusionQueue();
+    }
+
+    function addExtrusionQueueItem() {
+      const spec = ($("eqNewSpec")?.value || "").trim();
+      const type = $("eqNewType")?.value || "มอเตอร์ไซค์";
+      const mold = Math.max(0, Math.floor(toNum($("eqNewMold")?.value, 0)));
+      const stock = Math.max(0, toNum($("eqNewStock")?.value, 0));
+      if (!spec) return showEqMsg("กรุณากรอกขนาด / เบอร์ยางก่อนเพิ่มรายการครับ", false);
+
+      extrusionQueueItems.push({
+        id: "q_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        spec, type, mold, stock, fixedDailyUsage: null
+      });
+      saveExtrusionQueue();
+      $("eqNewSpec").value = ""; $("eqNewMold").value = "0"; $("eqNewStock").value = "0";
+      showEqMsg(`เพิ่มรายการ "${spec}" เข้าคิวการผลิตเรียบร้อยครับ`, true);
+      renderExtrusionQueue();
+    }
+
+    function updateQueueRowField(id, field, rawVal) {
+      const item = extrusionQueueItems.find((x) => x.id === id);
+      if (!item) return;
+      if (field === "mold") {
+        item.mold = Math.max(0, Math.floor(toNum(rawVal, 0)));
+        if (item.mold > 0) item.fixedDailyUsage = null;
+      }
+      if (field === "stock") {
+        item.stock = Math.max(0, toNum(rawVal, 0));
+      }
+      saveExtrusionQueue();
+      renderExtrusionQueue();
+    }
+
+    function mapSheetQueueRows(rawList) {
+      if (!Array.isArray(rawList) || !rawList.length) return [];
+      const mapped = [];
+      rawList.forEach((row, idx) => {
+        if (Array.isArray(row)) {
+          const spec = String(row[0] ?? "").trim();
+          const firstCell = spec.toLowerCase();
+          if (!spec || spec.includes("รวมทั้งสิ้น") || firstCell.includes("size") || firstCell.includes("ขนาด")) return;
+          const type = String(row[1] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
+          const mold = Math.max(0, Math.floor(toNum(row[2], 0)));
+          const stock = Math.max(0, toNum(row[3], 0));
+          const dailyCol = row[4] !== undefined && row[4] !== "" ? Math.max(0, toNum(row[4], 0)) : null;
+          mapped.push({
+            id: "sheet_q_" + idx + "_" + spec,
+            spec, type, mold, stock,
+            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
+          });
+        } else if (row && typeof row === "object") {
+          const spec = String(
+            row.spec ?? row.Spec ?? row["ขนาด / เบอร์ยาง"] ?? row["ขนาด/เบอร์ยาง"] ?? row["Size / Spec"] ?? ""
+          ).trim();
+          if (!spec || spec.includes("รวมทั้งสิ้น")) return;
+          const type = String(row.type ?? row.Type ?? row["ประเภท"] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
+          const mold = Math.max(0, Math.floor(toNum(row.mold ?? row.Mold ?? row["จำนวนแม่พิมพ์"] ?? row["แม่พิมพ์"], 0)));
+          const stock = Math.max(0, toNum(row.stock ?? row.Stock ?? row.currentStock ?? row["สต็อกคงเหลือ"] ?? row["สต็อก"], 0));
+          const rawUsage = row.dailyUsage ?? row.Daily_Usage ?? row["ใช้ต่อวัน"];
+          const dailyCol = rawUsage !== undefined && rawUsage !== "" ? Math.max(0, toNum(rawUsage, 0)) : null;
+          mapped.push({
+            id: String(row.id || ("sheet_q_" + idx + "_" + spec)),
+            spec, type, mold, stock,
+            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
+          });
+        }
+      });
+      return mapped;
+    }
+
+    async function syncExtrusionFromSheet() {
+      const btn = $("syncExtrusionBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SYNCING...";
+      try {
+        const sep = WEB_APP_URL.includes("?") ? "&" : "?";
+        const res = await fetch(`${WEB_APP_URL}${sep}action=extrusionQueue`);
+        const json = await parseAppsScriptResponse(res);
+
+        const params = json?.params || json?.config || json?.settings || {};
+        if (params.ratePerMold && $("eqRatePerMold")) $("eqRatePerMold").value = toNum(params.ratePerMold, 300);
+        if (params.dailyCap && $("eqDailyCap")) $("eqDailyCap").value = toNum(params.dailyCap, 12000);
+        if (params.targetDays && $("eqTargetDays")) $("eqTargetDays").value = toNum(params.targetDays, 3);
+
+        const candidate = Array.isArray(json?.extrusionQueue) ? json.extrusionQueue
+          : Array.isArray(json?.queue) ? json.queue
+          : Array.isArray(json?.extrusion) ? json.extrusion
+          : Array.isArray(json?.data) ? json.data
+          : Array.isArray(json) ? json : [];
+
+        const parsed = mapSheetQueueRows(candidate);
+        if (!parsed.length) {
+          throw new Error("ชีตยังไม่ส่งข้อมูลรายการคิวรีดยางกลับมา (ตรวจสอบ action=extrusionQueue ใน Apps Script)");
+        }
+
+        extrusionQueueItems = parsed;
+        saveExtrusionQueue();
+        renderExtrusionQueue();
+        $("liveStatusText").textContent = "LIVE";
+        showEqMsg(`ดึงข้อมูลคิวและสต็อกรีดยางจากชีตสำเร็จจำนวน ${parsed.length} รายการครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showEqMsg(`ดึงข้อมูลจากชีตไม่สำเร็จ (${err.message}) — ระบบยังคงใช้ข้อมูลล่าสุดในเครื่องครับ`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function saveExtrusionQueueToSheet() {
+      const btn = $("saveExtrusionBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const plan = computeExtrusionQueuePlan();
+        const payload = {
+          action: "saveExtrusionQueue",
+          user: $("currentUserLabel")?.textContent || "unknown",
+          timestamp: new Date().toISOString(),
+          params: {
+            ratePerMold: toNum($("eqRatePerMold")?.value, 300),
+            dailyCap: toNum($("eqDailyCap")?.value, 12000),
+            targetDays: toNum($("eqTargetDays")?.value, 3)
+          },
+          records: plan.rows.map((r) => ({
+            spec: r.spec,
+            type: r.type,
+            mold: r.mold,
+            stock: r.stock,
+            dailyUsage: r.dailyUsage,
+            daysCover: r.daysCover >= 999 ? 999 : Number(r.daysCover.toFixed(2)),
+            targetStock: r.targetStock,
+            netNeeded: r.netNeeded,
+            todayOrder: r.todayOrder,
+            carryover: r.carryover,
+            queueNo: r.queueNo,
+            status: r.statusText
+          }))
+        };
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        await parseAppsScriptResponse(res);
+        $("liveStatusText").textContent = "LIVE";
+        showEqMsg(`ส่งข้อมูลคิวและสต็อกรีดยาง ${payload.records.length} รายการไปที่ Google Sheets เรียบร้อยครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showEqMsg(`บันทึกคิวรีดยางเข้าชีตไม่สำเร็จ: ${err.message}`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function computeExtrusionQueuePlan() {
+      const ratePerMold = Math.max(1, toNum($("eqRatePerMold")?.value, 300));
+      const dailyCap = Math.max(0, toNum($("eqDailyCap")?.value, 12000));
+      const targetDays = Math.max(0, toNum($("eqTargetDays")?.value, 3));
+
+      const rows = extrusionQueueItems.map((it, idx) => {
+        const mold = Math.max(0, toNum(it.mold, 0));
+        const stock = Math.max(0, toNum(it.stock, 0));
+        const dailyUsage = mold > 0
+          ? mold * ratePerMold
+          : (typeof it.fixedDailyUsage === "number" && it.fixedDailyUsage > 0 ? it.fixedDailyUsage : 0);
+        const daysCover = dailyUsage > 0 ? stock / dailyUsage : 999;
+        const targetStock = dailyUsage * targetDays;
+        const netNeeded = Math.max(0, targetStock - stock);
+
+        return {
+          ...it,
+          origIdx: idx,
+          mold,
+          stock,
+          dailyUsage,
+          daysCover,
+          targetStock,
+          netNeeded,
+          queueNo: null,
+          todayOrder: 0,
+          carryover: 0,
+          statusCode: "ENOUGH",
+          statusText: "สต็อกเพียงพอ",
+          badgeClass: "badge-ok"
+        };
+      });
+
+      const moldRowsSorted = rows
+        .filter((r) => r.mold > 0)
+        .sort((a, b) => {
+          if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
+          if (b.netNeeded !== a.netNeeded) return b.netNeeded - a.netNeeded;
+          return a.origIdx - b.origIdx;
+        });
+
+      let rankCounter = 0;
+      let prevKey = null;
+      moldRowsSorted.forEach((r) => {
+        const key = `${r.daysCover.toFixed(6)}|${r.netNeeded}`;
+        if (key !== prevKey) {
+          rankCounter += 1;
+          prevKey = key;
+        }
+        r.queueNo = rankCounter;
+      });
+
+      let remainingCap = dailyCap;
+      moldRowsSorted
+        .filter((r) => r.netNeeded > 0)
+        .forEach((r) => {
+          const allocated = Math.max(0, Math.min(r.netNeeded, remainingCap));
+          r.todayOrder = allocated;
+          r.carryover = Math.max(0, r.netNeeded - allocated);
+          remainingCap = Math.max(0, remainingCap - allocated);
+        });
+
+      rows.forEach((r) => {
+        if (r.mold <= 0) {
+          r.statusCode = "HOLD_NO_MOLD";
+          r.statusText = "พักคิว (ไม่มีพิมพ์)";
+          r.badgeClass = "badge-hold";
+          r.todayOrder = 0;
+          r.carryover = 0;
+        } else if (r.todayOrder > 0) {
+          r.statusCode = "TODAY";
+          r.statusText = r.stock === 0 ? "สต็อก 0 / รีดด่วน" : "สั่งผลิตวันนี้";
+          r.badgeClass = r.stock === 0 ? "badge-low" : "badge-planned";
+        } else {
+          r.statusCode = "ENOUGH";
+          r.statusText = "สต็อกเพียงพอ";
+          r.badgeClass = "badge-ok";
+          r.todayOrder = 0;
+          r.carryover = 0;
+        }
+      });
+
+      return {
+        rows,
+        todayOrderCount: rows.filter((r) => r.todayOrder > 0).length
+      };
+    }
+
+    function renderExtrusionQueue() {
+      const tbody = $("extrusionQueueBody");
+      const tfoot = $("extrusionQueueFoot");
+      if (!tbody) return;
+
+      const plan = computeExtrusionQueuePlan();
+      const statusFilter = $("eqStatusFilter")?.value || "ALL";
+
+      const totalStock = plan.rows.reduce((a, b) => a + b.stock, 0);
+      const totalMold = plan.rows.reduce((a, b) => a + b.mold, 0);
+      const totalNeeded = plan.rows.reduce((a, b) => a + b.netNeeded, 0);
+      const totalUsage = plan.rows.reduce((a, b) => a + b.dailyUsage, 0);
+      const totalTarget = plan.rows.reduce((a, b) => a + b.targetStock, 0);
+      const totalToday = plan.rows.reduce((a, b) => a + b.todayOrder, 0);
+      const totalCarry = plan.rows.reduce((a, b) => a + b.carryover, 0);
+      const avgDaysCover = totalUsage > 0 ? (totalStock / totalUsage).toFixed(2) : "0.00";
+
+      if ($("eqTotalStockVal")) $("eqTotalStockVal").textContent = totalStock.toLocaleString();
+      if ($("eqTotalStockSub")) $("eqTotalStockSub").textContent = `แม่พิมพ์รวม ${totalMold.toLocaleString()} พิมพ์`;
+      if ($("eqTotalNeededVal")) $("eqTotalNeededVal").textContent = totalNeeded.toLocaleString();
+      if ($("eqTotalNeededSub")) $("eqTotalNeededSub").textContent = `ใช้ต่อวันรวม ${totalUsage.toLocaleString()} เส้น`;
+      if ($("eqTodayOrderVal")) $("eqTodayOrderVal").textContent = totalToday.toLocaleString();
+      if ($("eqTodayOrderSub")) $("eqTodayOrderSub").textContent = `${plan.todayOrderCount} รายการสั่งผลิตวันนี้`;
+      if ($("eqCarryoverVal")) $("eqCarryoverVal").textContent = totalCarry.toLocaleString();
+      if ($("eqCarryoverSub")) $("eqCarryoverSub").textContent = `ส่วนเกินจากเพดานรายวัน`;
+
+      const filtered = plan.rows.filter((r) => {
+        if (statusFilter === "TODAY") return r.todayOrder > 0;
+        if (statusFilter === "CARRYOVER") return r.carryover > 0;
+        if (statusFilter === "ENOUGH") return r.statusCode === "ENOUGH";
+        if (statusFilter === "HOLD_NO_MOLD") return r.statusCode === "HOLD_NO_MOLD";
+        return true;
+      });
+
+      tbody.innerHTML = filtered.length
+        ? filtered.map((r) => `<tr>
+            <td><strong>${esc(r.spec)}</strong></td>
+            <td>${esc(r.type)}</td>
+            <td><input type="number" min="0" step="1" value="${r.mold}" style="width:68px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'mold', this.value)" /></td>
+            <td><input type="number" min="0" step="1" value="${r.stock}" style="width:88px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'stock', this.value)" /></td>
+            <td>${r.dailyUsage.toLocaleString()}</td>
+            <td>${r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2)}</td>
+            <td>${r.targetStock.toLocaleString()}</td>
+            <td>${r.netNeeded.toLocaleString()}</td>
+            <td><strong>${r.todayOrder.toLocaleString()}</strong></td>
+            <td>${r.carryover > 0 ? `<span class="badge-low">${r.carryover.toLocaleString()}</span>` : "0"}</td>
+            <td>${r.queueNo ? `<strong>#${r.queueNo}</strong>` : "-"}</td>
+            <td><span class="${r.badgeClass}">${esc(r.statusText)}</span></td>
+          </tr>`).join("")
+        : '<tr><td colspan="12" style="color:var(--muted);">ไม่พบรายการคิวการผลิตตามตัวกรองที่เลือก</td></tr>';
+
+      if (tfoot) {
+        tfoot.innerHTML = `<tr class="total-row">
+          <td colspan="2">รวมทั้งสิ้น (Factory Total: ${plan.rows.length} รายการ)</td>
+          <td>${totalMold.toLocaleString()}</td>
+          <td>${totalStock.toLocaleString()}</td>
+          <td>${totalUsage.toLocaleString()}</td>
+          <td>${avgDaysCover}</td>
+          <td>${totalTarget.toLocaleString()}</td>
+          <td>${totalNeeded.toLocaleString()}</td>
+          <td>${totalToday.toLocaleString()}</td>
+          <td>${totalCarry.toLocaleString()}</td>
+          <td>-</td>
+          <td>${plan.todayOrderCount} รายการสั่งผลิตวันนี้</td>
+        </tr>`;
+      }
+    }
+
+    function exportExtrusionQueueCsv() {
+      const plan = computeExtrusionQueuePlan();
+      const headers = ["Spec", "Type", "Mold", "Current_Stock", "Daily_Usage", "Days_Cover", "Target_Stock", "Net_Needed", "Today_Order", "Carryover", "Queue_No", "Status"];
+      const lines = [headers.join(",")];
+      plan.rows.forEach((r) => {
+        lines.push([
+          `"${String(r.spec || "").replace(/"/g, '""')}"`,
+          `"${String(r.type || "").replace(/"/g, '""')}"`,
+          r.mold, r.stock, r.dailyUsage,
+          r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2),
+          r.targetStock, r.netNeeded, r.todayOrder, r.carryover,
+          r.queueNo || "", `"${String(r.statusText || "").replace(/"/g, '""')}"`
+        ].join(","));
+      });
+      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "extrusion_queue_plan.csv"; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    $("filterShift").addEventListener("change", () => {
+      if ($("filterShift").value === "กะ A" || $("filterShift").value === "กะ B") $("batchShift").value = $("filterShift").value;
+      renderDashboard(allSheetRows);
+    });
+    $("filterMachine").addEventListener("input", () => renderDashboard(allSheetRows));
+    $("targetOeeInput").addEventListener("input", () => renderDashboard(allSheetRows));
+
+    async function loadLogs() {
+      $("liveStatusText").textContent = "LOADING...";
+      $("refreshBtn").disabled = true;
+      try {
+        const res = await fetch(WEB_APP_URL);
+        const json = await parseAppsScriptResponse(res);
+        let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
+        if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
+        allSheetRows = raw;
+        allDowntimeRows = Array.isArray(json?.downtimeLogs) ? json.downtimeLogs : (Array.isArray(json?.downtime) ? json.downtime : []);
+        renderDashboard(allSheetRows);
+        $("liveStatusText").textContent = "LIVE";
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showMsg("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้: " + err.message, false);
+      } finally {
+        $("refreshBtn").disabled = false;
+      }
+    }
+    $("refreshBtn").addEventListener("click", loadLogs);
+
+    $("batchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const shift = $("batchShift").value, note = $("batchNote").value.trim(), user = $("currentUserLabel").textContent || "unknown";
+      const records = [];
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const machine = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim().toUpperCase();
+        const ok = toNum(tr.querySelector(".ok-input").value), ng = toNum(tr.querySelector(".ng-input").value);
+        const downtime = toNum(tr.querySelector(".dt-input").value), plannedDowntime = toNum(tr.querySelector(".pdt-input").value);
+        const cycleTime = toNum(tr.querySelector(".ct-input").value, 3.45), status = tr.querySelector(".status-input").value;
+        const rowReason = tr.querySelector(".reason-input").value.trim();
+        const reason = [rowReason, note].filter(Boolean).join(" | ");
+        if (machine && (ok > 0 || ng > 0 || downtime > 0 || plannedDowntime > 0 || rowReason)) {
+          records.push({ timestamp: new Date().toISOString(), shift, machine, ok, ng, downtime, plannedDowntime, cycleTime, status, reason, user });
+        }
+      });
+      if (!records.length) return showMsg("กรุณาระบุรหัสเครื่องจักรและยอดผลิต หรือเวลาหยุดอย่างน้อย 1 แถวก่อนบันทึกครับ", false);
+
+      $("submitBatchBtn").disabled = true;
+      $("submitBatchBtn").textContent = "กำลังบันทึก...";
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "batchInsert", records })
+        });
+        await parseAppsScriptResponse(res);
+        showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
+        buildBatchRows();
+        $("batchNote").value = "";
+        await loadLogs();
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showMsg("บันทึกข้อมูลไม่สำเร็จ: " + err.message, false);
+      } finally {
+        $("submitBatchBtn").disabled = false;
+        $("submitBatchBtn").textContent = "บันทึกทั้งหมดเข้า Google Sheets";
+      }
+    });
+
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved && USERS[saved]) { showApp(saved); loadLogs(); }
+    } catch (_) {}
+  </script>
+</body>
+</html>
