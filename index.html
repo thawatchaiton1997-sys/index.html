@@ -342,7 +342,7 @@
             <span class="nav-icon">⚙️</span>
             <span class="nav-text">
               <span>หมวดรีดยาง (Extrusion)</span>
-              <span class="nav-desc">ยอดรีด / Scrap / Speed</span>
+              <span class="nav-desc">คิวผลิต & สต็อกรีดยาง</span>
             </span>
           </button>
         </nav>
@@ -606,123 +606,112 @@
         </div>
 
         <div id="extrusionTabContent" class="hidden">
-          <div class="filter-bar">
-            <div class="filter-item">
-              <label for="extShiftFilter">กรองตามกะ</label>
-              <select id="extShiftFilter" onchange="renderExtrusionTable()">
-                <option value="ALL">ทุกกะ (All Shifts)</option>
-                <option value="กะ A">กะ A</option>
-                <option value="กะ B">กะ B</option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label for="extLineFilter">กรองตามเครื่องรีด / ไซส์ยาง</label>
-              <input id="extLineFilter" type="text" oninput="renderExtrusionTable()" placeholder="เช่น EXT-1 หรือ 2.25-17" />
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="secondary" onclick="exportExtrusionCsv()">ส่งออก CSV (Extrusion)</button>
-            </div>
-          </div>
-
-          <div class="kpi-grid-4">
-            <div class="metric-card">
-              <div class="metric-title">ยอดรีด OK รวม</div>
-              <div class="metric-val" id="extTotalOkVal">0 เส้น</div>
-              <div class="metric-sub" id="extTotalOkSub">NG รวม 0 เส้น</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">% Scrap รีดยาง</div>
-              <div class="metric-val sky" id="extScrapRateVal">0.0%</div>
-              <div class="metric-sub" id="extScrapRateSub">เทียบยอดรีดทั้งหมด</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">ความเร็วเฉลี่ย (RPM / m/min)</div>
-              <div class="metric-val light" id="extAvgSpeedVal">0.0</div>
-              <div class="metric-sub" id="extDowntimeSub">หยุดเครื่องรวม 0 นาที</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">จำนวนรายการบันทึก</div>
-              <div class="metric-val light" id="extCountVal">0</div>
-              <div class="metric-sub">Extrusion Log</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกข้อมูลหมวดรีดยาง (Extrusion)</h2>
-            <div class="grid-4">
+          <div class="card" id="extrusionQueueCard">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
-                <label for="extDateInput">วันที่</label>
-                <input id="extDateInput" type="date" value="2026-11-23" />
+                <h2 style="font-size: 1.1rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
+                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Production Queue Management)</div>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น (15 รายการ)</button>
+                <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
+              </div>
+            </div>
+
+            <div class="grid-4" style="margin-bottom:12px;">
+              <div>
+                <label for="eqRatePerMold">อัตราใช้ต่อแม่พิมพ์/วัน (เส้น/พิมพ์)</label>
+                <input id="eqRatePerMold" type="number" min="1" step="1" value="300" oninput="renderExtrusionQueue()" />
               </div>
               <div>
-                <label for="extShiftInput">กะการทำงาน</label>
-                <select id="extShiftInput">
-                  <option value="กะ A">กะ A</option>
-                  <option value="กะ B">กะ B</option>
+                <label for="eqDailyCap">ข้อจำกัดกำลังผลิตสูงสุด/วัน (เส้น/วัน)</label>
+                <input id="eqDailyCap" type="number" min="1" step="10" value="12000" oninput="renderExtrusionQueue()" />
+              </div>
+              <div>
+                <label for="eqTargetDays">เป้าหมายสำรองสต็อก (วัน)</label>
+                <input id="eqTargetDays" type="number" min="0.1" step="0.5" value="3" oninput="renderExtrusionQueue()" />
+              </div>
+              <div>
+                <label for="eqStatusFilter">กรองสถานะการผลิต / คิว</label>
+                <select id="eqStatusFilter" onchange="renderExtrusionQueue()">
+                  <option value="ALL">ทั้งหมด (15 รายการ)</option>
+                  <option value="TODAY">สั่งผลิตวันนี้ (มีคิว & ส่งผลิตวันนี้ > 0)</option>
+                  <option value="CARRYOVER">ยกไปพรุ่งนี้ / ค้างส่ง</option>
+                  <option value="ENOUGH">สต็อกเพียงพอ</option>
+                  <option value="HOLD_NO_MOLD">พักคิว (ไม่มีพิมพ์)</option>
                 </select>
               </div>
-              <div>
-                <label for="extMachineInput">รหัสเครื่องรีด (Extruder ID)</label>
-                <input id="extMachineInput" type="text" placeholder="เช่น EXT-1, EXT-2" />
+            </div>
+
+            <div class="kpi-grid-4" style="margin-bottom:12px;">
+              <div class="metric-card">
+                <div class="metric-title">สต็อกคงเหลือรวม (Current Stock)</div>
+                <div class="metric-val light" id="eqTotalStockVal">25,840</div>
+                <div class="metric-sub" id="eqTotalStockSub">แม่พิมพ์รวม 37 พิมพ์</div>
               </div>
-              <div>
-                <label for="extSpecInput">ขนาด / ชนิดคอมปาวด์</label>
-                <input id="extSpecInput" type="text" placeholder="เช่น 2.50-17 / Tube" />
+              <div class="metric-card">
+                <div class="metric-title">ยอดขาดตามแผน 3 วัน (Net Needed)</div>
+                <div class="metric-val sky" id="eqTotalNeededVal">12,210</div>
+                <div class="metric-sub" id="eqTotalNeededSub">ใช้ต่อวันรวม 11,100 เส้น</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title">ส่งผลิตวันนี้ (Today's Extrusion Cap)</div>
+                <div class="metric-val" id="eqTodayOrderVal">12,000</div>
+                <div class="metric-sub" id="eqTodayOrderSub">จัดคิวแล้ว 6 รายการสั่งผลิตวันนี้</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title">ค้างยกไปพรุ่งนี้ (Tomorrow Carryover)</div>
+                <div class="metric-val light" id="eqCarryoverVal">210</div>
+                <div class="metric-sub" id="eqCarryoverSub">ส่วนเกินจากเพดานรายวัน</div>
               </div>
             </div>
 
-            <div class="grid-4">
-              <div>
-                <label for="extOkInput">ยอดรีด OK (เส้น / เมตร)</label>
-                <input id="extOkInput" type="number" min="0" value="0" />
+            <div class="card" style="background:var(--card-2); margin-bottom:12px; padding:12px;">
+              <div style="font-size:0.88rem; font-weight:700; margin-bottom:8px;">+ เพิ่มรายการยางในคิวการผลิต</div>
+              <div class="grid-4" style="margin-bottom:8px;">
+                <div>
+                  <label for="eqNewSpec">ขนาด / เบอร์ยาง (Size / Spec)</label>
+                  <input id="eqNewSpec" type="text" placeholder="เช่น 20x1.75 หรือ 250-14" />
+                </div>
+                <div>
+                  <label for="eqNewType">ประเภท (Type)</label>
+                  <select id="eqNewType">
+                    <option value="จักรยาน">จักรยาน</option>
+                    <option value="มอเตอร์ไซค์">มอเตอร์ไซค์</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="eqNewMold">จำนวนแม่พิมพ์ (Mold)</label>
+                  <input id="eqNewMold" type="number" min="0" step="1" value="0" />
+                </div>
+                <div>
+                  <label for="eqNewStock">สต็อกคงเหลือ (Current Stock)</label>
+                  <input id="eqNewStock" type="number" min="0" step="1" value="0" />
+                </div>
               </div>
-              <div>
-                <label for="extNgInput">ยอด NG / Scrap (เส้น / เมตร)</label>
-                <input id="extNgInput" type="number" min="0" value="0" />
-              </div>
-              <div>
-                <label for="extSpeedInput">ความเร็วเครื่อง (รอบ/นาที หรือ ม./นาที)</label>
-                <input id="extSpeedInput" type="number" min="0" step="0.1" value="0" />
-              </div>
-              <div>
-                <label for="extDowntimeInput">เวลาหยุดเครื่อง (นาที)</label>
-                <input id="extDowntimeInput" type="number" min="0" step="0.5" value="0" />
-              </div>
+              <button type="button" class="small" onclick="addExtrusionQueueItem()">เพิ่มรายการเข้าตารางคิว</button>
+              <div id="eqMsgBox" class="msg"></div>
             </div>
 
-            <div class="grid-3" style="grid-template-columns: 1fr;">
-              <div>
-                <label for="extRemarkInput">หมายเหตุ / ปัญหาที่พบ (เช่น อุณหภูมิหัวรีด, ผิวขรุขระ, เปลี่ยนหัว)</label>
-                <input id="extRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)" />
-              </div>
-            </div>
-
-            <div class="actions" style="margin-top: 8px;">
-              <button type="button" id="saveExtrusionBtn" onclick="addExtrusionRow()">บันทึกข้อมูลหมวดรีดยาง</button>
-              <button type="button" class="secondary" onclick="clearExtrusionForm()">ล้างช่องกรอก</button>
-            </div>
-            <div id="extMsgBox" class="msg"></div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกหมวดรีดยาง (Extrusion)</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>วันที่</th>
-                    <th>กะ</th>
-                    <th>เครื่องรีด</th>
-                    <th>ขนาด / คอมปาวด์</th>
-                    <th>ยอด OK</th>
-                    <th>ยอด NG</th>
-                    <th>% Scrap</th>
-                    <th>ความเร็ว</th>
-                    <th>หยุด (นาที)</th>
-                    <th>หมายเหตุ</th>
+                    <th>ขนาด / เบอร์ยาง (Size / Spec)</th>
+                    <th>ประเภท (Type)</th>
+                    <th>จำนวนแม่พิมพ์ (Mold)</th>
+                    <th>สต็อกคงเหลือ (Current Stock)</th>
+                    <th>ใช้ต่อวัน (Daily Usage)</th>
+                    <th>สต็อกอยู่ได้ (วัน) (Days Cover)</th>
+                    <th>เป้าหมายสต็อก (Target Stock)</th>
+                    <th>ยอดขาดตามแผน (Net Needed)</th>
+                    <th>ส่งผลิตวันนี้ (Today Order)</th>
+                    <th>ยกไปพรุ่งนี้ (Carryover)</th>
+                    <th>ลำดับคิว (Queue)</th>
+                    <th>สถานะการผลิต (Production Status)</th>
                   </tr>
                 </thead>
-                <tbody id="extrusionTableBody"></tbody>
+                <tbody id="extrusionQueueBody"></tbody>
               </table>
             </div>
           </div>
@@ -735,7 +724,7 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
     const USERS = { admin: "1234", shiftA: "1111", shiftB: "2222" };
     const SESSION_KEY = "factorypulse_logged_user";
-    const EXTRUSION_STORAGE_KEY = "factorypulse_extrusion_records_v1";
+    const EXTRUSION_QUEUE_STORAGE_KEY = "factorypulse_extrusion_queue_v2";
     const ROW_COUNT = 10;
     const MACHINE_GROUPS = {
       BE: Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -763,10 +752,32 @@
       { date: "2026-11-21", dayLabel: "เสาร์ 21 พ.ย. 2026", dayName: "เสาร์", cure: 10455, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" }
     ];
     let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
-    let extrusionRecords = [];
+
+    const DEFAULT_EXTRUSION_QUEUE = [
+      { id: "q1", spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0 },
+      { id: "q2", spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0 },
+      { id: "q3", spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0 },
+      { id: "q4", spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 2090 },
+      { id: "q5", spec: "26x195", type: "จักรยาน", mold: 3, stock: 1340 },
+      { id: "q6", spec: "24x175", type: "จักรยาน", mold: 4, stock: 2460 },
+      { id: "q7", spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 8900 },
+      { id: "q8", spec: "16x175", type: "จักรยาน", mold: 2, stock: 2040 },
+      { id: "q9", spec: "26*138", type: "จักรยาน", mold: 3, stock: 3470 },
+      { id: "q10", spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 4440 },
+      { id: "q11", spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 500 },
+      { id: "q12", spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600 },
+      { id: "q13", spec: "200-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0 },
+      { id: "q14", spec: "200-17 M", type: "มอเตอร์ไซค์", mold: 0, stock: 0 },
+      { id: "q15", spec: "225/250-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0 }
+    ];
+
+    let extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
     try {
-      const savedExt = localStorage.getItem(EXTRUSION_STORAGE_KEY);
-      if (savedExt) extrusionRecords = JSON.parse(savedExt);
+      const savedQ = localStorage.getItem(EXTRUSION_QUEUE_STORAGE_KEY);
+      if (savedQ) {
+        const parsedQ = JSON.parse(savedQ);
+        if (Array.isArray(parsedQ) && parsedQ.length) extrusionQueueItems = parsedQ;
+      }
     } catch (_) {}
     let allSheetRows = [];
 
@@ -812,8 +823,8 @@
         renderPackingTable();
       } else if (isExtrusion) {
         $("pageHeaderTitle").textContent = "หมวดรีดยาง (Extrusion)";
-        $("pageHeaderSub").textContent = "ติดตามยอดรีด OK/NG, % Scrap, ความเร็วเครื่อง และเวลาหยุด";
-        renderExtrusionTable();
+        $("pageHeaderSub").textContent = "วางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Queue Planning)";
+        renderExtrusionQueue();
       } else {
         $("pageHeaderTitle").textContent = "หมวด OEE (การผลิต & เครื่องจักร)";
         $("pageHeaderSub").textContent = "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ";
@@ -882,8 +893,9 @@
       box.textContent = text;
     }
 
-    function showExtMsg(text, ok = true) {
-      const box = $("extMsgBox");
+    function showEqMsg(text, ok = true) {
+      const box = $("eqMsgBox");
+      if (!box) return;
       box.className = "msg " + (ok ? "ok" : "err");
       box.textContent = text;
     }
@@ -924,16 +936,14 @@
       if (user === "shiftB") {
         $("batchShift").value = "กะ B";
         $("filterShift").value = "กะ B";
-        $("extShiftInput").value = "กะ B";
       } else if (user === "shiftA") {
         $("batchShift").value = "กะ A";
         $("filterShift").value = "กะ A";
-        $("extShiftInput").value = "กะ A";
       }
       $("loginSection").classList.add("hidden");
       $("appSection").classList.remove("hidden");
       renderPackingTable();
-      renderExtrusionTable();
+      renderExtrusionQueue();
     }
 
     $("loginForm").addEventListener("submit", (e) => {
@@ -1201,149 +1211,220 @@
       URL.revokeObjectURL(url);
     }
 
-    function clearExtrusionForm() {
-      $("extMachineInput").value = "";
-      $("extSpecInput").value = "";
-      $("extOkInput").value = "0";
-      $("extNgInput").value = "0";
-      $("extSpeedInput").value = "0";
-      $("extDowntimeInput").value = "0";
-      $("extRemarkInput").value = "";
-      $("extMsgBox").className = "msg";
+    function saveExtrusionQueue() {
+      try { localStorage.setItem(EXTRUSION_QUEUE_STORAGE_KEY, JSON.stringify(extrusionQueueItems)); } catch (_) {}
     }
 
-    function renderExtrusionTable() {
-      const sf = $("extShiftFilter") ? $("extShiftFilter").value : "ALL";
-      const lf = $("extLineFilter") ? $("extLineFilter").value.trim().toUpperCase() : "";
+    function resetExtrusionQueueDefault() {
+      extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
+      saveExtrusionQueue();
+      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการตามชีต Extdtion เรียบร้อยครับ", true);
+      renderExtrusionQueue();
+    }
 
-      const filtered = extrusionRecords.filter((r) => {
-        const matchShift = sf === "ALL" || r.shift === sf;
-        const matchLine = !lf ||
-          String(r.machine || "").toUpperCase().includes(lf) ||
-          String(r.spec || "").toUpperCase().includes(lf);
-        return matchShift && matchLine;
+    function addExtrusionQueueItem() {
+      const spec = ($("eqNewSpec")?.value || "").trim();
+      const type = $("eqNewType")?.value || "มอเตอร์ไซค์";
+      const mold = Math.max(0, Math.floor(toNum($("eqNewMold")?.value, 0)));
+      const stock = Math.max(0, toNum($("eqNewStock")?.value, 0));
+      if (!spec) return showEqMsg("กรุณากรอกขนาด / เบอร์ยางก่อนเพิ่มรายการครับ", false);
+
+      extrusionQueueItems.push({
+        id: "q_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        spec,
+        type,
+        mold,
+        stock
+      });
+      saveExtrusionQueue();
+      $("eqNewSpec").value = "";
+      $("eqNewMold").value = "0";
+      $("eqNewStock").value = "0";
+      showEqMsg(`เพิ่มรายการ "${spec}" เข้าคิวการผลิตเรียบร้อยครับ`, true);
+      renderExtrusionQueue();
+    }
+
+    function updateQueueRowField(id, field, rawVal) {
+      const item = extrusionQueueItems.find((x) => x.id === id);
+      if (!item) return;
+      if (field === "mold") item.mold = Math.max(0, Math.floor(toNum(rawVal, 0)));
+      if (field === "stock") item.stock = Math.max(0, toNum(rawVal, 0));
+      saveExtrusionQueue();
+      renderExtrusionQueue();
+    }
+
+    function computeExtrusionQueuePlan() {
+      const ratePerMold = Math.max(1, toNum($("eqRatePerMold")?.value, 300));
+      const dailyCap = Math.max(0, toNum($("eqDailyCap")?.value, 12000));
+      const targetDays = Math.max(0, toNum($("eqTargetDays")?.value, 3));
+
+      const rows = extrusionQueueItems.map((it, idx) => {
+        const mold = Math.max(0, toNum(it.mold, 0));
+        const stock = Math.max(0, toNum(it.stock, 0));
+        const dailyUsage = mold > 0 ? mold * ratePerMold : 0;
+        const daysCover = dailyUsage > 0 ? stock / dailyUsage : 999;
+        const targetStock = dailyUsage * targetDays;
+        const netNeeded = Math.max(0, targetStock - stock);
+        return {
+          ...it,
+          origIdx: idx,
+          mold,
+          stock,
+          dailyUsage,
+          daysCover,
+          targetStock,
+          netNeeded,
+          queueNo: null,
+          todayOrder: 0,
+          carryover: 0,
+          statusCode: "ENOUGH",
+          statusText: "สต็อกเพียงพอ",
+          badgeClass: "badge-ok"
+        };
       });
 
-      let totalOk = 0, totalNg = 0, totalSpeed = 0, speedCount = 0, totalDt = 0;
-      filtered.forEach((r) => {
-        totalOk += toNum(r.ok);
-        totalNg += toNum(r.ng);
-        totalDt += toNum(r.downtime);
-        if (toNum(r.speed) > 0) {
-          totalSpeed += toNum(r.speed);
-          speedCount++;
+      const eligible = rows
+        .filter((r) => r.mold > 0 && r.netNeeded > 0)
+        .sort((a, b) => {
+          if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
+          if (b.netNeeded !== a.netNeeded) return b.netNeeded - a.netNeeded;
+          return a.origIdx - b.origIdx;
+        });
+
+      let remainingCap = dailyCap;
+      let rankCounter = 0;
+      let prevKey = null;
+
+      eligible.forEach((r) => {
+        const key = `${r.daysCover.toFixed(6)}|${r.netNeeded}`;
+        if (key !== prevKey) {
+          rankCounter += 1;
+          prevKey = key;
+        }
+        r.queueNo = rankCounter;
+
+        const allocated = Math.max(0, Math.min(r.netNeeded, remainingCap));
+        r.todayOrder = allocated;
+        r.carryover = Math.max(0, r.netNeeded - allocated);
+        remainingCap = Math.max(0, remainingCap - allocated);
+      });
+
+      const allSortedForRank = rows
+        .filter((r) => r.mold > 0)
+        .sort((a, b) => {
+          if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
+          if (b.netNeeded !== a.netNeeded) return b.netNeeded - a.netNeeded;
+          return a.origIdx - b.origIdx;
+        });
+
+      let nextRank = rankCounter;
+      allSortedForRank.forEach((r) => {
+        if (r.queueNo === null) {
+          nextRank += 1;
+          r.queueNo = nextRank;
         }
       });
 
-      const totalOut = totalOk + totalNg;
-      const scrapPct = totalOut > 0 ? ((totalNg / totalOut) * 100).toFixed(1) + "%" : "0.0%";
-      const avgSpeed = speedCount > 0 ? (totalSpeed / speedCount).toFixed(1) : "0.0";
+      rows.forEach((r) => {
+        if (r.mold <= 0) {
+          r.statusCode = "HOLD_NO_MOLD";
+          r.statusText = "พักคิว (ไม่มีพิมพ์)";
+          r.badgeClass = "badge-low";
+          r.todayOrder = 0;
+          r.carryover = 0;
+        } else if (r.todayOrder > 0) {
+          r.statusCode = "TODAY";
+          r.statusText = r.stock === 0 ? "สต็อก 0 / รีดด่วน" : "สั่งผลิตวันนี้";
+          r.badgeClass = "badge-planned";
+        } else if (r.netNeeded > 0 && r.carryover > 0) {
+          r.statusCode = "CARRYOVER";
+          r.statusText = "สต็อกเพียงพอ";
+          r.badgeClass = "badge-ok";
+        } else {
+          r.statusCode = "ENOUGH";
+          r.statusText = "สต็อกเพียงพอ";
+          r.badgeClass = "badge-ok";
+          r.todayOrder = 0;
+          r.carryover = 0;
+        }
+      });
 
-      $("extTotalOkVal").textContent = `${totalOk.toLocaleString()} เส้น`;
-      $("extTotalOkSub").textContent = `NG รวม ${totalNg.toLocaleString()} เส้น`;
-      $("extScrapRateVal").textContent = scrapPct;
-      $("extScrapRateSub").textContent = `ยอดรวม ${totalOut.toLocaleString()} เส้น`;
-      $("extAvgSpeedVal").textContent = avgSpeed;
-      $("extDowntimeSub").textContent = `หยุดเครื่องรวม ${totalDt.toLocaleString()} นาที`;
-      $("extCountVal").textContent = filtered.length.toLocaleString();
-
-      const rowsDesc = [...filtered].reverse();
-      $("extrusionTableBody").innerHTML = rowsDesc.length
-        ? rowsDesc.map((r) => {
-            const ok = toNum(r.ok);
-            const ng = toNum(r.ng);
-            const sum = ok + ng;
-            const rate = sum > 0 ? ((ng / sum) * 100).toFixed(1) + "%" : "0.0%";
-            const badgeClass = ng === 0 ? "badge-ok" : "badge-low";
-            return `<tr>
-              <td>${esc(r.date)}</td>
-              <td>${esc(r.shift)}</td>
-              <td><strong>${esc(r.machine)}</strong></td>
-              <td>${esc(r.spec || "-")}</td>
-              <td>${ok.toLocaleString()}</td>
-              <td>${ng.toLocaleString()}</td>
-              <td><span class="${badgeClass}">${rate}</span></td>
-              <td>${toNum(r.speed).toFixed(1)}</td>
-              <td>${toNum(r.downtime)}</td>
-              <td>${esc(r.remark || "-")}</td>
-            </tr>`;
-          }).join("")
-        : '<tr><td colspan="10" style="color:var(--muted);">ยังไม่มีข้อมูลหมวดรีดยางตามเงื่อนไขที่เลือก</td></tr>';
+      return { rows, eligibleCount: eligible.length, todayOrderCount: rows.filter((r) => r.todayOrder > 0).length };
     }
 
-    async function addExtrusionRow() {
-      const date = $("extDateInput").value || "2026-11-23";
-      const shift = $("extShiftInput").value;
-      const machine = $("extMachineInput").value.trim().toUpperCase();
-      const spec = $("extSpecInput").value.trim();
-      const ok = Math.max(0, toNum($("extOkInput").value));
-      const ng = Math.max(0, toNum($("extNgInput").value));
-      const speed = Math.max(0, toNum($("extSpeedInput").value));
-      const downtime = Math.max(0, toNum($("extDowntimeInput").value));
-      const remark = $("extRemarkInput").value.trim();
-      const user = ($("currentUserLabel") && $("currentUserLabel").textContent) || "unknown";
+    function renderExtrusionQueue() {
+      const tbody = $("extrusionQueueBody");
+      if (!tbody) return;
+      const plan = computeExtrusionQueuePlan();
+      const statusFilter = $("eqStatusFilter")?.value || "ALL";
 
-      if (!machine) {
-        return showExtMsg("กรุณากรอกรหัสเครื่องรีด (เช่น EXT-1) ก่อนบันทึกครับ", false);
-      }
+      const totalStock = plan.rows.reduce((a, b) => a + b.stock, 0);
+      const totalMold = plan.rows.reduce((a, b) => a + b.mold, 0);
+      const totalNeeded = plan.rows.reduce((a, b) => a + b.netNeeded, 0);
+      const totalUsage = plan.rows.reduce((a, b) => a + b.dailyUsage, 0);
+      const totalToday = plan.rows.reduce((a, b) => a + b.todayOrder, 0);
+      const totalCarry = plan.rows.reduce((a, b) => a + b.carryover, 0);
 
-      const item = {
-        timestamp: new Date().toISOString(),
-        date,
-        shift,
-        machine,
-        spec,
-        ok,
-        ng,
-        speed,
-        downtime,
-        remark,
-        user
-      };
+      if ($("eqTotalStockVal")) $("eqTotalStockVal").textContent = totalStock.toLocaleString();
+      if ($("eqTotalStockSub")) $("eqTotalStockSub").textContent = `แม่พิมพ์รวม ${totalMold.toLocaleString()} พิมพ์`;
+      if ($("eqTotalNeededVal")) $("eqTotalNeededVal").textContent = totalNeeded.toLocaleString();
+      if ($("eqTotalNeededSub")) $("eqTotalNeededSub").textContent = `ใช้ต่อวันรวม ${totalUsage.toLocaleString()} เส้น`;
+      if ($("eqTodayOrderVal")) $("eqTodayOrderVal").textContent = totalToday.toLocaleString();
+      if ($("eqTodayOrderSub")) $("eqTodayOrderSub").textContent = `จัดคิวแล้ว ${plan.todayOrderCount} รายการสั่งผลิตวันนี้`;
+      if ($("eqCarryoverVal")) $("eqCarryoverVal").textContent = totalCarry.toLocaleString();
+      if ($("eqCarryoverSub")) $("eqCarryoverSub").textContent = `ส่วนเกินจากเพดานรายวัน`;
 
-      extrusionRecords.push(item);
-      try { localStorage.setItem(EXTRUSION_STORAGE_KEY, JSON.stringify(extrusionRecords)); } catch (_) {}
-      renderExtrusionTable();
+      const filtered = plan.rows.filter((r) => {
+        if (statusFilter === "TODAY") return r.todayOrder > 0;
+        if (statusFilter === "CARRYOVER") return r.carryover > 0;
+        if (statusFilter === "ENOUGH") return r.statusCode === "ENOUGH" || r.statusCode === "CARRYOVER";
+        if (statusFilter === "HOLD_NO_MOLD") return r.statusCode === "HOLD_NO_MOLD";
+        return true;
+      });
 
-      $("saveExtrusionBtn").disabled = true;
-      try {
-        await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "extrusionInsert", records: [item] })
-        });
-        showExtMsg(`บันทึกข้อมูลเครื่องรีด ${machine} เรียบร้อยแล้วครับ`, true);
-      } catch (_) {
-        showExtMsg(`บันทึกในเครื่องเรียบร้อยแล้วครับ (ยังไม่ได้ส่งขึ้นชีตหรือรอตั้งค่า action ใน Apps Script)`, true);
-      } finally {
-        $("saveExtrusionBtn").disabled = false;
-      }
-
-      clearExtrusionForm();
+      tbody.innerHTML = filtered.length
+        ? filtered.map((r) => `<tr>
+            <td><strong>${esc(r.spec)}</strong></td>
+            <td>${esc(r.type)}</td>
+            <td><input type="number" min="0" step="1" value="${r.mold}" style="width:68px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'mold', this.value)" /></td>
+            <td><input type="number" min="0" step="1" value="${r.stock}" style="width:88px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'stock', this.value)" /></td>
+            <td>${r.dailyUsage.toLocaleString()}</td>
+            <td>${r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2)}</td>
+            <td>${r.targetStock.toLocaleString()}</td>
+            <td>${r.netNeeded.toLocaleString()}</td>
+            <td><strong>${r.todayOrder.toLocaleString()}</strong></td>
+            <td>${r.carryover > 0 ? `<span class="badge-low">${r.carryover.toLocaleString()}</span>` : "0"}</td>
+            <td>${r.queueNo ? `<strong>#${r.queueNo}</strong>` : "-"}</td>
+            <td><span class="${r.badgeClass}">${esc(r.statusText)}</span></td>
+          </tr>`).join("")
+        : '<tr><td colspan="12" style="color:var(--muted);">ไม่พบรายการคิวการผลิตตามตัวกรองที่เลือก</td></tr>';
     }
 
-    function exportExtrusionCsv() {
-      const headers = ["Date", "Shift", "Machine_ID", "Spec", "OK_Qty", "NG_Qty", "Speed", "Downtime_Min", "Remark", "User"];
+    function exportExtrusionQueueCsv() {
+      const plan = computeExtrusionQueuePlan();
+      const headers = ["Spec", "Type", "Mold", "Current_Stock", "Daily_Usage", "Days_Cover", "Target_Stock", "Net_Needed", "Today_Order", "Carryover", "Queue_No", "Status"];
       const lines = [headers.join(",")];
-      extrusionRecords.forEach((r) => {
+      plan.rows.forEach((r) => {
         lines.push([
-          r.date || "",
-          r.shift || "",
-          `"${String(r.machine || "").replace(/"/g, '""')}"`,
           `"${String(r.spec || "").replace(/"/g, '""')}"`,
-          toNum(r.ok),
-          toNum(r.ng),
-          toNum(r.speed),
-          toNum(r.downtime),
-          `"${String(r.remark || "").replace(/"/g, '""')}"`,
-          `"${String(r.user || "").replace(/"/g, '""')}"`
+          `"${String(r.type || "").replace(/"/g, '""')}"`,
+          r.mold,
+          r.stock,
+          r.dailyUsage,
+          r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2),
+          r.targetStock,
+          r.netNeeded,
+          r.todayOrder,
+          r.carryover,
+          r.queueNo || "",
+          `"${String(r.statusText || "").replace(/"/g, '""')}"`
         ].join(","));
       });
       const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "extrusion_log.csv";
+      a.download = "extrusion_queue_plan.csv";
       a.click();
       URL.revokeObjectURL(url);
     }
