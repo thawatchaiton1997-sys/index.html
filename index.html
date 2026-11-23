@@ -469,7 +469,8 @@
               </select>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="secondary" onclick="loadLogs()">ดึงข้อมูลล่าสุดจากชีต</button>
+              <button type="button" class="secondary" id="syncPackingBtn" onclick="syncPackingFromSheet()">ดึงข้อมูลแพ็คกิ่งจากชีต</button>
+              <button type="button" id="savePackingBtn" onclick="savePackingToSheet()">บันทึกแพ็คกิ่งเข้าชีต</button>
               <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button>
             </div>
           </div>
@@ -685,6 +686,7 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
     const USERS = { admin: "1234", shiftA: "1111", shiftB: "2222" };
     const SESSION_KEY = "factorypulse_logged_user";
+    const PACKING_STORAGE_KEY = "factorypulse_packing_v1";
     const EXTRUSION_QUEUE_STORAGE_KEY = "factorypulse_extrusion_queue_v3";
     const ROW_COUNT = 10;
     const MACHINE_GROUPS = {
@@ -712,18 +714,26 @@
       { date: "2026-11-20", dayLabel: "ศุกร์ 20 พ.ย. 2026", dayName: "ศุกร์", cure: 11153, pack: 923, remark: "หยุดซ่อมบำรุงระบบสายพานลำเลียงแพ็คกิ้ง" },
       { date: "2026-11-21", dayLabel: "เสาร์ 21 พ.ย. 2026", dayName: "เสาร์", cure: 10455, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" }
     ];
+
     let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
+    try {
+      const savedPk = localStorage.getItem(PACKING_STORAGE_KEY);
+      if (savedPk) {
+        const parsedPk = JSON.parse(savedPk);
+        if (Array.isArray(parsedPk) && parsedPk.length) packingRecords = parsedPk;
+      }
+    } catch (_) {}
 
     const DEFAULT_EXTRUSION_QUEUE = [
       { id: "q1", spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0, fixedDailyUsage: null },
       { id: "q2", spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
       { id: "q3", spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
       { id: "q4", spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 2090, fixedDailyUsage: null },
-      { id: "q5", spec: "26x195", type: "จักรยาน", mold: 3, stock: 1340, fixedDailyUsage: null },
-      { id: "q6", spec: "24x175", type: "จักรยาน", mold: 4, stock: 2460, fixedDailyUsage: null },
+      { id: "q5", spec: "26x1.95", type: "จักรยาน", mold: 3, stock: 1340, fixedDailyUsage: null },
+      { id: "q6", spec: "24x1.75", type: "จักรยาน", mold: 4, stock: 2460, fixedDailyUsage: null },
       { id: "q7", spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 8900, fixedDailyUsage: null },
-      { id: "q8", spec: "16x175", type: "จักรยาน", mold: 2, stock: 2040, fixedDailyUsage: null },
-      { id: "q9", spec: "26*138", type: "จักรยาน", mold: 3, stock: 3470, fixedDailyUsage: null },
+      { id: "q8", spec: "16x1.75", type: "จักรยาน", mold: 2, stock: 2040, fixedDailyUsage: null },
+      { id: "q9", spec: "26x1.38", type: "จักรยาน", mold: 3, stock: 3470, fixedDailyUsage: null },
       { id: "q10", spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 4440, fixedDailyUsage: null },
       { id: "q11", spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 500, fixedDailyUsage: 500 },
       { id: "q12", spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600, fixedDailyUsage: 600 },
@@ -740,8 +750,10 @@
         if (Array.isArray(parsedQ) && parsedQ.length) extrusionQueueItems = parsedQ;
       }
     } catch (_) {}
+
     let allSheetRows = [];
     let allDowntimeRows = [];
+    let memorySessionUser = "";
 
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -761,6 +773,30 @@
         if (err instanceof SyntaxError) return { raw: text };
         throw err;
       }
+    }
+
+    function readStoredUser() {
+      try {
+        const s = sessionStorage.getItem(SESSION_KEY);
+        if (s && USERS[s]) return s;
+      } catch (_) {}
+      try {
+        const l = localStorage.getItem(SESSION_KEY);
+        if (l && USERS[l]) return l;
+      } catch (_) {}
+      return USERS[memorySessionUser] ? memorySessionUser : "";
+    }
+
+    function writeStoredUser(u) {
+      memorySessionUser = u || "";
+      try {
+        if (u) sessionStorage.setItem(SESSION_KEY, u);
+        else sessionStorage.removeItem(SESSION_KEY);
+      } catch (_) {}
+      try {
+        if (u) localStorage.setItem(SESSION_KEY, u);
+        else localStorage.removeItem(SESSION_KEY);
+      } catch (_) {}
     }
 
     function formatThaiDayLabel(dateStr) {
@@ -927,10 +963,11 @@
     $("loginForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const u = $("loginUser").value.trim();
-      const p = $("loginPass").value.trim();
+      const p = $("loginPass").value;
       if (USERS[u] && USERS[u] === p) {
-        try { sessionStorage.setItem(SESSION_KEY, u); } catch (_) {}
+        writeStoredUser(u);
         $("loginMsg").className = "msg";
+        $("loginMsg").textContent = "";
         showApp(u);
         loadLogs();
       } else {
@@ -940,7 +977,7 @@
     });
 
     $("logoutBtn").addEventListener("click", () => {
-      try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+      writeStoredUser("");
       toggleSidebar(false);
       $("appSection").classList.add("hidden");
       $("loginSection").classList.remove("hidden");
@@ -1121,6 +1158,10 @@
       renderDowntimeTrackerSection(allDowntimeRows);
     }
 
+    function savePackingLocal() {
+      try { localStorage.setItem(PACKING_STORAGE_KEY, JSON.stringify(packingRecords)); } catch (_) {}
+    }
+
     function getPackingStatusLabel(row) {
       const hasCure = typeof row.cure === "number" && !Number.isNaN(row.cure);
       const hasPack = typeof row.pack === "number" && !Number.isNaN(row.pack);
@@ -1195,9 +1236,79 @@
         date: dateStr, dayLabel, dayName, cure: cureNum, pack: packNum,
         remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
       });
+      savePackingLocal();
       $("pkCureInput").value = ""; $("pkPackInput").value = ""; $("pkRemarkInput").value = "";
-      showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ`, true);
+      showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ (กด "บันทึกแพ็คกิ่งเข้าชีต" เพื่อส่งเข้า Google Sheets)`, true);
       renderPackingTable();
+    }
+
+    async function syncPackingFromSheet() {
+      const btn = $("syncPackingBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SYNCING...";
+      try {
+        const sep = WEB_APP_URL.includes("?") ? "&" : "?";
+        const res = await fetch(`${WEB_APP_URL}${sep}action=packingTubeLine`);
+        const json = await parseAppsScriptResponse(res);
+        const list = Array.isArray(json?.packingRecords) ? json.packingRecords
+          : Array.isArray(json?.records) ? json.records
+          : Array.isArray(json?.data) ? json.data : [];
+
+        if (!list.length) throw new Error("ไม่พบข้อมูลในชีต Packing_Tube_Line");
+
+        packingRecords = list.map((r) => {
+          const dateStr = String(r.date || r.Date || "").trim();
+          const info = formatThaiDayLabel(dateStr);
+          const cureVal = r.cure === "" || r.cure === null || r.cure === undefined ? null : toNum(r.cure, 0);
+          const packVal = r.pack === "" || r.pack === null || r.pack === undefined ? null : toNum(r.pack, 0);
+          return {
+            date: dateStr,
+            dayLabel: r.dayLabel || r.Day_Label || info.dayLabel,
+            dayName: r.dayName || r.Day_Name || info.dayName,
+            cure: cureVal,
+            pack: packVal,
+            remark: String(r.remark || r.Remark || "").trim()
+          };
+        });
+
+        savePackingLocal();
+        renderPackingTable();
+        $("liveStatusText").textContent = "LIVE";
+        showPkMsg(`ดึงข้อมูลแพ็คกิ่งจากชีตสำเร็จ ${packingRecords.length} รายการครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showPkMsg(`ดึงข้อมูลแพ็คกิ่งจากชีตไม่สำเร็จ: ${err.message}`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function savePackingToSheet() {
+      const btn = $("savePackingBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const payload = {
+          action: "savePacking",
+          user: $("currentUserLabel")?.textContent || "unknown",
+          timestamp: new Date().toISOString(),
+          records: packingRecords
+        };
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        await parseAppsScriptResponse(res);
+        savePackingLocal();
+        $("liveStatusText").textContent = "LIVE";
+        showPkMsg(`บันทึกข้อมูลหมวดแพ็คกิ่ง ${packingRecords.length} รายการเข้า Google Sheets เรียบร้อยครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showPkMsg(`บันทึกข้อมูลแพ็คกิ่งเข้าชีตไม่สำเร็จ: ${err.message}`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function exportPackingCsv() {
@@ -1228,7 +1339,7 @@
       if ($("eqDailyCap")) $("eqDailyCap").value = "12000";
       if ($("eqTargetDays")) $("eqTargetDays").value = "3";
       saveExtrusionQueue();
-      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการตามชีต Extudtion เรียบร้อยครับ", true);
+      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการเรียบร้อยครับ", true);
       renderExtrusionQueue();
     }
 
@@ -1322,7 +1433,7 @@
 
         const parsed = mapSheetQueueRows(candidate);
         if (!parsed.length) {
-          throw new Error("ชีตยังไม่ส่งข้อมูลรายการคิวรีดยางกลับมา (ตรวจสอบ action=extrusionQueue ใน Apps Script)");
+          throw new Error("ชีตยังไม่ส่งข้อมูลรายการคิวรีดยางกลับมา");
         }
 
         extrusionQueueItems = parsed;
@@ -1629,10 +1740,11 @@
       }
     });
 
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved && USERS[saved]) { showApp(saved); loadLogs(); }
-    } catch (_) {}
+    const initialUser = readStoredUser();
+    if (initialUser) {
+      showApp(initialUser);
+      loadLogs();
+    }
   </script>
 </body>
 </html>
