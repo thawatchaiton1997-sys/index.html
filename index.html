@@ -10,8 +10,8 @@
       --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
       --hero: linear-gradient(135deg, #27488a 0%, #3560b8 100%);
       --text: #f8fafc; --muted: #93a4c3; --accent: #38bdf8;
-      --accent-green: #22c55e; --danger: #ef4444; --border: rgba(148, 163, 184, 0.18);
-      --sidebar-w: 260px;
+      --accent-green: #22c55e; --danger: #ef4444; --warn: #f59e0b;
+      --border: rgba(148, 163, 184, 0.18); --sidebar-w: 260px;
     }
     * { box-sizing: border-box; }
     body {
@@ -34,149 +34,54 @@
     }
 
     /* App Layout with Left Sidebar */
-    .app-layout {
-      display: flex;
-      min-height: 100vh;
-    }
+    .app-layout { display: flex; min-height: 100vh; }
     .sidebar {
-      width: var(--sidebar-w);
-      background: rgba(13, 23, 48, 0.96);
-      border-right: 1px solid var(--border);
-      padding: 18px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      flex-shrink: 0;
-      z-index: 40;
+      width: var(--sidebar-w); background: rgba(13, 23, 48, 0.96);
+      border-right: 1px solid var(--border); padding: 18px 14px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      position: sticky; top: 0; height: 100vh; flex-shrink: 0; z-index: 40;
       transition: transform 0.25s ease;
     }
-    .sidebar-brand {
-      padding: 4px 8px 14px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 14px;
-    }
-    .sidebar-logo {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .sidebar-brand { padding: 4px 8px 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .sidebar-logo { font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .logo-badge {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: var(--hero);
+      width: 28px; height: 28px; border-radius: 8px; background: var(--hero);
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; font-weight: 800; color: #fff;
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      font-size: 0.85rem; font-weight: 800; color: #fff; border: 1px solid rgba(56, 189, 248, 0.4);
     }
-    .sidebar-sub {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    .sidebar-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
     .nav-group-label {
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 700;
-      padding: 6px 10px;
-      margin-top: 4px;
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); font-weight: 700; padding: 6px 10px; margin-top: 4px;
     }
-    .nav-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .nav-list { display: flex; flex-direction: column; gap: 6px; }
     .nav-item {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-align: left;
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-weight: 600;
-      font-size: 0.86rem;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+      background: transparent; color: var(--muted); border: 1px solid transparent;
+      border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 0.86rem;
+      cursor: pointer; transition: all 0.15s ease;
     }
-    .nav-item:hover {
-      background: rgba(56, 189, 248, 0.08);
-      color: var(--text);
-    }
+    .nav-item:hover { background: rgba(56, 189, 248, 0.08); color: var(--text); }
     .nav-item.active {
-      background: var(--hero);
-      color: var(--text);
-      border-color: rgba(56, 189, 248, 0.45);
+      background: var(--hero); color: var(--text); border-color: rgba(56, 189, 248, 0.45);
       box-shadow: 0 4px 14px rgba(15, 23, 42, 0.45);
     }
-    .nav-icon {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .nav-text {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.25;
-    }
-    .nav-desc {
-      font-size: 0.7rem;
-      font-weight: 400;
-      opacity: 0.8;
-    }
-    .sidebar-footer {
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .sidebar-user-card {
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.82rem;
-    }
-    .sidebar-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.65);
-      z-index: 35;
-    }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-text { display: flex; flex-direction: column; line-height: 1.25; }
+    .nav-desc { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+    .sidebar-footer { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .sidebar-user-card { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; }
+    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.65); z-index: 35; }
     .sidebar-backdrop.show { display: block; }
 
-    .main-area {
-      flex: 1;
-      min-width: 0;
-      padding: 16px 20px;
-    }
-    .container { max-width: 1240px; margin: 0 auto; }
+    .main-area { flex: 1; min-width: 0; padding: 16px 20px; }
+    .container { max-width: 1280px; margin: 0 auto; }
 
-    .topbar {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
-    }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
     .topbar-left { display: flex; align-items: center; gap: 10px; }
     .menu-toggle-btn {
-      display: none;
-      background: var(--panel);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 8px 11px;
-      border-radius: 10px;
-      font-size: 1rem;
+      display: none; background: var(--panel); color: var(--text);
+      border: 1px solid var(--border); padding: 8px 11px; border-radius: 10px; font-size: 1rem;
     }
     .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
     .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
@@ -188,19 +93,9 @@
     .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
 
     @media (max-width: 920px) {
-      .sidebar {
-        position: fixed;
-        left: 0; top: 0; bottom: 0;
-        transform: translateX(-100%);
-      }
-      .sidebar.open {
-        transform: translateX(0);
-      }
-      .menu-toggle-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .menu-toggle-btn { display: inline-flex; align-items: center; justify-content: center; }
       .main-area { padding: 14px; }
     }
 
@@ -268,17 +163,28 @@
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
     th { color: var(--muted); font-weight: 600; }
+    tfoot tr.total-row td {
+      background: rgba(56, 189, 248, 0.08);
+      border-top: 2px solid rgba(56, 189, 248, 0.35);
+      border-bottom: none;
+      font-weight: 700;
+      color: var(--text);
+    }
     .badge-planned {
-      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
-      background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.4); color: #fcd34d;
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d;
     }
     .badge-ok {
-      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
-      background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac;
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(34, 197, 94, 0.16); border: 1px solid rgba(34, 197, 94, 0.45); color: #86efac;
     }
     .badge-low {
-      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 0.75rem;
-      background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.45); color: #fca5a5;
+    }
+    .badge-hold {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(148, 163, 184, 0.18); border: 1px solid rgba(148, 163, 184, 0.45); color: #cbd5e1;
     }
     .table-wrap { overflow-x: auto; }
     .hidden { display: none !important; }
@@ -383,6 +289,7 @@
           </div>
         </div>
 
+        <!-- OEE TAB -->
         <div id="oeeTabContent">
           <div class="filter-bar">
             <div class="filter-item">
@@ -486,6 +393,7 @@
           </div>
         </div>
 
+        <!-- PACKING TAB -->
         <div id="packingTabContent" class="hidden">
           <div class="filter-bar">
             <div class="filter-item">
@@ -605,14 +513,17 @@
           </div>
         </div>
 
+        <!-- EXTRUSION QUEUE & STOCK TAB -->
         <div id="extrusionTabContent" class="hidden">
           <div class="card" id="extrusionQueueCard">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
-                <h2 style="font-size: 1.1rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
+                <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
                 <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Production Queue Management)</div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="secondary small" id="syncExtrusionBtn" onclick="syncExtrusionFromSheet()">ดึงสต็อก/คิวจากชีต</button>
+                <button type="button" class="small" id="saveExtrusionBtn" onclick="saveExtrusionQueueToSheet()">บันทึกคิว/สต็อกเข้าชีต</button>
                 <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น (15 รายการ)</button>
                 <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
               </div>
@@ -624,7 +535,7 @@
                 <input id="eqRatePerMold" type="number" min="1" step="1" value="300" oninput="renderExtrusionQueue()" />
               </div>
               <div>
-                <label for="eqDailyCap">ข้อจำกัดกำลังผลิตสูงสุด/วัน (เส้น/วัน)</label>
+                <label for="eqDailyCap">ขีดจำกัดรีดสูงสุด/วัน (เส้น/วัน)</label>
                 <input id="eqDailyCap" type="number" min="1" step="10" value="12000" oninput="renderExtrusionQueue()" />
               </div>
               <div>
@@ -634,9 +545,9 @@
               <div>
                 <label for="eqStatusFilter">กรองสถานะการผลิต / คิว</label>
                 <select id="eqStatusFilter" onchange="renderExtrusionQueue()">
-                  <option value="ALL">ทั้งหมด (15 รายการ)</option>
-                  <option value="TODAY">สั่งผลิตวันนี้ (มีคิว & ส่งผลิตวันนี้ > 0)</option>
-                  <option value="CARRYOVER">ยกไปพรุ่งนี้ / ค้างส่ง</option>
+                  <option value="ALL">ทั้งหมด (ทุกแถว)</option>
+                  <option value="TODAY">สั่งผลิตวันนี้ (สั่งผลิตวันนี้ > 0)</option>
+                  <option value="CARRYOVER">มียอดค้างยกไปพรุ่งนี้</option>
                   <option value="ENOUGH">สต็อกเพียงพอ</option>
                   <option value="HOLD_NO_MOLD">พักคิว (ไม่มีพิมพ์)</option>
                 </select>
@@ -655,9 +566,9 @@
                 <div class="metric-sub" id="eqTotalNeededSub">ใช้ต่อวันรวม 11,100 เส้น</div>
               </div>
               <div class="metric-card">
-                <div class="metric-title">ส่งผลิตวันนี้ (Today's Extrusion Cap)</div>
+                <div class="metric-title">สั่งผลิตวันนี้ (Today's Extrusion Cap)</div>
                 <div class="metric-val" id="eqTodayOrderVal">12,000</div>
-                <div class="metric-sub" id="eqTodayOrderSub">จัดคิวแล้ว 6 รายการสั่งผลิตวันนี้</div>
+                <div class="metric-sub" id="eqTodayOrderSub">6 รายการสั่งผลิตวันนี้</div>
               </div>
               <div class="metric-card">
                 <div class="metric-title">ค้างยกไปพรุ่งนี้ (Tomorrow Carryover)</div>
@@ -705,13 +616,14 @@
                     <th>สต็อกอยู่ได้ (วัน) (Days Cover)</th>
                     <th>เป้าหมายสต็อก (Target Stock)</th>
                     <th>ยอดขาดตามแผน (Net Needed)</th>
-                    <th>ส่งผลิตวันนี้ (Today Order)</th>
+                    <th>สั่งผลิตวันนี้ (Today Order)</th>
                     <th>ยกไปพรุ่งนี้ (Carryover)</th>
                     <th>ลำดับคิว (Queue)</th>
                     <th>สถานะการผลิต (Production Status)</th>
                   </tr>
                 </thead>
                 <tbody id="extrusionQueueBody"></tbody>
+                <tfoot id="extrusionQueueFoot"></tfoot>
               </table>
             </div>
           </div>
@@ -724,7 +636,7 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
     const USERS = { admin: "1234", shiftA: "1111", shiftB: "2222" };
     const SESSION_KEY = "factorypulse_logged_user";
-    const EXTRUSION_QUEUE_STORAGE_KEY = "factorypulse_extrusion_queue_v2";
+    const EXTRUSION_QUEUE_STORAGE_KEY = "factorypulse_extrusion_queue_v3";
     const ROW_COUNT = 10;
     const MACHINE_GROUPS = {
       BE: Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -754,21 +666,21 @@
     let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
 
     const DEFAULT_EXTRUSION_QUEUE = [
-      { id: "q1", spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0 },
-      { id: "q2", spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0 },
-      { id: "q3", spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0 },
-      { id: "q4", spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 2090 },
-      { id: "q5", spec: "26x195", type: "จักรยาน", mold: 3, stock: 1340 },
-      { id: "q6", spec: "24x175", type: "จักรยาน", mold: 4, stock: 2460 },
-      { id: "q7", spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 8900 },
-      { id: "q8", spec: "16x175", type: "จักรยาน", mold: 2, stock: 2040 },
-      { id: "q9", spec: "26*138", type: "จักรยาน", mold: 3, stock: 3470 },
-      { id: "q10", spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 4440 },
-      { id: "q11", spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 500 },
-      { id: "q12", spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600 },
-      { id: "q13", spec: "200-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0 },
-      { id: "q14", spec: "200-17 M", type: "มอเตอร์ไซค์", mold: 0, stock: 0 },
-      { id: "q15", spec: "225/250-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0 }
+      { id: "q1", spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0, fixedDailyUsage: null },
+      { id: "q2", spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
+      { id: "q3", spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
+      { id: "q4", spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 2090, fixedDailyUsage: null },
+      { id: "q5", spec: "26x195", type: "จักรยาน", mold: 3, stock: 1340, fixedDailyUsage: null },
+      { id: "q6", spec: "24x175", type: "จักรยาน", mold: 4, stock: 2460, fixedDailyUsage: null },
+      { id: "q7", spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 8900, fixedDailyUsage: null },
+      { id: "q8", spec: "16x175", type: "จักรยาน", mold: 2, stock: 2040, fixedDailyUsage: null },
+      { id: "q9", spec: "26*138", type: "จักรยาน", mold: 3, stock: 3470, fixedDailyUsage: null },
+      { id: "q10", spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 4440, fixedDailyUsage: null },
+      { id: "q11", spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 500, fixedDailyUsage: 500 },
+      { id: "q12", spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600, fixedDailyUsage: 600 },
+      { id: "q13", spec: "200-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 },
+      { id: "q14", spec: "200-17 M", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 },
+      { id: "q15", spec: "225/250-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 }
     ];
 
     let extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
@@ -1000,50 +912,36 @@
     }
 
     function calcRowOEE(r) {
-      const ok = toNum(r.ok, 0);
-      const ng = toNum(r.ng, 0);
-      const totalQty = ok + ng;
+      const ok = toNum(r.ok, 0), ng = toNum(r.ng, 0), totalQty = ok + ng;
       const cycleMin = toNum(r.cycleTime, 3.45) > 0 ? toNum(r.cycleTime, 3.45) : 3.45;
-      const plannedMin = 480;
-      const plannedStopMin = toNum(r.plannedDowntime, 0);
-      const unplannedStopMin = toNum(r.downtime, 0);
-
+      const plannedMin = 480, plannedStopMin = toNum(r.plannedDowntime, 0), unplannedStopMin = toNum(r.downtime, 0);
       const netPlannedMin = Math.max(0, plannedMin - plannedStopMin);
       const runTimeMin = Math.max(0, netPlannedMin - unplannedStopMin);
       const standardTimeMin = totalQty * cycleMin;
-
       const availability = netPlannedMin > 0 ? runTimeMin / netPlannedMin : 0;
       const performance = runTimeMin > 0 ? Math.min(1, standardTimeMin / runTimeMin) : 0;
       const quality = totalQty > 0 ? ok / totalQty : 1;
-      const oee = availability * performance * quality;
-
       return {
         totalQty, netPlannedMin, runTimeMin, standardTimeMin,
-        availabilityPct: availability * 100,
-        performancePct: performance * 100,
-        qualityPct: quality * 100,
-        oeePct: oee * 100
+        availabilityPct: availability * 100, performancePct: performance * 100,
+        qualityPct: quality * 100, oeePct: availability * performance * quality * 100
       };
     }
 
     function summarizeOEE(records) {
       let ok = 0, ng = 0, dt = 0, pdt = 0, ideal = 0, totalNetPlanned = 0, totalRun = 0;
       const mcs = new Set();
-
       records.forEach((r) => {
         const c = calcRowOEE(r);
         ok += r.ok; ng += r.ng; dt += r.downtime; pdt += r.plannedDowntime;
         ideal += c.standardTimeMin; totalNetPlanned += c.netPlannedMin; totalRun += c.runTimeMin;
         if (r.machine) mcs.add(r.machine);
       });
-
       const out = ok + ng;
       const avail = totalNetPlanned > 0 ? (totalRun / totalNetPlanned) * 100 : 0;
       const perf = totalRun > 0 ? Math.min(100, (ideal / totalRun) * 100) : 0;
       const qual = out > 0 ? (ok / out) * 100 : 100;
-      const oee = (avail / 100) * (perf / 100) * (qual / 100) * 100;
-
-      return { ok, ng, out, dt, pdt, avail, perf, qual, oee, machineCount: mcs.size };
+      return { ok, ng, out, dt, pdt, avail, perf, qual, oee: (avail / 100) * (perf / 100) * (qual / 100) * 100, machineCount: mcs.size };
     }
 
     function renderDashboard(rows) {
@@ -1051,7 +949,6 @@
       const filtered = rows.map(normRec)
         .filter((r) => r.machine || r.ok > 0 || r.ng > 0 || r.downtime > 0 || r.plannedDowntime > 0)
         .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
-
       const sum = summarizeOEE(filtered);
       const diff = (sum.oee - tgt).toFixed(1);
 
@@ -1093,7 +990,6 @@
     function renderPackingTable() {
       const stFilter = $("packingStatusFilter") ? $("packingStatusFilter").value : "ALL";
       const dayFilter = $("packingDayFilter") ? $("packingDayFilter").value : "ALL";
-
       const filtered = packingRecords.filter((r) => {
         const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
         const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
@@ -1109,21 +1005,13 @@
       $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
         const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
         const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        const diff = (hasCure && hasPack)
-          ? (r.pack - r.cure)
-          : (hasPack ? r.pack : (hasCure ? -r.cure : null));
-        const pct = (hasCure && hasPack && r.cure > 0)
-          ? ((r.pack / r.cure) * 100).toFixed(1) + "%"
-          : (hasCure && !hasPack ? "0.0%" : "-");
+        const diff = (hasCure && hasPack) ? (r.pack - r.cure) : (hasPack ? r.pack : (hasCure ? -r.cure : null));
+        const pct = (hasCure && hasPack && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasCure && !hasPack ? "0.0%" : "-");
         return `<tr>
-          <td>${esc(r.date)}</td>
-          <td>${esc(r.dayLabel)}</td>
-          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td>
-          <td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
+          <td>${esc(r.date)}</td><td>${esc(r.dayLabel)}</td>
+          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td><td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
           <td>${diff !== null ? (diff > 0 ? "+" + diff.toLocaleString() : diff.toLocaleString()) : "-"}</td>
-          <td>${pct}</td>
-          <td>${getPackingStatusLabel(r)}</td>
-          <td>${esc(r.remark || "-")}</td>
+          <td>${pct}</td><td>${getPackingStatusLabel(r)}</td><td>${esc(r.remark || "-")}</td>
         </tr>`;
       }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
 
@@ -1145,41 +1033,22 @@
         const list = packRows.filter((r) => r.dayName === d);
         const sum = list.reduce((a, b) => a + b.pack, 0);
         const avg = list.length ? Math.round(sum / list.length).toLocaleString() : "-";
-        return `<tr>
-          <td>${esc(d)}</td>
-          <td>${list.length}</td>
-          <td>${list.length ? sum.toLocaleString() : "-"}</td>
-          <td>${avg}</td>
-        </tr>`;
+        return `<tr><td>${esc(d)}</td><td>${list.length}</td><td>${list.length ? sum.toLocaleString() : "-"}</td><td>${avg}</td></tr>`;
       }).join("");
     }
 
     function addPackingRow() {
       const dateStr = $("pkDateInput").value || "2026-11-23";
-      const cureRaw = $("pkCureInput").value;
-      const packRaw = $("pkPackInput").value;
-      const remarkRaw = $("pkRemarkInput").value.trim();
-
-      if (cureRaw === "" && packRaw === "") {
-        return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
-      }
-
+      const cureRaw = $("pkCureInput").value, packRaw = $("pkPackInput").value, remarkRaw = $("pkRemarkInput").value.trim();
+      if (cureRaw === "" && packRaw === "") return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
       const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
       const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
       const { dayName, dayLabel } = formatThaiDayLabel(dateStr);
-
       packingRecords.push({
-        date: dateStr,
-        dayLabel,
-        dayName,
-        cure: cureNum,
-        pack: packNum,
+        date: dateStr, dayLabel, dayName, cure: cureNum, pack: packNum,
         remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
       });
-
-      $("pkCureInput").value = "";
-      $("pkPackInput").value = "";
-      $("pkRemarkInput").value = "";
+      $("pkCureInput").value = ""; $("pkPackInput").value = ""; $("pkRemarkInput").value = "";
       showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ`, true);
       renderPackingTable();
     }
@@ -1192,33 +1061,27 @@
         const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
         const diff = (hasC && hasP) ? (r.pack - r.cure) : (hasP ? r.pack : (hasC ? -r.cure : ""));
         const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasC && !hasP ? "0.0%" : "");
-        rows.push([
-          r.date,
-          `"${String(r.dayLabel || "").replace(/"/g, '""')}"`,
-          hasC ? r.cure : "",
-          hasP ? r.pack : "",
-          diff,
-          pct,
-          `"${String(r.remark || "").replace(/"/g, '""')}"`
-        ].join(","));
+        rows.push([r.date, `"${String(r.dayLabel || "").replace(/"/g, '""')}"`, hasC ? r.cure : "", hasP ? r.pack : "", diff, pct, `"${String(r.remark || "").replace(/"/g, '""')}"`].join(","));
       });
       const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = "packing_tube_line_nov_2026.csv";
-      a.click();
+      a.href = url; a.download = "packing_tube_line_nov_2026.csv"; a.click();
       URL.revokeObjectURL(url);
     }
 
+    // --- EXTRUSION QUEUE & STOCK LOGIC ---
     function saveExtrusionQueue() {
       try { localStorage.setItem(EXTRUSION_QUEUE_STORAGE_KEY, JSON.stringify(extrusionQueueItems)); } catch (_) {}
     }
 
     function resetExtrusionQueueDefault() {
       extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
+      if ($("eqRatePerMold")) $("eqRatePerMold").value = "300";
+      if ($("eqDailyCap")) $("eqDailyCap").value = "12000";
+      if ($("eqTargetDays")) $("eqTargetDays").value = "3";
       saveExtrusionQueue();
-      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการตามชีต Extdtion เรียบร้อยครับ", true);
+      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการตามชีต Extudtion เรียบร้อยครับ", true);
       renderExtrusionQueue();
     }
 
@@ -1231,15 +1094,10 @@
 
       extrusionQueueItems.push({
         id: "q_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-        spec,
-        type,
-        mold,
-        stock
+        spec, type, mold, stock, fixedDailyUsage: null
       });
       saveExtrusionQueue();
-      $("eqNewSpec").value = "";
-      $("eqNewMold").value = "0";
-      $("eqNewStock").value = "0";
+      $("eqNewSpec").value = ""; $("eqNewMold").value = "0"; $("eqNewStock").value = "0";
       showEqMsg(`เพิ่มรายการ "${spec}" เข้าคิวการผลิตเรียบร้อยครับ`, true);
       renderExtrusionQueue();
     }
@@ -1247,10 +1105,137 @@
     function updateQueueRowField(id, field, rawVal) {
       const item = extrusionQueueItems.find((x) => x.id === id);
       if (!item) return;
-      if (field === "mold") item.mold = Math.max(0, Math.floor(toNum(rawVal, 0)));
-      if (field === "stock") item.stock = Math.max(0, toNum(rawVal, 0));
+      if (field === "mold") {
+        item.mold = Math.max(0, Math.floor(toNum(rawVal, 0)));
+        if (item.mold > 0) item.fixedDailyUsage = null;
+      }
+      if (field === "stock") {
+        item.stock = Math.max(0, toNum(rawVal, 0));
+      }
       saveExtrusionQueue();
       renderExtrusionQueue();
+    }
+
+    function mapSheetQueueRows(rawList) {
+      if (!Array.isArray(rawList) || !rawList.length) return [];
+      const mapped = [];
+      rawList.forEach((row, idx) => {
+        if (Array.isArray(row)) {
+          const spec = String(row[0] ?? "").trim();
+          const firstCell = spec.toLowerCase();
+          if (!spec || spec.includes("รวมทั้งสิ้น") || firstCell.includes("size") || firstCell.includes("ขนาด")) return;
+          const type = String(row[1] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
+          const mold = Math.max(0, Math.floor(toNum(row[2], 0)));
+          const stock = Math.max(0, toNum(row[3], 0));
+          const dailyCol = row[4] !== undefined && row[4] !== "" ? Math.max(0, toNum(row[4], 0)) : null;
+          mapped.push({
+            id: "sheet_q_" + idx + "_" + spec,
+            spec, type, mold, stock,
+            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
+          });
+        } else if (row && typeof row === "object") {
+          const spec = String(
+            row.spec ?? row.Spec ?? row["ขนาด / เบอร์ยาง"] ?? row["ขนาด/เบอร์ยาง"] ?? row["Size / Spec"] ?? ""
+          ).trim();
+          if (!spec || spec.includes("รวมทั้งสิ้น")) return;
+          const type = String(row.type ?? row.Type ?? row["ประเภท"] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
+          const mold = Math.max(0, Math.floor(toNum(row.mold ?? row.Mold ?? row["จำนวนแม่พิมพ์"] ?? row["แม่พิมพ์"], 0)));
+          const stock = Math.max(0, toNum(row.stock ?? row.Stock ?? row.currentStock ?? row["สต็อกคงเหลือ"] ?? row["สต็อก"], 0));
+          const rawUsage = row.dailyUsage ?? row.Daily_Usage ?? row["ใช้ต่อวัน"];
+          const dailyCol = rawUsage !== undefined && rawUsage !== "" ? Math.max(0, toNum(rawUsage, 0)) : null;
+          mapped.push({
+            id: String(row.id || ("sheet_q_" + idx + "_" + spec)),
+            spec, type, mold, stock,
+            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
+          });
+        }
+      });
+      return mapped;
+    }
+
+    async function syncExtrusionFromSheet() {
+      const btn = $("syncExtrusionBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SYNCING...";
+      try {
+        const sep = WEB_APP_URL.includes("?") ? "&" : "?";
+        const res = await fetch(`${WEB_APP_URL}${sep}action=extrusionQueue`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        const params = json?.params || json?.config || json?.settings || {};
+        if (params.ratePerMold && $("eqRatePerMold")) $("eqRatePerMold").value = toNum(params.ratePerMold, 300);
+        if (params.dailyCap && $("eqDailyCap")) $("eqDailyCap").value = toNum(params.dailyCap, 12000);
+        if (params.targetDays && $("eqTargetDays")) $("eqTargetDays").value = toNum(params.targetDays, 3);
+
+        const candidate = Array.isArray(json?.extrusionQueue) ? json.extrusionQueue
+          : Array.isArray(json?.queue) ? json.queue
+          : Array.isArray(json?.extrusion) ? json.extrusion
+          : Array.isArray(json?.data) ? json.data
+          : Array.isArray(json) ? json : [];
+
+        const parsed = mapSheetQueueRows(candidate);
+        if (!parsed.length) {
+          throw new Error("ชีตยังไม่ส่งข้อมูลรายการคิวรีดยางกลับมา (ตรวจสอบ action=extrusionQueue ใน Apps Script)");
+        }
+
+        extrusionQueueItems = parsed;
+        saveExtrusionQueue();
+        renderExtrusionQueue();
+        $("liveStatusText").textContent = "LIVE";
+        showEqMsg(`ดึงข้อมูลคิวและสต็อกรีดยางจากชีตสำเร็จจำนวน ${parsed.length} รายการครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showEqMsg(`ดึงข้อมูลจากชีตไม่สำเร็จ (${err.message}) — ระบบยังคงใช้ข้อมูลล่าสุดในเครื่องครับ`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function saveExtrusionQueueToSheet() {
+      const btn = $("saveExtrusionBtn");
+      if (btn) btn.disabled = true;
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const plan = computeExtrusionQueuePlan();
+        const payload = {
+          action: "saveExtrusionQueue",
+          user: $("currentUserLabel")?.textContent || "unknown",
+          timestamp: new Date().toISOString(),
+          params: {
+            ratePerMold: toNum($("eqRatePerMold")?.value, 300),
+            dailyCap: toNum($("eqDailyCap")?.value, 12000),
+            targetDays: toNum($("eqTargetDays")?.value, 3)
+          },
+          records: plan.rows.map((r) => ({
+            spec: r.spec,
+            type: r.type,
+            mold: r.mold,
+            stock: r.stock,
+            dailyUsage: r.dailyUsage,
+            daysCover: r.daysCover >= 999 ? 999 : Number(r.daysCover.toFixed(2)),
+            targetStock: r.targetStock,
+            netNeeded: r.netNeeded,
+            todayOrder: r.todayOrder,
+            carryover: r.carryover,
+            queueNo: r.queueNo,
+            status: r.statusText
+          }))
+        };
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        $("liveStatusText").textContent = "LIVE";
+        showEqMsg(`ส่งข้อมูลคิวและสต็อกรีดยาง ${payload.records.length} รายการไปที่ Google Sheets เรียบร้อยครับ`, true);
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showEqMsg(`บันทึกคิวรีดยางเข้าชีตไม่สำเร็จ: ${err.message}`, false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function computeExtrusionQueuePlan() {
@@ -1261,10 +1246,13 @@
       const rows = extrusionQueueItems.map((it, idx) => {
         const mold = Math.max(0, toNum(it.mold, 0));
         const stock = Math.max(0, toNum(it.stock, 0));
-        const dailyUsage = mold > 0 ? mold * ratePerMold : 0;
+        const dailyUsage = mold > 0
+          ? mold * ratePerMold
+          : (typeof it.fixedDailyUsage === "number" && it.fixedDailyUsage > 0 ? it.fixedDailyUsage : 0);
         const daysCover = dailyUsage > 0 ? stock / dailyUsage : 999;
         const targetStock = dailyUsage * targetDays;
         const netNeeded = Math.max(0, targetStock - stock);
+
         return {
           ...it,
           origIdx: idx,
@@ -1283,33 +1271,7 @@
         };
       });
 
-      const eligible = rows
-        .filter((r) => r.mold > 0 && r.netNeeded > 0)
-        .sort((a, b) => {
-          if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
-          if (b.netNeeded !== a.netNeeded) return b.netNeeded - a.netNeeded;
-          return a.origIdx - b.origIdx;
-        });
-
-      let remainingCap = dailyCap;
-      let rankCounter = 0;
-      let prevKey = null;
-
-      eligible.forEach((r) => {
-        const key = `${r.daysCover.toFixed(6)}|${r.netNeeded}`;
-        if (key !== prevKey) {
-          rankCounter += 1;
-          prevKey = key;
-        }
-        r.queueNo = rankCounter;
-
-        const allocated = Math.max(0, Math.min(r.netNeeded, remainingCap));
-        r.todayOrder = allocated;
-        r.carryover = Math.max(0, r.netNeeded - allocated);
-        remainingCap = Math.max(0, remainingCap - allocated);
-      });
-
-      const allSortedForRank = rows
+      const moldRowsSorted = rows
         .filter((r) => r.mold > 0)
         .sort((a, b) => {
           if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
@@ -1317,29 +1279,38 @@
           return a.origIdx - b.origIdx;
         });
 
-      let nextRank = rankCounter;
-      allSortedForRank.forEach((r) => {
-        if (r.queueNo === null) {
-          nextRank += 1;
-          r.queueNo = nextRank;
+      let rankCounter = 0;
+      let prevKey = null;
+      moldRowsSorted.forEach((r) => {
+        const key = `${r.daysCover.toFixed(6)}|${r.netNeeded}`;
+        if (key !== prevKey) {
+          rankCounter += 1;
+          prevKey = key;
         }
+        r.queueNo = rankCounter;
       });
+
+      let remainingCap = dailyCap;
+      moldRowsSorted
+        .filter((r) => r.netNeeded > 0)
+        .forEach((r) => {
+          const allocated = Math.max(0, Math.min(r.netNeeded, remainingCap));
+          r.todayOrder = allocated;
+          r.carryover = Math.max(0, r.netNeeded - allocated);
+          remainingCap = Math.max(0, remainingCap - allocated);
+        });
 
       rows.forEach((r) => {
         if (r.mold <= 0) {
           r.statusCode = "HOLD_NO_MOLD";
           r.statusText = "พักคิว (ไม่มีพิมพ์)";
-          r.badgeClass = "badge-low";
+          r.badgeClass = "badge-hold";
           r.todayOrder = 0;
           r.carryover = 0;
         } else if (r.todayOrder > 0) {
           r.statusCode = "TODAY";
           r.statusText = r.stock === 0 ? "สต็อก 0 / รีดด่วน" : "สั่งผลิตวันนี้";
-          r.badgeClass = "badge-planned";
-        } else if (r.netNeeded > 0 && r.carryover > 0) {
-          r.statusCode = "CARRYOVER";
-          r.statusText = "สต็อกเพียงพอ";
-          r.badgeClass = "badge-ok";
+          r.badgeClass = r.stock === 0 ? "badge-low" : "badge-planned";
         } else {
           r.statusCode = "ENOUGH";
           r.statusText = "สต็อกเพียงพอ";
@@ -1349,12 +1320,17 @@
         }
       });
 
-      return { rows, eligibleCount: eligible.length, todayOrderCount: rows.filter((r) => r.todayOrder > 0).length };
+      return {
+        rows,
+        todayOrderCount: rows.filter((r) => r.todayOrder > 0).length
+      };
     }
 
     function renderExtrusionQueue() {
       const tbody = $("extrusionQueueBody");
+      const tfoot = $("extrusionQueueFoot");
       if (!tbody) return;
+
       const plan = computeExtrusionQueuePlan();
       const statusFilter = $("eqStatusFilter")?.value || "ALL";
 
@@ -1362,22 +1338,24 @@
       const totalMold = plan.rows.reduce((a, b) => a + b.mold, 0);
       const totalNeeded = plan.rows.reduce((a, b) => a + b.netNeeded, 0);
       const totalUsage = plan.rows.reduce((a, b) => a + b.dailyUsage, 0);
+      const totalTarget = plan.rows.reduce((a, b) => a + b.targetStock, 0);
       const totalToday = plan.rows.reduce((a, b) => a + b.todayOrder, 0);
       const totalCarry = plan.rows.reduce((a, b) => a + b.carryover, 0);
+      const avgDaysCover = totalUsage > 0 ? (totalStock / totalUsage).toFixed(2) : "0.00";
 
       if ($("eqTotalStockVal")) $("eqTotalStockVal").textContent = totalStock.toLocaleString();
       if ($("eqTotalStockSub")) $("eqTotalStockSub").textContent = `แม่พิมพ์รวม ${totalMold.toLocaleString()} พิมพ์`;
       if ($("eqTotalNeededVal")) $("eqTotalNeededVal").textContent = totalNeeded.toLocaleString();
       if ($("eqTotalNeededSub")) $("eqTotalNeededSub").textContent = `ใช้ต่อวันรวม ${totalUsage.toLocaleString()} เส้น`;
       if ($("eqTodayOrderVal")) $("eqTodayOrderVal").textContent = totalToday.toLocaleString();
-      if ($("eqTodayOrderSub")) $("eqTodayOrderSub").textContent = `จัดคิวแล้ว ${plan.todayOrderCount} รายการสั่งผลิตวันนี้`;
+      if ($("eqTodayOrderSub")) $("eqTodayOrderSub").textContent = `${plan.todayOrderCount} รายการสั่งผลิตวันนี้`;
       if ($("eqCarryoverVal")) $("eqCarryoverVal").textContent = totalCarry.toLocaleString();
       if ($("eqCarryoverSub")) $("eqCarryoverSub").textContent = `ส่วนเกินจากเพดานรายวัน`;
 
       const filtered = plan.rows.filter((r) => {
         if (statusFilter === "TODAY") return r.todayOrder > 0;
         if (statusFilter === "CARRYOVER") return r.carryover > 0;
-        if (statusFilter === "ENOUGH") return r.statusCode === "ENOUGH" || r.statusCode === "CARRYOVER";
+        if (statusFilter === "ENOUGH") return r.statusCode === "ENOUGH";
         if (statusFilter === "HOLD_NO_MOLD") return r.statusCode === "HOLD_NO_MOLD";
         return true;
       });
@@ -1398,6 +1376,22 @@
             <td><span class="${r.badgeClass}">${esc(r.statusText)}</span></td>
           </tr>`).join("")
         : '<tr><td colspan="12" style="color:var(--muted);">ไม่พบรายการคิวการผลิตตามตัวกรองที่เลือก</td></tr>';
+
+      if (tfoot) {
+        tfoot.innerHTML = `<tr class="total-row">
+          <td colspan="2">รวมทั้งสิ้น (Factory Total: ${plan.rows.length} รายการ)</td>
+          <td>${totalMold.toLocaleString()}</td>
+          <td>${totalStock.toLocaleString()}</td>
+          <td>${totalUsage.toLocaleString()}</td>
+          <td>${avgDaysCover}</td>
+          <td>${totalTarget.toLocaleString()}</td>
+          <td>${totalNeeded.toLocaleString()}</td>
+          <td>${totalToday.toLocaleString()}</td>
+          <td>${totalCarry.toLocaleString()}</td>
+          <td>-</td>
+          <td>${plan.todayOrderCount} รายการสั่งผลิตวันนี้</td>
+        </tr>`;
+      }
     }
 
     function exportExtrusionQueueCsv() {
@@ -1408,24 +1402,16 @@
         lines.push([
           `"${String(r.spec || "").replace(/"/g, '""')}"`,
           `"${String(r.type || "").replace(/"/g, '""')}"`,
-          r.mold,
-          r.stock,
-          r.dailyUsage,
+          r.mold, r.stock, r.dailyUsage,
           r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2),
-          r.targetStock,
-          r.netNeeded,
-          r.todayOrder,
-          r.carryover,
-          r.queueNo || "",
-          `"${String(r.statusText || "").replace(/"/g, '""')}"`
+          r.targetStock, r.netNeeded, r.todayOrder, r.carryover,
+          r.queueNo || "", `"${String(r.statusText || "").replace(/"/g, '""')}"`
         ].join(","));
       });
       const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = "extrusion_queue_plan.csv";
-      a.click();
+      a.href = url; a.download = "extrusion_queue_plan.csv"; a.click();
       URL.revokeObjectURL(url);
     }
 
