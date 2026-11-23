@@ -406,6 +406,28 @@
           </div>
 
           <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการหยุดเครื่องจักร (FactoryPulse - Downtime Tracking Log)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>กะ</th>
+                    <th>รหัสเครื่องจักร</th>
+                    <th>ช่วงเวลาหยุด</th>
+                    <th>ระยะเวลาหยุด</th>
+                    <th>ประเภทการหยุด</th>
+                    <th>หมวดหมู่ / รายละเอียดอาการ</th>
+                  </tr>
+                </thead>
+                <tbody id="downtimeLogBody">
+                  <tr><td colspan="7" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" เพื่อโหลดข้อมูล Downtime Tracking Log</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
             <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
             <div class="table-wrap">
               <table>
@@ -719,6 +741,7 @@
       }
     } catch (_) {}
     let allSheetRows = [];
+    let allDowntimeRows = [];
 
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -954,6 +977,61 @@
       };
     }
 
+    function normDowntimeRec(item) {
+      if (Array.isArray(item)) {
+        const logId = String(item[0] ?? "").trim();
+        const dateVal = String(item[1] ?? "").trim();
+        const shift = normShift(item[2]);
+        const machine = String(item[3] ?? "").trim().toUpperCase();
+        const stopTime = String(item[4] ?? "").trim();
+        const startTime = String(item[5] ?? "").trim();
+        const minutes = Math.max(0, toNum(item[6], 0));
+        const category = String(item[7] ?? "").trim();
+        const detail = String(item[8] ?? "").trim();
+        const isPlanned = category.includes("พัก") || `${category} ${detail}`.includes("หยุดตามแผน");
+        return { logId, date: dateVal, shift, machine, stopTime, startTime, minutes, category, detail, isPlanned };
+      }
+      const logId = String(item.Log_ID ?? item.logId ?? "").trim();
+      const dateVal = String(item.Date ?? item.date ?? "").trim();
+      const shift = normShift(item.Shift ?? item.shift ?? "");
+      const machine = String(item.Machine_ID ?? item.machineId ?? item.machine ?? "").trim().toUpperCase();
+      const stopTime = String(item.Stop_Time ?? item.stopTime ?? "").trim();
+      const startTime = String(item.Start_Time ?? item.startTime ?? "").trim();
+      const minutes = Math.max(0, toNum(item.Downtime_Min ?? item.downtimeMin ?? item.minutes, 0));
+      const category = String(item.Category ?? item.category ?? "").trim();
+      const detail = String(item["Reason / Detail"] ?? item.Reason ?? item.detail ?? item.reason ?? "").trim();
+      const isPlanned = category.includes("พัก") || `${category} ${detail}`.includes("หยุดตามแผน");
+      return { logId, date: dateVal, shift, machine, stopTime, startTime, minutes, category, detail, isPlanned };
+    }
+
+    function renderDowntimeTrackerSection(rows) {
+      const bodyEl = $("downtimeLogBody");
+      if (!bodyEl) return;
+      const sf = $("filterShift")?.value || "ALL";
+      const mf = ($("filterMachine")?.value || "").trim().toUpperCase();
+      const list = (Array.isArray(rows) ? rows : [])
+        .map(normDowntimeRec)
+        .filter((r) => {
+          const check = `${r.logId} ${r.date} ${r.machine}`.toLowerCase();
+          if (!r.machine && !r.category && !r.detail) return false;
+          if (check.includes("รวมระยะเวลาหยุดทั้งหมด") || check.includes("log_id")) return false;
+          return true;
+        })
+        .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
+
+      bodyEl.innerHTML = list.length
+        ? list.slice(-20).reverse().map((r) => `<tr>
+            <td>${esc(r.date || "-")}</td>
+            <td>${esc(r.shift || "-")}</td>
+            <td><strong>${esc(r.machine || "-")}</strong></td>
+            <td>${esc(r.stopTime || "-")} - ${esc(r.startTime || "-")}</td>
+            <td>${r.minutes.toLocaleString()} น.</td>
+            <td>${r.isPlanned ? '<span class="badge-planned">หยุดตามแผน</span>' : '<span class="badge-low">หยุดนอกแผน</span>'}</td>
+            <td>${esc(r.category)}${r.detail ? " - " + esc(r.detail) : ""}</td>
+          </tr>`).join("")
+        : '<tr><td colspan="7" style="color:var(--muted);">ไม่พบข้อมูลการหยุดเครื่องจักรตามเงื่อนไขที่เลือก</td></tr>';
+    }
+
     function calcRowOEE(r) {
       const ok = toNum(r.ok, 0), ng = toNum(r.ng, 0), totalQty = ok + ng;
       const cycleMin = toNum(r.cycleTime, 3.45) > 0 ? toNum(r.cycleTime, 3.45) : 3.45;
@@ -1015,6 +1093,8 @@
         <td>${r.plannedDowntime > 0 ? `<span class="badge-planned">${r.plannedDowntime} น.</span>` : "0 น."}</td>
         <td>${esc(r.status)}${r.reason ? " - " + esc(r.reason) : ""}</td>
       </tr>`).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+
+      renderDowntimeTrackerSection(allDowntimeRows);
     }
 
     function getPackingStatusLabel(row) {
@@ -1473,6 +1553,7 @@
         let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
         if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
         allSheetRows = raw;
+        allDowntimeRows = Array.isArray(json?.downtimeLogs) ? json.downtimeLogs : (Array.isArray(json?.downtime) ? json.downtime : []);
         renderDashboard(allSheetRows);
         $("liveStatusText").textContent = "LIVE";
       } catch (err) {
