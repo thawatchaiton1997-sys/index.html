@@ -186,26 +186,34 @@
       display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
       background: rgba(148, 163, 184, 0.18); border: 1px solid rgba(148, 163, 184, 0.45); color: #cbd5e1;
     }
-    .table-wrap { overflow-x: auto; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .hidden { display: none !important; }
 
     /* ล็อกคอลัมน์แรก (ขนาด / เบอร์ยาง) ในตารางคิวรีดยาง */
+    #extrusionQueueCard .table-wrap table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+    }
     #extrusionQueueCard .table-wrap th:first-child,
     #extrusionQueueCard .table-wrap td:first-child,
     #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+      position: -webkit-sticky;
       position: sticky;
       left: 0;
       z-index: 2;
-      background: var(--panel);
+      min-width: 135px;
+      max-width: 170px;
+      background-color: #0d1730;
       border-right: 1px solid var(--border);
-      box-shadow: 4px 0 10px rgba(2, 6, 23, 0.45);
+      box-shadow: 4px 0 10px rgba(2, 6, 23, 0.55);
     }
     #extrusionQueueCard .table-wrap thead th:first-child {
       z-index: 3;
-      background: #0b142a;
+      background-color: #0b142a;
     }
     #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
-      background: #0d2240;
+      background-color: #0d2240;
     }
   </style>
 </head>
@@ -576,22 +584,22 @@
             <div class="kpi-grid-4" style="margin-bottom:12px;">
               <div class="metric-card">
                 <div class="metric-title">สต็อกคงเหลือรวม (Current Stock)</div>
-                <div class="metric-val light" id="eqTotalStockVal">25,840</div>
-                <div class="metric-sub" id="eqTotalStockSub">แม่พิมพ์รวม 37 พิมพ์</div>
+                <div class="metric-val light" id="eqTotalStockVal">-</div>
+                <div class="metric-sub" id="eqTotalStockSub">-</div>
               </div>
               <div class="metric-card">
                 <div class="metric-title">ยอดขาดตามแผน 3 วัน (Net Needed)</div>
-                <div class="metric-val sky" id="eqTotalNeededVal">12,210</div>
-                <div class="metric-sub" id="eqTotalNeededSub">ใช้ต่อวันรวม 11,100 เส้น</div>
+                <div class="metric-val sky" id="eqTotalNeededVal">-</div>
+                <div class="metric-sub" id="eqTotalNeededSub">-</div>
               </div>
               <div class="metric-card">
                 <div class="metric-title">สั่งผลิตวันนี้ (Today's Extrusion Cap)</div>
-                <div class="metric-val" id="eqTodayOrderVal">12,000</div>
-                <div class="metric-sub" id="eqTodayOrderSub">6 รายการสั่งผลิตวันนี้</div>
+                <div class="metric-val" id="eqTodayOrderVal">-</div>
+                <div class="metric-sub" id="eqTodayOrderSub">-</div>
               </div>
               <div class="metric-card">
                 <div class="metric-title">ค้างยกไปพรุ่งนี้ (Tomorrow Carryover)</div>
-                <div class="metric-val light" id="eqCarryoverVal">210</div>
+                <div class="metric-val light" id="eqCarryoverVal">-</div>
                 <div class="metric-sub" id="eqCarryoverSub">ส่วนเกินจากเพดานรายวัน</div>
               </div>
             </div>
@@ -715,6 +723,22 @@
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
+
+    async function parseAppsScriptResponse(res) {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      if (!text) return {};
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === "object" && parsed.ok === false) {
+          throw new Error(parsed.error || parsed.message || "Apps Script returned ok: false");
+        }
+        return parsed;
+      } catch (err) {
+        if (err instanceof SyntaxError) return { raw: text };
+        throw err;
+      }
+    }
 
     function formatThaiDayLabel(dateStr) {
       const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
@@ -1179,8 +1203,7 @@
       try {
         const sep = WEB_APP_URL.includes("?") ? "&" : "?";
         const res = await fetch(`${WEB_APP_URL}${sep}action=extrusionQueue`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await parseAppsScriptResponse(res);
 
         const params = json?.params || json?.config || json?.settings || {};
         if (params.ratePerMold && $("eqRatePerMold")) $("eqRatePerMold").value = toNum(params.ratePerMold, 300);
@@ -1246,7 +1269,7 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await parseAppsScriptResponse(res);
         $("liveStatusText").textContent = "LIVE";
         showEqMsg(`ส่งข้อมูลคิวและสต็อกรีดยาง ${payload.records.length} รายการไปที่ Google Sheets เรียบร้อยครับ`, true);
       } catch (err) {
@@ -1446,8 +1469,7 @@
       $("refreshBtn").disabled = true;
       try {
         const res = await fetch(WEB_APP_URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
+        const json = await parseAppsScriptResponse(res);
         let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
         if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
         allSheetRows = raw;
@@ -1488,7 +1510,7 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "batchInsert", records })
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await parseAppsScriptResponse(res);
         showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
         buildBatchRows();
         $("batchNote").value = "";
