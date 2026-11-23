@@ -620,4 +620,497 @@
       { date: "2026-11-09", dayLabel: "จันทร์ 9 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 7230, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
       { date: "2026-11-10", dayLabel: "อังคาร 10 พ.ย. 2026", dayName: "อังคาร", cure: 11009, pack: 12080, remark: "ยอดบรรจุเกินเป้าหมาย ทำความเร็วได้ดี" },
       { date: "2026-11-11", dayLabel: "พุธ 11 พ.ย. 2026", dayName: "พุธ", cure: 10358, pack: 10593, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
-      { date: "2026-11-12", dayLabel: "
+      { date: "2026-11-12", dayLabel: "พฤหัส 12 พ.ย. 2026", dayName: "พฤหัส", cure: 11914, pack: 9587, remark: "ปรับขนาดบรรจุภัณฑ์ ชะลอความเร็วเล็กน้อย" },
+      { date: "2026-11-13", dayLabel: "ศุกร์ 13 พ.ย. 2026", dayName: "ศุกร์", cure: 9719, pack: 11565, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-14", dayLabel: "เสาร์ 14 พ.ย. 2026", dayName: "เสาร์", cure: 11151, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" },
+      { date: "2026-11-16", dayLabel: "จันทร์ 16 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 12245, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
+      { date: "2026-11-17", dayLabel: "อังคาร 17 พ.ย. 2026", dayName: "อังคาร", cure: 10424, pack: 9411, remark: "เดินเครื่องบรรจุตามเกณฑ์ปกติ" },
+      { date: "2026-11-18", dayLabel: "พุธ 18 พ.ย. 2026", dayName: "พุธ", cure: 8773, pack: 9526, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-19", dayLabel: "พฤหัส 19 พ.ย. 2026", dayName: "พฤหัส", cure: 8637, pack: 9647, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-20", dayLabel: "ศุกร์ 20 พ.ย. 2026", dayName: "ศุกร์", cure: 11153, pack: 923, remark: "หยุดซ่อมบำรุงระบบสายพานลำเลียงแพ็คกิ้ง" },
+      { date: "2026-11-21", dayLabel: "เสาร์ 21 พ.ย. 2026", dayName: "เสาร์", cure: 10455, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" }
+    ];
+    let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
+    let allSheetRows = [];
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
+
+    function formatThaiDayLabel(dateStr) {
+      const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const dt = new Date(dateStr + "T00:00:00");
+      if (Number.isNaN(dt.getTime())) return { dayName: "เสาร์", dayLabel: dateStr };
+      const dayName = dayNames[dt.getDay()];
+      const dayNum = dt.getDate();
+      const monthLabel = monthNames[dt.getMonth()];
+      const yearAd = dt.getFullYear();
+      return { dayName, dayLabel: `${dayName} ${dayNum} ${monthLabel} ${yearAd}` };
+    }
+
+    function toggleSidebar(forceState) {
+      const sb = $("leftSidebar");
+      const bd = $("sidebarBackdrop");
+      const next = typeof forceState === "boolean" ? forceState : !sb.classList.contains("open");
+      sb.classList.toggle("open", next);
+      bd.classList.toggle("show", next);
+    }
+
+    function switchTab(tab) {
+      const isPacking = tab === "packing";
+      $("oeeTabContent").classList.toggle("hidden", isPacking);
+      $("packingTabContent").classList.toggle("hidden", !isPacking);
+      $("tabOeeBtn").classList.toggle("active", !isPacking);
+      $("tabPackingBtn").classList.toggle("active", isPacking);
+      $("pageHeaderTitle").textContent = isPacking
+        ? "หมวดแพ็คกิ่ง (Packing tube line)"
+        : "หมวด OEE (การผลิต & เครื่องจักร)";
+      $("pageHeaderSub").textContent = isPacking
+        ? "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"
+        : "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ";
+      toggleSidebar(false);
+      if (isPacking) renderPackingTable();
+    }
+
+    $("togglePassBtn").addEventListener("click", () => {
+      const inp = $("loginPass");
+      const show = inp.type === "password";
+      inp.type = show ? "text" : "password";
+      $("togglePassBtn").textContent = show ? "ซ่อน" : "แสดง";
+    });
+
+    function buildDropdown() {
+      const grp = (l, a) => `<optgroup label="${l}">${a.map((m) => `<option value="${m}">${m}</option>`).join("")}</optgroup>`;
+      return `<option value="">เลือก</option>${grp("BE 1-10", MACHINE_GROUPS.BE)}${grp("BW 1-10", MACHINE_GROUPS.BW)}${grp("DW 1-10", MACHINE_GROUPS.DW)}`;
+    }
+
+    function buildBatchRows() {
+      const ct = Number($("defaultCycle").value || 3.45);
+      const dd = buildDropdown();
+      $("batchRowsBody").innerHTML = Array.from({ length: ROW_COUNT }, (_, idx) => {
+        const i = idx + 1;
+        return `<tr data-row-index="${i}">
+          <td style="color:var(--muted);font-weight:700;">${i}</td>
+          <td><div class="mc-cell"><select class="mc-select">${dd}</select><input type="text" class="mc-input" placeholder="เช่น BE${i}" /></div></td>
+          <td><input type="number" class="num-input ok-input" min="0" value="0" /></td>
+          <td><input type="number" class="num-input ng-input" min="0" value="0" /></td>
+          <td><input type="number" class="num-input dt-input" min="0" step="0.1" value="0" /></td>
+          <td><input type="number" class="num-input pdt-input" min="0" step="1" value="0" placeholder="เช่น 60" /></td>
+          <td><input type="number" class="num-input ct-input" min="0.01" step="0.01" value="${ct}" /></td>
+          <td><select class="status-input">
+            <option value="เดินเครื่องปกติ (Running)">เดินเครื่องปกติ (Running)</option>
+            <option value="หยุดตามแผน / ขัดพิมพ์">หยุดตามแผน / ขัดพิมพ์</option>
+            <option value="หยุดเครื่องชั่วคราว (Downtime)">หยุดเครื่องชั่วคราว (Downtime)</option>
+            <option value="เปลี่ยนโมลด์/ไซส์">เปลี่ยนโมลด์/ไซส์</option>
+          </select></td>
+          <td><input type="text" class="reason-input" placeholder="เช่น หยุดขัดพิมพ์ 60 นาที" /></td>
+        </tr>`;
+      }).join("");
+
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const sel = tr.querySelector(".mc-select"), inp = tr.querySelector(".mc-input");
+        const st = tr.querySelector(".status-input"), pdt = tr.querySelector(".pdt-input"), rs = tr.querySelector(".reason-input");
+        sel.addEventListener("change", () => { if (sel.value) inp.value = sel.value; });
+        inp.addEventListener("blur", () => { inp.value = inp.value.trim().toUpperCase(); });
+        st.addEventListener("change", () => {
+          if (st.value === "หยุดตามแผน / ขัดพิมพ์") {
+            if (!pdt.value || Number(pdt.value) === 0) pdt.value = "60";
+            if (!rs.value.trim()) rs.value = "หยุดขัดพิมพ์ 60 นาที";
+          }
+        });
+      });
+    }
+
+    function showMsg(text, ok = true) {
+      const box = $("msgBox");
+      box.className = "msg " + (ok ? "ok" : "err");
+      box.textContent = text;
+    }
+
+    function showPkMsg(text, ok = true) {
+      const box = $("pkMsgBox");
+      box.className = "msg " + (ok ? "ok" : "err");
+      box.textContent = text;
+    }
+
+    $("applyPrint60Btn").addEventListener("click", () => {
+      let n = 0;
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const mc = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim();
+        if (mc) {
+          tr.querySelector(".pdt-input").value = "60";
+          tr.querySelector(".status-input").value = "หยุดตามแผน / ขัดพิมพ์";
+          if (!tr.querySelector(".reason-input").value.trim()) tr.querySelector(".reason-input").value = "หยุดขัดพิมพ์ 60 นาที";
+          n++;
+        }
+      });
+      showMsg(n ? `ตั้งค่าหยุดขัดพิมพ์ 60 นาทีให้เครื่องที่เลือกแล้ว ${n} แถวครับ` : "กรุณาเลือกหรือกรอกรหัสเครื่องจักรอย่างน้อย 1 แถวก่อนครับ", Boolean(n));
+    });
+
+    const applyPreset = (k) => {
+      const list = MACHINE_GROUPS[k] || [];
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr, i) => {
+        tr.querySelector(".mc-select").value = list[i] || "";
+        tr.querySelector(".mc-input").value = list[i] || "";
+      });
+    };
+    $("presetBE").addEventListener("click", () => applyPreset("BE"));
+    $("presetBW").addEventListener("click", () => applyPreset("BW"));
+    $("presetDW").addEventListener("click", () => applyPreset("DW"));
+    $("defaultCycle").addEventListener("change", () => {
+      const v = Number($("defaultCycle").value || 3.45);
+      $("batchRowsBody").querySelectorAll(".ct-input").forEach((i) => { i.value = v; });
+    });
+    $("clearBatchBtn").addEventListener("click", () => { buildBatchRows(); $("msgBox").className = "msg"; });
+    buildBatchRows();
+
+    function showApp(user) {
+      $("currentUserLabel").textContent = user;
+      if (user === "shiftB") { $("batchShift").value = "กะ B"; $("filterShift").value = "กะ B"; }
+      else if (user === "shiftA") { $("batchShift").value = "กะ A"; $("filterShift").value = "กะ A"; }
+      $("loginSection").classList.add("hidden");
+      $("appSection").classList.remove("hidden");
+      renderPackingTable();
+    }
+
+    $("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const u = $("loginUser").value.trim();
+      const p = $("loginPass").value.trim();
+      if (USERS[u] && USERS[u] === p) {
+        try { sessionStorage.setItem(SESSION_KEY, u); } catch (_) {}
+        $("loginMsg").className = "msg";
+        showApp(u);
+        loadLogs();
+      } else {
+        $("loginMsg").className = "msg err";
+        $("loginMsg").textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องครับ (admin/1234, shiftA/1111, shiftB/2222)";
+      }
+    });
+
+    $("logoutBtn").addEventListener("click", () => {
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+      toggleSidebar(false);
+      $("appSection").classList.add("hidden");
+      $("loginSection").classList.remove("hidden");
+      $("loginForm").reset();
+      $("loginMsg").className = "msg";
+    });
+
+    const fmtDur = (m) => { const t = Math.max(0, Number(m) || 0), h = Math.floor(t / 60), r = Math.round(t % 60); return h > 0 ? `${h}h ${r}m` : `${r}m`; };
+    const fmtTime = (v) => { if (!v) return ""; const d = new Date(v); return !isNaN(d.getTime()) ? d.toLocaleString("th-TH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : String(v); };
+    const normShift = (s) => { const x = String(s || "").trim(); if (x === "B" || x.toLowerCase() === "shiftb" || x === "กะB") return "กะ B"; if (x === "A" || x.toLowerCase() === "shifta" || x === "กะA") return "กะ A"; return x; };
+
+    function normRec(item) {
+      if (Array.isArray(item)) {
+        const st = String(item[7] || "").trim(), plCol = toNum(item[8], 0), isPl = st.includes("หยุดตามแผน") || st.includes("ขัดพิมพ์");
+        return {
+          time: fmtTime(item[0]), shift: normShift(item[1]), machine: String(item[2] || "").trim().toUpperCase(),
+          ok: toNum(item[3]), ng: toNum(item[4]),
+          downtime: isPl && plCol === 0 ? 0 : toNum(item[5]),
+          plannedDowntime: plCol > 0 ? plCol : (isPl ? toNum(item[5]) : 0),
+          cycleTime: toNum(item[6], 3.45), status: st, reason: String(item[9] || "").trim()
+        };
+      }
+      const st = String(item.Status || item.status || "").trim();
+      const rs = String(item.Reason || item.reason || item.Note || item.note || "").trim();
+      const isPl = `${st} ${rs}`.includes("หยุดตามแผน") || `${st} ${rs}`.includes("ขัดพิมพ์") || String(item.Downtime_Type || "").toLowerCase() === "planned";
+      const exPl = toNum(item.Planned_Downtime ?? item.plannedDowntime ?? item.planned_downtime, 0);
+      const dt = toNum(item.Downtime ?? item.downtime, 0);
+      return {
+        time: fmtTime(item.Timestamp || item.timestamp || item.time || ""), shift: normShift(item.Shift || item.shift || ""),
+        machine: String(item.Machine_ID || item.machineId || item.machine_id || item.machine || "").trim().toUpperCase(),
+        ok: toNum(item.OK ?? item.ok), ng: toNum(item.NG ?? item.ng),
+        downtime: isPl && exPl === 0 ? 0 : dt, plannedDowntime: exPl > 0 ? exPl : (isPl ? dt : 0),
+        cycleTime: toNum(item.Cycle_Time ?? item.cycleTime ?? item.cycle_time, 3.45), status: st, reason: rs
+      };
+    }
+
+    function calcRowOEE(r) {
+      const ok = toNum(r.ok, 0);
+      const ng = toNum(r.ng, 0);
+      const totalQty = ok + ng;
+      const cycleMin = toNum(r.cycleTime, 3.45) > 0 ? toNum(r.cycleTime, 3.45) : 3.45;
+      const plannedMin = 480;
+      const plannedStopMin = toNum(r.plannedDowntime, 0);
+      const unplannedStopMin = toNum(r.downtime, 0);
+
+      const netPlannedMin = Math.max(0, plannedMin - plannedStopMin);
+      const runTimeMin = Math.max(0, netPlannedMin - unplannedStopMin);
+      const standardTimeMin = totalQty * cycleMin;
+
+      const availability = netPlannedMin > 0 ? runTimeMin / netPlannedMin : 0;
+      const performance = runTimeMin > 0 ? Math.min(1, standardTimeMin / runTimeMin) : 0;
+      const quality = totalQty > 0 ? ok / totalQty : 1;
+      const oee = availability * performance * quality;
+
+      return {
+        totalQty, netPlannedMin, runTimeMin, standardTimeMin,
+        availabilityPct: availability * 100,
+        performancePct: performance * 100,
+        qualityPct: quality * 100,
+        oeePct: oee * 100
+      };
+    }
+
+    function summarizeOEE(records) {
+      let ok = 0, ng = 0, dt = 0, pdt = 0, ideal = 0, totalNetPlanned = 0, totalRun = 0;
+      const mcs = new Set();
+
+      records.forEach((r) => {
+        const c = calcRowOEE(r);
+        ok += r.ok; ng += r.ng; dt += r.downtime; pdt += r.plannedDowntime;
+        ideal += c.standardTimeMin; totalNetPlanned += c.netPlannedMin; totalRun += c.runTimeMin;
+        if (r.machine) mcs.add(r.machine);
+      });
+
+      const out = ok + ng;
+      const avail = totalNetPlanned > 0 ? (totalRun / totalNetPlanned) * 100 : 0;
+      const perf = totalRun > 0 ? Math.min(100, (ideal / totalRun) * 100) : 0;
+      const qual = out > 0 ? (ok / out) * 100 : 100;
+      const oee = (avail / 100) * (perf / 100) * (qual / 100) * 100;
+
+      return { ok, ng, out, dt, pdt, avail, perf, qual, oee, machineCount: mcs.size };
+    }
+
+    function renderDashboard(rows) {
+      const sf = $("filterShift").value, mf = $("filterMachine").value.trim().toUpperCase(), tgt = toNum($("targetOeeInput").value, 85);
+      const filtered = rows.map(normRec)
+        .filter((r) => r.machine || r.ok > 0 || r.ng > 0 || r.downtime > 0 || r.plannedDowntime > 0)
+        .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
+
+      const sum = summarizeOEE(filtered);
+      const diff = (sum.oee - tgt).toFixed(1);
+
+      $("kpiOee").textContent = sum.oee.toFixed(1) + "%";
+      $("kpiAvail").textContent = sum.avail.toFixed(1) + "%";
+      $("kpiPerf").textContent = sum.perf.toFixed(1) + "%";
+      $("kpiQual").textContent = sum.qual.toFixed(1) + "%";
+      $("kpiOutput").textContent = sum.out.toLocaleString();
+      $("kpiOkNgSub").textContent = `OK ${sum.ok.toLocaleString()} / NG ${sum.ng.toLocaleString()} pieces`;
+      $("kpiDowntime").textContent = fmtDur(sum.dt);
+      $("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtDur(sum.pdt)} • ${sum.machineCount} / 40 machines logged`;
+      $("kpiRecords").textContent = filtered.length.toLocaleString();
+      $("kpiTargetText").textContent = `Target ${tgt.toFixed(2)}%`;
+      $("kpiDiffText").textContent = `${Number(diff) >= 0 ? "+" : ""}${diff} pts`;
+      $("kpiScopeLabel").textContent = `${sf === "ALL" ? "ทุกกะ" : sf}${mf ? " • " + mf : ""}`;
+
+      const recent = filtered.slice(-15).reverse();
+      $("logBody").innerHTML = recent.length ? recent.map((r) => `<tr>
+        <td>${esc(r.time)}</td><td>${esc(r.shift)}</td><td><strong>${esc(r.machine)}</strong></td>
+        <td>${r.ok}</td><td>${r.ng}</td><td>${r.downtime} น.</td>
+        <td>${r.plannedDowntime > 0 ? `<span class="badge-planned">${r.plannedDowntime} น.</span>` : "0 น."}</td>
+        <td>${esc(r.status)}${r.reason ? " - " + esc(r.reason) : ""}</td>
+      </tr>`).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
+    }
+
+    function getPackingStatusLabel(row) {
+      const hasCure = typeof row.cure === "number" && !Number.isNaN(row.cure);
+      const hasPack = typeof row.pack === "number" && !Number.isNaN(row.pack);
+      if (hasCure && hasPack) {
+        if (row.pack > row.cure) return '<span class="badge-ok">ครบตามแผน / แพ็คสูงกว่าอบ</span>';
+        if (row.pack < row.cure) return '<span class="badge-low">ต่ำกว่าแผน / แพ็คน้อยกว่าอบ</span>';
+        return '<span class="badge-planned">ยอดเท่ากัน</span>';
+      }
+      if (hasPack) return '<span class="badge-planned">แพ็คสต็อกสะสม</span>';
+      if (hasCure) return '<span class="badge-planned">รอการบรรจุ</span>';
+      return "-";
+    }
+
+    function renderPackingTable() {
+      const stFilter = $("packingStatusFilter") ? $("packingStatusFilter").value : "ALL";
+      const dayFilter = $("packingDayFilter") ? $("packingDayFilter").value : "ALL";
+
+      const filtered = packingRecords.filter((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        if (dayFilter !== "ALL" && r.dayName !== dayFilter) return false;
+        if (stFilter === "BOTH") return hasCure && hasPack;
+        if (stFilter === "PACK_GT_CURE") return hasCure && hasPack && r.pack > r.cure;
+        if (stFilter === "PACK_LT_CURE") return hasCure && hasPack && r.pack < r.cure;
+        if (stFilter === "PACK_ONLY") return hasPack && !hasCure;
+        if (stFilter === "CURE_ONLY") return hasCure && !hasPack;
+        return true;
+      });
+
+      $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
+        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasCure && hasPack)
+          ? (r.pack - r.cure)
+          : (hasPack ? r.pack : (hasCure ? -r.cure : null));
+        const pct = (hasCure && hasPack && r.cure > 0)
+          ? ((r.pack / r.cure) * 100).toFixed(1) + "%"
+          : (hasCure && !hasPack ? "0.0%" : "-");
+        return `<tr>
+          <td>${esc(r.date)}</td>
+          <td>${esc(r.dayLabel)}</td>
+          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td>
+          <td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
+          <td>${diff !== null ? (diff > 0 ? "+" + diff.toLocaleString() : diff.toLocaleString()) : "-"}</td>
+          <td>${pct}</td>
+          <td>${getPackingStatusLabel(r)}</td>
+          <td>${esc(r.remark || "-")}</td>
+        </tr>`;
+      }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
+
+      const cureRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure));
+      const packRows = packingRecords.filter((r) => typeof r.pack === "number" && !Number.isNaN(r.pack));
+      const totalCure = cureRows.reduce((a, b) => a + b.cure, 0);
+      const totalPack = packRows.reduce((a, b) => a + b.pack, 0);
+      const avgCure = cureRows.length ? Math.round(totalCure / cureRows.length).toLocaleString() : "0";
+      const netDiff = totalPack - totalCure;
+      const totalPct = totalCure > 0 ? ((totalPack / totalCure) * 100).toFixed(1) + "%" : "-";
+
+      $("pkCureTotalVal").textContent = `${totalCure.toLocaleString()} เส้น`;
+      $("pkCureTotalSub").textContent = `เฉลี่ย ${avgCure} เส้น/วัน | ยอดแพ็ครวม ${totalPack.toLocaleString()} เส้น`;
+      $("pkRatioVal").textContent = totalPct;
+      $("pkRatioSub").textContent = `แพ็ค ${totalPack.toLocaleString()} เทียบอบ ${totalCure.toLocaleString()} เส้น (${netDiff > 0 ? "+" + netDiff.toLocaleString() : netDiff.toLocaleString()})`;
+
+      const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      $("packingDayAvgBody").innerHTML = days.map((d) => {
+        const list = packRows.filter((r) => r.dayName === d);
+        const sum = list.reduce((a, b) => a + b.pack, 0);
+        const avg = list.length ? Math.round(sum / list.length).toLocaleString() : "-";
+        return `<tr>
+          <td>${esc(d)}</td>
+          <td>${list.length}</td>
+          <td>${list.length ? sum.toLocaleString() : "-"}</td>
+          <td>${avg}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function addPackingRow() {
+      const dateStr = $("pkDateInput").value || "2026-11-21";
+      const cureRaw = $("pkCureInput").value;
+      const packRaw = $("pkPackInput").value;
+      const remarkRaw = $("pkRemarkInput").value.trim();
+
+      if (cureRaw === "" && packRaw === "") {
+        return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
+      }
+
+      const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
+      const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
+      const { dayName, dayLabel } = formatThaiDayLabel(dateStr);
+
+      packingRecords.push({
+        date: dateStr,
+        dayLabel,
+        dayName,
+        cure: cureNum,
+        pack: packNum,
+        remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
+      });
+
+      $("pkCureInput").value = "";
+      $("pkPackInput").value = "";
+      $("pkRemarkInput").value = "";
+      showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ`, true);
+      renderPackingTable();
+    }
+
+    function exportPackingCsv() {
+      const headers = ["Date", "Day_Label", "Cure_OK_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
+      const rows = [headers.join(",")];
+      packingRecords.forEach((r) => {
+        const hasC = typeof r.cure === "number" && !Number.isNaN(r.cure);
+        const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
+        const diff = (hasC && hasP) ? (r.pack - r.cure) : (hasP ? r.pack : (hasC ? -r.cure : ""));
+        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasC && !hasP ? "0.0%" : "");
+        rows.push([
+          r.date,
+          `"${String(r.dayLabel || "").replace(/"/g, '""')}"`,
+          hasC ? r.cure : "",
+          hasP ? r.pack : "",
+          diff,
+          pct,
+          `"${String(r.remark || "").replace(/"/g, '""')}"`
+        ].join(","));
+      });
+      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "packing_tube_line_nov_2026.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    $("filterShift").addEventListener("change", () => {
+      if ($("filterShift").value === "กะ A" || $("filterShift").value === "กะ B") $("batchShift").value = $("filterShift").value;
+      renderDashboard(allSheetRows);
+    });
+    $("filterMachine").addEventListener("input", () => renderDashboard(allSheetRows));
+    $("targetOeeInput").addEventListener("input", () => renderDashboard(allSheetRows));
+
+    async function loadLogs() {
+      $("liveStatusText").textContent = "LOADING...";
+      $("refreshBtn").disabled = true;
+      try {
+        const res = await fetch(WEB_APP_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
+        if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
+        allSheetRows = raw;
+        renderDashboard(allSheetRows);
+        $("liveStatusText").textContent = "LIVE";
+      } catch (err) {
+        $("liveStatusText").textContent = "OFFLINE";
+        showMsg("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้: " + err.message, false);
+      } finally {
+        $("refreshBtn").disabled = false;
+      }
+    }
+    $("refreshBtn").addEventListener("click", loadLogs);
+
+    $("batchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const shift = $("batchShift").value, note = $("batchNote").value.trim(), user = $("currentUserLabel").textContent || "unknown";
+      const records = [];
+      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
+        const machine = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim().toUpperCase();
+        const ok = toNum(tr.querySelector(".ok-input").value), ng = toNum(tr.querySelector(".ng-input").value);
+        const downtime = toNum(tr.querySelector(".dt-input").value), plannedDowntime = toNum(tr.querySelector(".pdt-input").value);
+        const cycleTime = toNum(tr.querySelector(".ct-input").value, 3.45), status = tr.querySelector(".status-input").value;
+        const rowReason = tr.querySelector(".reason-input").value.trim();
+        const reason = [rowReason, note].filter(Boolean).join(" | ");
+        if (machine && (ok > 0 || ng > 0 || downtime > 0 || plannedDowntime > 0 || rowReason)) {
+          records.push({ timestamp: new Date().toISOString(), shift, machine, ok, ng, downtime, plannedDowntime, cycleTime, status, reason, user });
+        }
+      });
+      if (!records.length) return showMsg("กรุณาระบุรหัสเครื่องจักรและยอดผลิต หรือเวลาหยุดอย่างน้อย 1 แถวก่อนบันทึกครับ", false);
+
+      $("submitBatchBtn").disabled = true;
+      $("submitBatchBtn").textContent = "กำลังบันทึก...";
+      $("liveStatusText").textContent = "SAVING...";
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "batchInsert", records })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
+        buildBatchRows();
+        $("batchNote").value = "";
+        await loadLogs();
+      } catch (err) {
+        $("liveStatusText").textContent = "ERROR";
+        showMsg("บันทึกข้อมูลไม่สำเร็จ: " + err.message, false);
+      } finally {
+        $("submitBatchBtn").disabled = false;
+        $("submitBatchBtn").textContent = "บันทึกทั้งหมดเข้า Google Sheets";
+      }
+    });
+
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (saved && USERS[saved]) { showApp(saved); loadLogs(); }
+    } catch (_) {}
+  </script>
+</body>
+</html>
