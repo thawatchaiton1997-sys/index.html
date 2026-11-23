@@ -188,6 +188,25 @@
     }
     .table-wrap { overflow-x: auto; }
     .hidden { display: none !important; }
+
+    /* ล็อกคอลัมน์แรก (ขนาด / เบอร์ยาง) ในตารางคิวรีดยาง */
+    #extrusionQueueCard .table-wrap th:first-child,
+    #extrusionQueueCard .table-wrap td:first-child,
+    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      box-shadow: 4px 0 10px rgba(2, 6, 23, 0.45);
+    }
+    #extrusionQueueCard .table-wrap thead th:first-child {
+      z-index: 3;
+      background: #0b142a;
+    }
+    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+      background: #0d2240;
+    }
   </style>
 </head>
 <body>
@@ -1446,47 +1465,3 @@
     $("batchForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const shift = $("batchShift").value, note = $("batchNote").value.trim(), user = $("currentUserLabel").textContent || "unknown";
-      const records = [];
-      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
-        const machine = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim().toUpperCase();
-        const ok = toNum(tr.querySelector(".ok-input").value), ng = toNum(tr.querySelector(".ng-input").value);
-        const downtime = toNum(tr.querySelector(".dt-input").value), plannedDowntime = toNum(tr.querySelector(".pdt-input").value);
-        const cycleTime = toNum(tr.querySelector(".ct-input").value, 3.45), status = tr.querySelector(".status-input").value;
-        const rowReason = tr.querySelector(".reason-input").value.trim();
-        const reason = [rowReason, note].filter(Boolean).join(" | ");
-        if (machine && (ok > 0 || ng > 0 || downtime > 0 || plannedDowntime > 0 || rowReason)) {
-          records.push({ timestamp: new Date().toISOString(), shift, machine, ok, ng, downtime, plannedDowntime, cycleTime, status, reason, user });
-        }
-      });
-      if (!records.length) return showMsg("กรุณาระบุรหัสเครื่องจักรและยอดผลิต หรือเวลาหยุดอย่างน้อย 1 แถวก่อนบันทึกครับ", false);
-
-      $("submitBatchBtn").disabled = true;
-      $("submitBatchBtn").textContent = "กำลังบันทึก...";
-      $("liveStatusText").textContent = "SAVING...";
-      try {
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "batchInsert", records })
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
-        buildBatchRows();
-        $("batchNote").value = "";
-        await loadLogs();
-      } catch (err) {
-        $("liveStatusText").textContent = "ERROR";
-        showMsg("บันทึกข้อมูลไม่สำเร็จ: " + err.message, false);
-      } finally {
-        $("submitBatchBtn").disabled = false;
-        $("submitBatchBtn").textContent = "บันทึกทั้งหมดเข้า Google Sheets";
-      }
-    });
-
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (saved && USERS[saved]) { showApp(saved); loadLogs(); }
-    } catch (_) {}
-  </script>
-</body>
-</html>
