@@ -11,28 +11,17 @@
       --hero: linear-gradient(135deg, #27488a 0%, #3560b8 100%);
       --text: #f8fafc; --muted: #93a4c3; --accent: #38bdf8;
       --accent-green: #22c55e; --danger: #ef4444; --border: rgba(148, 163, 184, 0.18);
+      --sidebar-w: 260px;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: radial-gradient(circle at top right, #13254c 0%, var(--bg) 55%);
-      color: var(--text); padding: 16px; min-height: 100vh;
+      color: var(--text); min-height: 100vh;
     }
-    .container { max-width: 1240px; margin: 0 auto; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-    .brand-title { font-size: 1.35rem; font-weight: 700; margin: 0; }
-    .brand-sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
-    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .live-pill {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
-      color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
-      padding: 6px 10px; border-radius: 999px;
-    }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
-    .user-badge {
-      display: flex; align-items: center; gap: 10px; background: var(--panel);
-      border: 1px solid var(--border); padding: 6px 12px; border-radius: 10px; font-size: 0.85rem;
-    }
+
+    /* Login Box */
+    .login-wrap { padding: 16px; }
     .login-box {
       max-width: 400px; margin: 56px auto; background: var(--panel);
       border: 1px solid var(--border); border-radius: 16px; padding: 24px;
@@ -43,14 +32,179 @@
       position: absolute; right: 8px; background: #1e293b; color: var(--muted);
       border: 1px solid var(--border); padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;
     }
-    .tab-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-    .tab-btn {
-      background: var(--panel); color: var(--muted); border: 1px solid var(--border);
-      border-radius: 10px; padding: 9px 16px; font-weight: 700; cursor: pointer; font-size: 0.88rem;
+
+    /* App Layout with Left Sidebar */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
     }
-    .tab-btn.active {
-      background: var(--hero); color: var(--text); border-color: rgba(56, 189, 248, 0.45);
+    .sidebar {
+      width: var(--sidebar-w);
+      background: rgba(13, 23, 48, 0.96);
+      border-right: 1px solid var(--border);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      z-index: 40;
+      transition: transform 0.25s ease;
     }
+    .sidebar-brand {
+      padding: 4px 8px 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .sidebar-logo {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-badge {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--hero);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: #fff;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+    .sidebar-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .nav-group-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 6px 10px;
+      margin-top: 4px;
+    }
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .nav-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background: rgba(56, 189, 248, 0.08);
+      color: var(--text);
+    }
+    .nav-item.active {
+      background: var(--hero);
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.45);
+    }
+    .nav-icon {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .nav-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+    }
+    .nav-desc {
+      font-size: 0.7rem;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sidebar-user-card {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      z-index: 35;
+    }
+    .sidebar-backdrop.show { display: block; }
+
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      padding: 16px 20px;
+    }
+    .container { max-width: 1240px; margin: 0 auto; }
+
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .menu-toggle-btn {
+      display: none;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 11px;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
+    .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+      color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
+      padding: 6px 10px; border-radius: 999px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
+
+    @media (max-width: 920px) {
+      .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .menu-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .main-area { padding: 14px; }
+    }
+
     .filter-bar {
       display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel);
       border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
@@ -128,274 +282,326 @@
       background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;
     }
     .table-wrap { overflow-x: auto; }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div id="loginSection" class="login-box">
-    <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-    <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE & Packing Tube Line</p>
-    <form id="loginForm">
-      <div style="margin-bottom: 12px;">
-        <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
-        <input id="loginUser" type="text" placeholder="เช่น admin, shiftA, shiftB" required autocomplete="username" />
-      </div>
-      <div style="margin-bottom: 14px;">
-        <label for="loginPass">รหัสผ่าน (Password)</label>
-        <div class="pass-wrap">
-          <input id="loginPass" type="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password" />
-          <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
+  <div id="loginSection" class="login-wrap">
+    <div class="login-box">
+      <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
+      <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE & Packing Tube Line</p>
+      <form id="loginForm">
+        <div style="margin-bottom: 12px;">
+          <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
+          <input id="loginUser" type="text" placeholder="เช่น admin, shiftA, shiftB" required autocomplete="username" />
         </div>
-      </div>
-      <button type="submit" style="width: 100%;">เข้าสู่ระบบ</button>
-      <div id="loginMsg" class="msg"></div>
-    </form>
+        <div style="margin-bottom: 14px;">
+          <label for="loginPass">รหัสผ่าน (Password)</label>
+          <div class="pass-wrap">
+            <input id="loginPass" type="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password" />
+            <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
+          </div>
+        </div>
+        <button type="submit" style="width: 100%;">เข้าสู่ระบบ</button>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+    </div>
   </div>
 
-  <div id="appSection" class="container hidden">
-    <div class="topbar">
+  <div id="appSection" class="app-layout hidden">
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+    <aside id="leftSidebar" class="sidebar">
       <div>
-        <div class="brand-title">FactoryPulse OEE & Packing Tube Line</div>
-        <div class="brand-sub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & หมวดแพ็คกิ่ง (Packing tube line)</div>
-      </div>
-      <div class="topbar-right">
-        <div class="live-pill"><span class="dot"></span><span id="liveStatusText">READY</span></div>
-        <div class="user-badge">
-          <span>ผู้ใช้: <strong id="currentUserLabel">-</strong></span>
-          <button type="button" class="secondary small" id="logoutBtn">ออกจากระบบ</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-bar">
-      <button type="button" class="tab-btn active" id="tabOeeBtn" onclick="switchTab('oee')">หมวด OEE (การผลิต & เครื่องจักร)</button>
-      <button type="button" class="tab-btn" id="tabPackingBtn" onclick="switchTab('packing')">หมวดแพ็คกิ่ง (Packing tube line)</button>
-    </div>
-
-    <div id="oeeTabContent">
-      <div class="filter-bar">
-        <div class="filter-item">
-          <label for="filterShift">กรองตามกะ</label>
-          <select id="filterShift">
-            <option value="ALL">ทุกกะ (All Shifts)</option>
-            <option value="กะ A">กะ A</option>
-            <option value="กะ B">กะ B</option>
-          </select>
-        </div>
-        <div class="filter-item">
-          <label for="filterMachine">กรองตามเครื่องจักร</label>
-          <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
-        </div>
-        <div class="filter-item" style="max-width: 160px;">
-          <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
-          <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
-        </div>
-        <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
-      </div>
-
-      <div class="oee-showcase">
-        <div class="oee-hero">
-          <div class="hero-top">
-            <span class="hero-label">OEE</span>
-            <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
+        <div class="sidebar-brand">
+          <div class="sidebar-logo">
+            <span class="logo-badge">FP</span>
+            <span>FactoryPulse</span>
           </div>
-          <div class="hero-val" id="kpiOee">-</div>
-          <div class="hero-foot">
-            <span id="kpiTargetText">Target 85.00%</span>
-            <span id="kpiDiffText">-</span>
-          </div>
+          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF</div>
         </div>
-        <div class="sub-grid">
-          <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
-          <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
-          <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
-          <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
-          <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
-          <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
+
+        <div class="nav-group-label">เมนูหลัก (Navigation)</div>
+        <nav class="nav-list">
+          <button type="button" class="nav-item active" id="tabOeeBtn" onclick="switchTab('oee')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">
+              <span>หมวด OEE (การผลิต)</span>
+              <span class="nav-desc">ภาพรวม 40 เครื่อง & บันทึกยอด</span>
+            </span>
+          </button>
+
+          <button type="button" class="nav-item" id="tabPackingBtn" onclick="switchTab('packing')">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">
+              <span>หมวดแพ็คกิ่ง</span>
+              <span class="nav-desc">Packing tube line</span>
+            </span>
+          </button>
+        </nav>
+
+        <div class="nav-group-label" style="margin-top: 14px;">ทางลัดการทำงาน</div>
+        <div class="nav-list">
+          <button type="button" class="nav-item" onclick="switchTab('oee'); loadLogs();">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-text">
+              <span>อัปเดตข้อมูลจากชีต</span>
+              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
+            </span>
+          </button>
         </div>
       </div>
 
-      <div class="card">
-        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
-        <form id="batchForm">
-          <div class="grid-3">
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
+            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span id="liveStatusText">READY</span></span>
+          </div>
+          <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">-</div>
+          <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <div class="container">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
             <div>
-              <label for="batchShift">กะการทำงาน (Shift)</label>
-              <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
-            </div>
-            <div>
-              <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
-              <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
-            </div>
-            <div>
-              <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
-              <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+              <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
+              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
             </div>
           </div>
-          <div class="preset-bar">
-            <span>เลือกเครื่องยกชุด 10 แถว:</span>
-            <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
-            <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
-            <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
-            <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
-            <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
-          </div>
-          <div class="table-wrap">
-            <table class="batch-table">
-              <thead>
-                <tr>
-                  <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
-                  <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
-                  <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
-                </tr>
-              </thead>
-              <tbody id="batchRowsBody"></tbody>
-            </table>
-          </div>
-          <div class="actions">
-            <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
-            <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
-          </div>
-          <div id="msgBox" class="msg"></div>
-        </form>
-      </div>
+        </div>
 
-      <div class="card">
-        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
-            </thead>
-            <tbody id="logBody">
-              <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        <div id="oeeTabContent">
+          <div class="filter-bar">
+            <div class="filter-item">
+              <label for="filterShift">กรองตามกะ</label>
+              <select id="filterShift">
+                <option value="ALL">ทุกกะ (All Shifts)</option>
+                <option value="กะ A">กะ A</option>
+                <option value="กะ B">กะ B</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="filterMachine">กรองตามเครื่องจักร</label>
+              <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
+            </div>
+            <div class="filter-item" style="max-width: 160px;">
+              <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
+              <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
+            </div>
+            <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
+          </div>
 
-    <div id="packingTabContent" class="hidden">
-      <div class="filter-bar">
-        <div class="filter-item">
-          <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
-          <select id="packingStatusFilter" onchange="renderPackingTable()">
-            <option value="ALL">ทุกวันที่มีข้อมูล (14 วัน)</option>
-            <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (10 วัน)</option>
-            <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (4 วัน)</option>
-            <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (6 วัน)</option>
-            <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว (3 วัน)</option>
-            <option value="CURE_ONLY">มียอดอบอย่างเดียว (1 วัน)</option>
-          </select>
-        </div>
-        <div class="filter-item">
-          <label for="packingDayFilter">กรองตามวันในสัปดาห์</label>
-          <select id="packingDayFilter" onchange="renderPackingTable()">
-            <option value="ALL">ทุกวันในสัปดาห์</option>
-            <option value="จันทร์">จันทร์</option>
-            <option value="อังคาร">อังคาร</option>
-            <option value="พุธ">พุธ</option>
-            <option value="พฤหัส">พฤหัส</option>
-            <option value="ศุกร์">ศุกร์</option>
-            <option value="เสาร์">เสาร์</option>
-          </select>
-        </div>
-        <div><button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button></div>
-      </div>
+          <div class="oee-showcase">
+            <div class="oee-hero">
+              <div class="hero-top">
+                <span class="hero-label">OEE</span>
+                <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
+              </div>
+              <div class="hero-val" id="kpiOee">-</div>
+              <div class="hero-foot">
+                <span id="kpiTargetText">Target 85.00%</span>
+                <span id="kpiDiffText">-</span>
+              </div>
+            </div>
+            <div class="sub-grid">
+              <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
+              <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
+              <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
+              <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
+              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
+              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
+            </div>
+          </div>
 
-      <div class="kpi-grid-4">
-        <div class="metric-card">
-          <div class="metric-title">ยอดแพ็ครวม (13 วันที่มีข้อมูล)</div>
-          <div class="metric-val" id="pkTotalVal">121,849 เส้น</div>
-          <div class="metric-sub" id="pkTotalSub">เฉลี่ย 9,373.0 / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">สัดส่วนแพ็ค / ยอดอบ (10 วันคู่)</div>
-          <div class="metric-val sky" id="pkRatioVal">88.82%</div>
-          <div class="metric-sub" id="pkRatioSub">แพ็ค 92,759 เทียบอบ 104,439 เส้น (-11,680)</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">ยอดแพ็คสูงสุด (จ. 16 พ.ย. 2026)</div>
-          <div class="metric-val light">12,245 เส้น</div>
-          <div class="metric-sub">อิงชีต Packing tube line</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-title">ยอดแพ็คต่ำสุด (พ. 18 พ.ย. 2026)</div>
-          <div class="metric-val light">1,389 เส้น</div>
-          <div class="metric-sub">เทียบยอดอบ 8,904 เส้น (-7,515)</div>
-        </div>
-      </div>
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
+            <form id="batchForm">
+              <div class="grid-3">
+                <div>
+                  <label for="batchShift">กะการทำงาน (Shift)</label>
+                  <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
+                </div>
+                <div>
+                  <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
+                  <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
+                </div>
+                <div>
+                  <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
+                  <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+                </div>
+              </div>
+              <div class="preset-bar">
+                <span>เลือกเครื่องยกชุด 10 แถว:</span>
+                <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
+                <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
+                <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
+                <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
+                <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
+              </div>
+              <div class="table-wrap">
+                <table class="batch-table">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
+                      <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
+                      <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
+                    </tr>
+                  </thead>
+                  <tbody id="batchRowsBody"></tbody>
+                </table>
+              </div>
+              <div class="actions">
+                <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
+                <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
+              </div>
+              <div id="msgBox" class="msg"></div>
+            </form>
+          </div>
 
-      <div class="card">
-        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
-        <div class="grid-4">
-          <div>
-            <label for="pkDateInput">วันที่ (YYYY-MM-DD)</label>
-            <input id="pkDateInput" type="date" value="2026-11-19" />
-          </div>
-          <div>
-            <label for="pkDayLabelInput">วันเดือนปี (เช่น พฤหัส 19 พ.ย. 2026)</label>
-            <input id="pkDayLabelInput" type="text" placeholder="เช่น พฤหัส 19 พ.ย. 2026" />
-          </div>
-          <div>
-            <label for="pkCureInput">ยอดอบยางใน (เส้น)</label>
-            <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
-          </div>
-          <div>
-            <label for="pkPackInput">ยอดแพ็คยางใน (เส้น)</label>
-            <input id="pkPackInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
+                </thead>
+                <tbody id="logBody">
+                  <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-        <div class="grid-3">
-          <div style="grid-column: span 2;">
-            <label for="pkRemarkInput">หมายเหตุ</label>
-            <input id="pkRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม" />
-          </div>
-          <div style="display: flex; align-items: end;">
-            <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
-          </div>
-        </div>
-        <div id="pkMsgBox" class="msg"></div>
-      </div>
 
-      <div class="card">
-        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>วันที่</th>
-                <th>วันเดือนปี</th>
-                <th>ยอดอบยางใน (เส้น)</th>
-                <th>ยอดแพ็คยางใน (เส้น)</th>
-                <th>ส่วนต่าง (แพ็ค - อบ)</th>
-                <th>สัดส่วน แพ็ค/อบ (%)</th>
-                <th>สถานะข้อมูล</th>
-                <th>หมายเหตุ</th>
-              </tr>
-            </thead>
-            <tbody id="packingTableBody"></tbody>
-          </table>
-        </div>
-      </div>
+        <div id="packingTabContent" class="hidden">
+          <div class="filter-bar">
+            <div class="filter-item">
+              <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
+              <select id="packingStatusFilter" onchange="renderPackingTable()">
+                <option value="ALL">ทุกวันที่มีข้อมูล (14 วัน)</option>
+                <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (10 วัน)</option>
+                <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (4 วัน)</option>
+                <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (6 วัน)</option>
+                <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว (3 วัน)</option>
+                <option value="CURE_ONLY">มียอดอบอย่างเดียว (1 วัน)</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="packingDayFilter">กรองตามวันในสัปดาห์</label>
+              <select id="packingDayFilter" onchange="renderPackingTable()">
+                <option value="ALL">ทุกวันในสัปดาห์</option>
+                <option value="จันทร์">จันทร์</option>
+                <option value="อังคาร">อังคาร</option>
+                <option value="พุธ">พุธ</option>
+                <option value="พฤหัส">พฤหัส</option>
+                <option value="ศุกร์">ศุกร์</option>
+                <option value="เสาร์">เสาร์</option>
+              </select>
+            </div>
+            <div><button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button></div>
+          </div>
 
-      <div class="card">
-        <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ค่าเฉลี่ยยอดแพ็คแยกตามวันในสัปดาห์ (อิงเฉพาะวันที่มียอดแพ็คในชีต Packing tube line)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>วันในสัปดาห์</th>
-                <th>จำนวนวันที่มีข้อมูลแพ็ค</th>
-                <th>ยอดแพ็ครวม (เส้น)</th>
-                <th>ค่าเฉลี่ยยอดแพ็ค / วัน (เส้น)</th>
-              </tr>
-            </thead>
-            <tbody id="packingDayAvgBody"></tbody>
-          </table>
+          <div class="kpi-grid-4">
+            <div class="metric-card">
+              <div class="metric-title">ยอดแพ็ครวม (13 วันที่มีข้อมูล)</div>
+              <div class="metric-val" id="pkTotalVal">121,849 เส้น</div>
+              <div class="metric-sub" id="pkTotalSub">เฉลี่ย 9,373.0 / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">สัดส่วนแพ็ค / ยอดอบ (10 วันคู่)</div>
+              <div class="metric-val sky" id="pkRatioVal">88.82%</div>
+              <div class="metric-sub" id="pkRatioSub">แพ็ค 92,759 เทียบอบ 104,439 เส้น (-11,680)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ยอดแพ็คสูงสุด (จ. 16 พ.ย. 2026)</div>
+              <div class="metric-val light">12,245 เส้น</div>
+              <div class="metric-sub">อิงชีต Packing tube line</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ยอดแพ็คต่ำสุด (พ. 18 พ.ย. 2026)</div>
+              <div class="metric-val light">1,389 เส้น</div>
+              <div class="metric-sub">เทียบยอดอบ 8,904 เส้น (-7,515)</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
+            <div class="grid-4">
+              <div>
+                <label for="pkDateInput">วันที่ (YYYY-MM-DD)</label>
+                <input id="pkDateInput" type="date" value="2026-11-19" />
+              </div>
+              <div>
+                <label for="pkDayLabelInput">วันเดือนปี (เช่น พฤหัส 19 พ.ย. 2026)</label>
+                <input id="pkDayLabelInput" type="text" placeholder="เช่น พฤหัส 19 พ.ย. 2026" />
+              </div>
+              <div>
+                <label for="pkCureInput">ยอดอบยางใน (เส้น)</label>
+                <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+              </div>
+              <div>
+                <label for="pkPackInput">ยอดแพ็คยางใน (เส้น)</label>
+                <input id="pkPackInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+              </div>
+            </div>
+            <div class="grid-3">
+              <div style="grid-column: span 2;">
+                <label for="pkRemarkInput">หมายเหตุ</label>
+                <input id="pkRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม" />
+              </div>
+              <div style="display: flex; align-items: end;">
+                <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
+              </div>
+            </div>
+            <div id="pkMsgBox" class="msg"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>วันเดือนปี</th>
+                    <th>ยอดอบยางใน (เส้น)</th>
+                    <th>ยอดแพ็คยางใน (เส้น)</th>
+                    <th>ส่วนต่าง (แพ็ค - อบ)</th>
+                    <th>สัดส่วน แพ็ค/อบ (%)</th>
+                    <th>สถานะข้อมูล</th>
+                    <th>หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody id="packingTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ค่าเฉลี่ยยอดแพ็คแยกตามวันในสัปดาห์ (อิงเฉพาะวันที่มียอดแพ็คในชีต Packing tube line)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันในสัปดาห์</th>
+                    <th>จำนวนวันที่มีข้อมูลแพ็ค</th>
+                    <th>ยอดแพ็ครวม (เส้น)</th>
+                    <th>ค่าเฉลี่ยยอดแพ็ค / วัน (เส้น)</th>
+                  </tr>
+                </thead>
+                <tbody id="packingDayAvgBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <script>
@@ -431,12 +637,27 @@
     const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
 
+    function toggleSidebar(forceState) {
+      const sb = $("leftSidebar");
+      const bd = $("sidebarBackdrop");
+      const next = typeof forceState === "boolean" ? forceState : !sb.classList.contains("open");
+      sb.classList.toggle("open", next);
+      bd.classList.toggle("show", next);
+    }
+
     function switchTab(tab) {
       const isPacking = tab === "packing";
       $("oeeTabContent").classList.toggle("hidden", isPacking);
       $("packingTabContent").classList.toggle("hidden", !isPacking);
       $("tabOeeBtn").classList.toggle("active", !isPacking);
       $("tabPackingBtn").classList.toggle("active", isPacking);
+      $("pageHeaderTitle").textContent = isPacking
+        ? "หมวดแพ็คกิ่ง (Packing tube line)"
+        : "หมวด OEE (การผลิต & เครื่องจักร)";
+      $("pageHeaderSub").textContent = isPacking
+        ? "เปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"
+        : "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ";
+      toggleSidebar(false);
       if (isPacking) renderPackingTable();
     }
 
@@ -558,6 +779,7 @@
 
     $("logoutBtn").addEventListener("click", () => {
       try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+      toggleSidebar(false);
       $("appSection").classList.add("hidden");
       $("loginSection").classList.remove("hidden");
       $("loginForm").reset();
