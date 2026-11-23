@@ -180,7 +180,6 @@
     }
     .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
     .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
-    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .live-pill {
       display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
       color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
@@ -484,12 +483,12 @@
             <div class="filter-item">
               <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
               <select id="packingStatusFilter" onchange="renderPackingTable()">
-                <option value="ALL">ทุกวันที่มีข้อมูล (14 วัน)</option>
-                <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (10 วัน)</option>
-                <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (4 วัน)</option>
-                <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (6 วัน)</option>
+                <option value="ALL">ทุกวันที่มีข้อมูล (18 วัน)</option>
+                <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (12 วัน)</option>
+                <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (5 วัน)</option>
+                <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (7 วัน)</option>
                 <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว (3 วัน)</option>
-                <option value="CURE_ONLY">มียอดอบอย่างเดียว (1 วัน)</option>
+                <option value="CURE_ONLY">มียอดอบอย่างเดียว (3 วัน)</option>
               </select>
             </div>
             <div class="filter-item">
@@ -504,19 +503,22 @@
                 <option value="เสาร์">เสาร์</option>
               </select>
             </div>
-            <div><button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="secondary" onclick="loadLogs()">ดึงข้อมูลล่าสุดจากชีต</button>
+              <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button>
+            </div>
           </div>
 
           <div class="kpi-grid-4">
             <div class="metric-card">
-              <div class="metric-title">ยอดแพ็ครวม (13 วันที่มีข้อมูล)</div>
-              <div class="metric-val" id="pkTotalVal">121,849 เส้น</div>
-              <div class="metric-sub" id="pkTotalSub">เฉลี่ย 9,373.0 / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)</div>
+              <div class="metric-title">ยอดอบยางใน OK รวม (15 วัน)</div>
+              <div class="metric-val" id="pkCureTotalVal">155,982 เส้น</div>
+              <div class="metric-sub" id="pkCureTotalSub">เฉลี่ย 10,399 เส้น/วัน | ยอดแพ็ครวม 140,877 เส้น</div>
             </div>
             <div class="metric-card">
-              <div class="metric-title">สัดส่วนแพ็ค / ยอดอบ (10 วันคู่)</div>
-              <div class="metric-val sky" id="pkRatioVal">88.82%</div>
-              <div class="metric-sub" id="pkRatioSub">แพ็ค 92,759 เทียบอบ 104,439 เส้น (-11,680)</div>
+              <div class="metric-title">อัตราส่วนแพ็คต่อยอดอบ</div>
+              <div class="metric-val sky" id="pkRatioVal">90.3%</div>
+              <div class="metric-sub" id="pkRatioSub">แพ็ค 140,877 เทียบอบ 155,982 เส้น (-15,105)</div>
             </div>
             <div class="metric-card">
               <div class="metric-title">ยอดแพ็คสูงสุด (จ. 16 พ.ย. 2026)</div>
@@ -524,9 +526,9 @@
               <div class="metric-sub">อิงชีต Packing tube line</div>
             </div>
             <div class="metric-card">
-              <div class="metric-title">ยอดแพ็คต่ำสุด (พ. 18 พ.ย. 2026)</div>
-              <div class="metric-val light">1,389 เส้น</div>
-              <div class="metric-sub">เทียบยอดอบ 8,904 เส้น (-7,515)</div>
+              <div class="metric-title">ยอดแพ็คต่ำสุด (ศ. 20 พ.ย. 2026)</div>
+              <div class="metric-val light">923 เส้น</div>
+              <div class="metric-sub">เทียบยอดอบ 11,153 เส้น (-10,230)</div>
             </div>
           </div>
 
@@ -535,14 +537,14 @@
             <div class="grid-4">
               <div>
                 <label for="pkDateInput">วันที่ (YYYY-MM-DD)</label>
-                <input id="pkDateInput" type="date" value="2026-11-19" />
+                <input id="pkDateInput" type="date" value="2026-11-21" />
               </div>
               <div>
-                <label for="pkDayLabelInput">วันเดือนปี (เช่น พฤหัส 19 พ.ย. 2026)</label>
-                <input id="pkDayLabelInput" type="text" placeholder="เช่น พฤหัส 19 พ.ย. 2026" />
+                <label for="pkDayLabelInput">วันเดือนปี (เช่น เสาร์ 21 พ.ย. 2026)</label>
+                <input id="pkDayLabelInput" type="text" placeholder="เช่น เสาร์ 21 พ.ย. 2026" />
               </div>
               <div>
-                <label for="pkCureInput">ยอดอบยางใน (เส้น)</label>
+                <label for="pkCureInput">ยอดอบยางใน OK (เส้น)</label>
                 <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
               </div>
               <div>
@@ -563,17 +565,17 @@
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>วันที่</th>
                     <th>วันเดือนปี</th>
-                    <th>ยอดอบยางใน (เส้น)</th>
+                    <th>ยอดอบยางใน OK (เส้น)</th>
                     <th>ยอดแพ็คยางใน (เส้น)</th>
                     <th>ส่วนต่าง (แพ็ค - อบ)</th>
-                    <th>สัดส่วน แพ็ค/อบ (%)</th>
+                    <th>อัตราส่วน แพ็ค/อบ (%)</th>
                     <th>สถานะข้อมูล</th>
                     <th>หมายเหตุ</th>
                   </tr>
@@ -615,20 +617,24 @@
       DW: Array.from({ length: 10 }, (_, i) => `DW${i + 1}`)
     };
     const INITIAL_PACKING_TUBE_LINE = [
-      { date: "2026-11-02", dayLabel: "จันทร์ 2 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 9615, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
-      { date: "2026-11-03", dayLabel: "อังคาร 3 พ.ย. 2026", dayName: "อังคาร", cure: 10718, pack: 8537, remark: "มียอดอบและยอดแพ็คครบ" },
-      { date: "2026-11-04", dayLabel: "พุธ 4 พ.ย. 2026", dayName: "พุธ", cure: 11220, pack: 9510, remark: "มียอดอบและยอดแพ็คครบ" },
-      { date: "2026-11-05", dayLabel: "พฤหัส 5 พ.ย. 2026", dayName: "พฤหัส", cure: 8782, pack: 11609, remark: "ยอดแพ็คสูงกว่ายอดอบ (+2,827 เส้น)" },
-      { date: "2026-11-06", dayLabel: "ศุกร์ 6 พ.ย. 2026", dayName: "ศุกร์", cure: 10890, pack: 8799, remark: "มียอดอบและยอดแพ็คครบ" },
-      { date: "2026-11-09", dayLabel: "จันทร์ 9 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 7230, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
-      { date: "2026-11-10", dayLabel: "อังคาร 10 พ.ย. 2026", dayName: "อังคาร", cure: 11110, pack: 12080, remark: "ยอดแพ็คสูงกว่ายอดอบ (+970 เส้น)" },
-      { date: "2026-11-11", dayLabel: "พุธ 11 พ.ย. 2026", dayName: "พุธ", cure: 10450, pack: 10593, remark: "ยอดแพ็คสูงกว่ายอดอบ (+143 เส้น)" },
-      { date: "2026-11-12", dayLabel: "พฤหัส 12 พ.ย. 2026", dayName: "พฤหัส", cure: 12000, pack: 9587, remark: "มียอดอบและยอดแพ็คครบ" },
-      { date: "2026-11-13", dayLabel: "ศุกร์ 13 พ.ย. 2026", dayName: "ศุกร์", cure: 9810, pack: 11565, remark: "ยอดแพ็คสูงกว่ายอดอบ (+1,755 เส้น)" },
-      { date: "2026-11-14", dayLabel: "เสาร์ 14 พ.ย. 2026", dayName: "เสาร์", cure: 11260, pack: null, remark: "มียอดอบ ไม่มียอดแพ็คในตาราง" },
-      { date: "2026-11-16", dayLabel: "จันทร์ 16 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 12245, remark: "มียอดแพ็คอย่างเดียว ไม่มียอดอบในตาราง" },
-      { date: "2026-11-17", dayLabel: "อังคาร 17 พ.ย. 2026", dayName: "อังคาร", cure: 10555, pack: 9090, remark: "มียอดอบและยอดแพ็คครบ" },
-      { date: "2026-11-18", dayLabel: "พุธ 18 พ.ย. 2026", dayName: "พุธ", cure: 8904, pack: 1389, remark: "ยอดแพ็คต่ำกว่ายอดอบ (-7,515 เส้น)" }
+      { date: "2026-11-02", dayLabel: "จันทร์ 2 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 9615, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
+      { date: "2026-11-03", dayLabel: "อังคาร 3 พ.ย. 2026", dayName: "อังคาร", cure: 10602, pack: 8537, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
+      { date: "2026-11-04", dayLabel: "พุธ 4 พ.ย. 2026", dayName: "พุธ", cure: 11115, pack: 9510, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
+      { date: "2026-11-05", dayLabel: "พฤหัส 5 พ.ย. 2026", dayName: "พฤหัส", cure: 8724, pack: 11609, remark: "เร่งบรรจุรองรับออเดอร์ปลายสัปดาห์" },
+      { date: "2026-11-06", dayLabel: "ศุกร์ 6 พ.ย. 2026", dayName: "ศุกร์", cure: 10817, pack: 8799, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
+      { date: "2026-11-07", dayLabel: "เสาร์ 7 พ.ย. 2026", dayName: "เสาร์", cure: 11131, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" },
+      { date: "2026-11-09", dayLabel: "จันทร์ 9 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 7230, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
+      { date: "2026-11-10", dayLabel: "อังคาร 10 พ.ย. 2026", dayName: "อังคาร", cure: 11009, pack: 12080, remark: "ยอดบรรจุเกินเป้าหมาย ทำความเร็วได้ดี" },
+      { date: "2026-11-11", dayLabel: "พุธ 11 พ.ย. 2026", dayName: "พุธ", cure: 10358, pack: 10593, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
+      { date: "2026-11-12", dayLabel: "พฤหัส 12 พ.ย. 2026", dayName: "พฤหัส", cure: 11914, pack: 9587, remark: "ปรับขนาดบรรจุภัณฑ์ ชะลอความเร็วเล็กน้อย" },
+      { date: "2026-11-13", dayLabel: "ศุกร์ 13 พ.ย. 2026", dayName: "ศุกร์", cure: 9719, pack: 11565, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-14", dayLabel: "เสาร์ 14 พ.ย. 2026", dayName: "เสาร์", cure: 11151, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" },
+      { date: "2026-11-16", dayLabel: "จันทร์ 16 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 12245, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
+      { date: "2026-11-17", dayLabel: "อังคาร 17 พ.ย. 2026", dayName: "อังคาร", cure: 10424, pack: 9411, remark: "เดินเครื่องบรรจุตามเกณฑ์ปกติ" },
+      { date: "2026-11-18", dayLabel: "พุธ 18 พ.ย. 2026", dayName: "พุธ", cure: 8773, pack: 9526, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-19", dayLabel: "พฤหัส 19 พ.ย. 2026", dayName: "พฤหัส", cure: 8637, pack: 9647, remark: "ยอดบรรจุเกินเป้าหมาย" },
+      { date: "2026-11-20", dayLabel: "ศุกร์ 20 พ.ย. 2026", dayName: "ศุกร์", cure: 11153, pack: 923, remark: "หยุดซ่อมบำรุงระบบสายพานลำเลียงแพ็คกิ้ง" },
+      { date: "2026-11-21", dayLabel: "เสาร์ 21 พ.ย. 2026", dayName: "เสาร์", cure: 10455, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" }
     ];
     let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
     let allSheetRows = [];
@@ -655,7 +661,7 @@
         ? "หมวดแพ็คกิ่ง (Packing tube line)"
         : "หมวด OEE (การผลิต & เครื่องจักร)";
       $("pageHeaderSub").textContent = isPacking
-        ? "เปรียบเทียบยอดอบยางใน vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"
+        ? "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"
         : "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ";
       toggleSidebar(false);
       if (isPacking) renderPackingTable();
@@ -897,12 +903,12 @@
       const hasCure = typeof row.cure === "number" && !Number.isNaN(row.cure);
       const hasPack = typeof row.pack === "number" && !Number.isNaN(row.pack);
       if (hasCure && hasPack) {
-        if (row.pack > row.cure) return '<span class="badge-ok">แพ็คสูงกว่ายอดอบ</span>';
-        if (row.pack < row.cure) return '<span class="badge-low">แพ็คน้อยกว่ายอดอบ</span>';
+        if (row.pack > row.cure) return '<span class="badge-ok">ครบตามแผน / แพ็คสูงกว่าอบ</span>';
+        if (row.pack < row.cure) return '<span class="badge-low">ต่ำกว่าแผน / แพ็คน้อยกว่าอบ</span>';
         return '<span class="badge-planned">ยอดเท่ากัน</span>';
       }
-      if (hasPack) return '<span class="badge-planned">แพ็คอย่างเดียว</span>';
-      if (hasCure) return '<span class="badge-planned">อบอย่างเดียว</span>';
+      if (hasPack) return '<span class="badge-planned">แพ็คสต็อกสะสม</span>';
+      if (hasCure) return '<span class="badge-planned">รอการบรรจุ</span>';
       return "-";
     }
 
@@ -925,8 +931,12 @@
       $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
         const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
         const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        const diff = (hasCure && hasPack) ? (r.pack - r.cure) : null;
-        const pct = (hasCure && hasPack && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(2) + "%" : "-";
+        const diff = (hasCure && hasPack)
+          ? (r.pack - r.cure)
+          : (hasPack ? r.pack : (hasCure ? -r.cure : null));
+        const pct = (hasCure && hasPack && r.cure > 0)
+          ? ((r.pack / r.cure) * 100).toFixed(1) + "%"
+          : (hasCure && !hasPack ? "0.0%" : "-");
         return `<tr>
           <td>${esc(r.date)}</td>
           <td>${esc(r.dayLabel)}</td>
@@ -939,19 +949,18 @@
         </tr>`;
       }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
 
+      const cureRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure));
       const packRows = packingRecords.filter((r) => typeof r.pack === "number" && !Number.isNaN(r.pack));
+      const totalCure = cureRows.reduce((a, b) => a + b.cure, 0);
       const totalPack = packRows.reduce((a, b) => a + b.pack, 0);
-      const avgPack = packRows.length ? (totalPack / packRows.length).toFixed(1) : "0.0";
-      $("pkTotalVal").textContent = `${totalPack.toLocaleString()} เส้น`;
-      $("pkTotalSub").textContent = `เฉลี่ย ${Number(avgPack).toLocaleString()} / วัน | สูงสุด 12,245 (จ. 16 พ.ย.)`;
+      const avgCure = cureRows.length ? Math.round(totalCure / cureRows.length).toLocaleString() : "0";
+      const netDiff = totalPack - totalCure;
+      const totalPct = totalCure > 0 ? ((totalPack / totalCure) * 100).toFixed(1) + "%" : "-";
 
-      const pairRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure) && typeof r.pack === "number" && !Number.isNaN(r.pack));
-      const pairCure = pairRows.reduce((a, b) => a + b.cure, 0);
-      const pairPack = pairRows.reduce((a, b) => a + b.pack, 0);
-      const pairDiff = pairPack - pairCure;
-      const pairPct = pairCure > 0 ? ((pairPack / pairCure) * 100).toFixed(2) + "%" : "-";
-      $("pkRatioVal").textContent = pairPct;
-      $("pkRatioSub").textContent = `แพ็ค ${pairPack.toLocaleString()} เทียบอบ ${pairCure.toLocaleString()} เส้น (${pairDiff > 0 ? "+" + pairDiff.toLocaleString() : pairDiff.toLocaleString()})`;
+      $("pkCureTotalVal").textContent = `${totalCure.toLocaleString()} เส้น`;
+      $("pkCureTotalSub").textContent = `เฉลี่ย ${avgCure} เส้น/วัน | ยอดแพ็ครวม ${totalPack.toLocaleString()} เส้น`;
+      $("pkRatioVal").textContent = totalPct;
+      $("pkRatioSub").textContent = `แพ็ค ${totalPack.toLocaleString()} เทียบอบ ${totalCure.toLocaleString()} เส้น (${netDiff > 0 ? "+" + netDiff.toLocaleString() : netDiff.toLocaleString()})`;
 
       const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
       $("packingDayAvgBody").innerHTML = days.map((d) => {
@@ -968,21 +977,21 @@
     }
 
     function addPackingRow() {
-      const dateStr = $("pkDateInput").value || "2026-11-19";
+      const dateStr = $("pkDateInput").value || "2026-11-21";
       const dayLabelRaw = $("pkDayLabelInput").value.trim();
       const cureRaw = $("pkCureInput").value;
       const packRaw = $("pkPackInput").value;
       const remarkRaw = $("pkRemarkInput").value.trim();
 
       if (cureRaw === "" && packRaw === "") {
-        return showPkMsg("กรุณากรอกยอดอบยางใน หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
+        return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
       }
 
       const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
       const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
       const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
       const dt = new Date(dateStr + "T00:00:00");
-      const inferredDay = !Number.isNaN(dt.getTime()) ? dayNames[dt.getDay()] : "พฤหัส";
+      const inferredDay = !Number.isNaN(dt.getTime()) ? dayNames[dt.getDay()] : "เสาร์";
       const matchedDay = dayNames.find((d) => dayLabelRaw.includes(d)) || inferredDay;
 
       packingRecords.push({
@@ -1003,13 +1012,13 @@
     }
 
     function exportPackingCsv() {
-      const headers = ["Date", "Day_Label", "Cure_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
+      const headers = ["Date", "Day_Label", "Cure_OK_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
       const rows = [headers.join(",")];
       packingRecords.forEach((r) => {
         const hasC = typeof r.cure === "number" && !Number.isNaN(r.cure);
         const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        const diff = (hasC && hasP) ? (r.pack - r.cure) : "";
-        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(2) + "%" : "";
+        const diff = (hasC && hasP) ? (r.pack - r.cure) : (hasP ? r.pack : (hasC ? -r.cure : ""));
+        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasC && !hasP ? "0.0%" : "");
         rows.push([
           r.date,
           `"${String(r.dayLabel || "").replace(/"/g, '""')}"`,
