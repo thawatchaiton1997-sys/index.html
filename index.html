@@ -301,7 +301,7 @@
             <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
           </div>
         </div>
-        <button type="submit" id="loginSubmitBtn" style="width: 100%;">เข้าสู่ระบบ</button>
+        <button type="submit" style="width: 100%;">เข้าสู่ระบบ</button>
         <div id="loginMsg" class="msg"></div>
       </form>
     </div>
@@ -774,7 +774,8 @@
       renderPackingTable();
     }
 
-    function attemptLogin() {
+    $("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
       const u = $("loginUser").value.trim();
       const p = $("loginPass").value.trim();
       if (USERS[u] && USERS[u] === p) {
@@ -786,14 +787,6 @@
         $("loginMsg").className = "msg err";
         $("loginMsg").textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องครับ (admin/1234, shiftA/1111, shiftB/2222)";
       }
-    }
-
-    $("loginForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      attemptLogin();
-    });
-    $("loginSubmitBtn").addEventListener("click", () => {
-      attemptLogin();
     });
 
     $("logoutBtn").addEventListener("click", () => {
