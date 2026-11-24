@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d1730" />
-  <title>FactoryPulse — OEE, Packing, Extrusion & Reject Tracking (Local)</title>
+  <title>FactoryPulse — OEE, Packing, Extrusion & Reject Tracking</title>
   <style>
     :root {
       --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
@@ -80,13 +80,17 @@
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
     .topbar-left { display: flex; align-items: center; gap: 10px; }
     .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .gas-url-input {
+      min-width: 220px; max-width: 300px; padding: 7px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card-2); color: var(--text); font-size: 0.8rem;
+    }
     .menu-toggle-btn {
       display: none; background: var(--panel); color: var(--text);
       border: 1px solid var(--border); padding: 8px 11px; border-radius: 10px; font-size: 1rem;
     }
     .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
     .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
-    .local-pill {
+    .live-pill {
       display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
       color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
       padding: 6px 10px; border-radius: 999px;
@@ -215,7 +219,7 @@
   <div id="loginSection" class="login-wrap">
     <div class="login-box">
       <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-      <p class="brand-sub" style="margin-bottom: 16px;">โหมดบันทึกข้อมูลในเครื่อง (Offline / Local Storage — ไม่เชื่อม Google Sheets)</p>
+      <p class="brand-sub" style="margin-bottom: 16px;">ระบบติดตามการผลิตยางใน BKF (เชื่อม Google Sheets + สำรองในเครื่อง)</p>
       <form id="loginForm">
         <div style="margin-bottom: 12px;">
           <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
@@ -244,7 +248,7 @@
             <span class="logo-badge">FP</span>
             <span>FactoryPulse</span>
           </div>
-          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF (Local)</div>
+          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF</div>
         </div>
 
         <div class="nav-group-label">เมนูหลัก (NAVIGATION)</div>
@@ -307,11 +311,11 @@
               <span class="nav-desc">คืนค่าข้อมูลเริ่มต้นทุกหมวด</span>
             </span>
           </button>
-          <button type="button" class="nav-item" onclick="clearSavedLocalData()">
-            <span class="nav-icon">🗑️</span>
+          <button type="button" class="nav-item" onclick="syncAllFromSheet()">
+            <span class="nav-icon">🔄</span>
             <span class="nav-text">
-              <span>ล้างข้อมูลที่บันทึกในเครื่อง</span>
-              <span class="nav-desc">กลับสู่ค่าตั้งต้นของระบบ</span>
+              <span>อัปเดตข้อมูลจากชีต</span>
+              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
             </span>
           </button>
         </div>
@@ -321,7 +325,7 @@
         <div class="sidebar-user-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
-            <span class="local-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>LOCAL</span></span>
+            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>SHEET + LOCAL</span></span>
           </div>
           <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">admin</div>
           <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
@@ -336,12 +340,13 @@
             <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
             <div>
               <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
-              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ (บันทึกในเครื่อง)</div>
+              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
             </div>
           </div>
 
           <div class="topbar-actions">
-            <button type="button" class="secondary small" onclick="resetToNovDefault()">รีเซ็ตค่าเริ่มต้น</button>
+            <input id="gasUrlInput" class="gas-url-input" type="url" placeholder="วาง URL Google Apps Script (.../exec)" onchange="saveGasUrl()" />
+            <button type="button" class="secondary small" onclick="syncAllFromSheet()">ดึงข้อมูลจากชีต</button>
             <button type="button" class="secondary small" onclick="exportCSV()">ส่งออก CSV</button>
           </div>
         </div>
@@ -385,7 +390,7 @@
               <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">99.0%</div><div class="metric-sub">Target 99.00%</div></div>
               <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">157,507</div><div class="metric-sub" id="kpiOkNgSub">OK 155,982 / NG 1,525 pieces</div></div>
               <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">1095h 30m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
-              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub" id="kpiRecordSub">บันทึกในเครื่อง (Local)</div></div>
+              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub" id="kpiRecordSub">ซิงก์ Google Sheets + Local</div></div>
             </div>
           </div>
 
@@ -427,7 +432,7 @@
                 </table>
               </div>
               <div class="actions">
-                <button type="submit" id="submitBatchBtn">บันทึกลงในเครื่อง</button>
+                <button type="submit" id="submitBatchBtn">บันทึกเข้าชีต & เครื่อง</button>
                 <button type="button" class="secondary" id="clearBatchBtn" onclick="buildBatchRows('BE')">ล้างข้อมูล 10 ช่อง</button>
               </div>
               <div id="msgBox" class="msg"></div>
@@ -435,14 +440,14 @@
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกในเครื่อง (Local Production Log)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Production Log)</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
                 </thead>
                 <tbody id="logBody">
-                  <tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่ในเครื่อง</td></tr>
+                  <tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่</td></tr>
                 </tbody>
               </table>
             </div>
@@ -476,6 +481,7 @@
               </select>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="secondary" onclick="syncAllFromSheet()">ดึงข้อมูลแพ็คกิ่งจากชีต</button>
               <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV</button>
             </div>
           </div>
@@ -504,7 +510,7 @@
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (บันทึกลงในเครื่อง)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (ส่งเข้า Google Sheets + เก็บในเครื่อง)</h2>
             <div class="grid-4">
               <div>
                 <label for="pkDateInput">วันที่</label>
@@ -524,7 +530,7 @@
               </div>
             </div>
             <div class="actions" style="margin-top: 8px;">
-              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง</button>
+              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง & บันทึกเข้าชีต</button>
             </div>
             <div id="pkMsgBox" class="msg"></div>
           </div>
@@ -567,9 +573,10 @@
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
                 <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
-                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (บันทึกในเครื่อง)</div>
+                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น</div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="secondary small" onclick="syncAllFromSheet()">ดึงจากชีต</button>
                 <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น</button>
                 <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
               </div>
@@ -690,7 +697,7 @@
               </div>
             </div>
             <div class="actions" style="margin-top: 8px;">
-              <button type="button" class="primary-blue" onclick="addRejectRow()">เพิ่มลงตาราง</button>
+              <button type="button" class="primary-blue" onclick="addRejectRow()">เพิ่มลงตาราง & บันทึกเข้าชีต</button>
               <button type="button" class="secondary" onclick="resetToNovDefault()">รีเซ็ตค่าเริ่มต้น พ.ย. 2569</button>
             </div>
             <div id="rejMsgBox" class="msg"></div>
@@ -722,7 +729,10 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "factorypulse_local_v1";
+    // ใส่อีเมล/ลิงก์ Google Apps Script Web App (.../exec) ของพี่ตรงนี้เพื่อให้ทุกเครื่องดึงได้อัตโนมัติ
+    const DEFAULT_GAS_URL = "";
+    const STORAGE_KEY = "factorypulse_sheet_local_v1";
+    const GAS_URL_KEY = "factorypulse_gas_url_v1";
 
     const MACHINE_OPTIONS = [
       ...Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -838,6 +848,25 @@
       return Number(n || 0).toLocaleString("en-US");
     }
 
+    function getGasUrl() {
+      const inp = document.getElementById("gasUrlInput");
+      const val = (inp && inp.value.trim()) || localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL || "";
+      return val.trim();
+    }
+
+    function loadGasUrl() {
+      const saved = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL || "";
+      const inp = document.getElementById("gasUrlInput");
+      if (inp) inp.value = saved;
+    }
+
+    function saveGasUrl() {
+      const inp = document.getElementById("gasUrlInput");
+      if (!inp) return;
+      const val = inp.value.trim();
+      try { localStorage.setItem(GAS_URL_KEY, val); } catch (_) {}
+    }
+
     function saveLocalState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -863,12 +892,50 @@
       } catch (_) {}
     }
 
-    function clearSavedLocalData() {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
-      productionLogs = [];
-      resetToNovDefault();
-      renderProductionLogsTable();
-      renderOeeSummary();
+    async function postToSheet(payload) {
+      const url = getGasUrl();
+      if (!url) return { ok: false, noUrl: true };
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      try {
+        return { ok: true, data: JSON.parse(text) };
+      } catch (_) {
+        return { ok: true, raw: text };
+      }
+    }
+
+    async function syncAllFromSheet() {
+      const url = getGasUrl();
+      if (!url) {
+        alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
+        return;
+      }
+      saveGasUrl();
+      try {
+        const sep = url.includes("?") ? "&" : "?";
+        const res = await fetch(`${url}${sep}action=getAll&t=${Date.now()}`);
+        const data = await res.json();
+        if (data) {
+          if (Array.isArray(data.productionLogs)) productionLogs = data.productionLogs;
+          if (Array.isArray(data.packingRows) && data.packingRows.length) packingRows = data.packingRows;
+          if (Array.isArray(data.extrusionRows) && data.extrusionRows.length) extrusionRows = data.extrusionRows;
+          if (data.rejectData && Array.isArray(data.rejectData.Motorcycle) && Array.isArray(data.rejectData.Bicycle)) {
+            stateData = data.rejectData;
+          }
+          saveLocalState();
+          renderOeeSummary();
+          renderProductionLogsTable();
+          renderPackingTable();
+          renderExtrusionQueue();
+          if (isRejectTab(currentTab)) renderRejectSection();
+        }
+      } catch (err) {
+        alert("ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ: " + (err && err.message ? err.message : "ตรวจสอบสิทธิ์ Web App"));
+      }
     }
 
     function toggleSidebar(forceState) {
@@ -904,7 +971,7 @@
       document.getElementById("rejectTabContent").classList.toggle("hidden", !isRejectTab(tab));
 
       const headerMap = {
-        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ (บันทึกในเครื่อง)"],
+        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ"],
         packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
         extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น"],
         Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
@@ -1039,13 +1106,13 @@
       document.getElementById("kpiDowntime").textContent = `${dtHours}h ${dtMins}m`;
       document.getElementById("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtNum(extraPlannedMin)}m • 30 / 40 machines`;
       document.getElementById("kpiRecords").textContent = fmtNum(filteredLogs.length);
-      document.getElementById("kpiRecordSub").textContent = "บันทึกในเครื่อง (Local Storage)";
+      document.getElementById("kpiRecordSub").textContent = getGasUrl() ? "เชื่อมต่อ Google Sheets แล้ว" : "ยังไม่ได้วาง URL ชีต (เก็บในเครื่อง)";
     }
 
     function renderProductionLogsTable() {
       const tbody = document.getElementById("logBody");
       if (!productionLogs.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่ในเครื่อง</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่</td></tr>`;
         return;
       }
       tbody.innerHTML = productionLogs.slice(0, 50).map(r => `
@@ -1058,10 +1125,11 @@
       `).join("");
     }
 
-    document.getElementById("batchForm").addEventListener("submit", function (e) {
+    document.getElementById("batchForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const shift = document.getElementById("batchShift").value;
       const commonNote = document.getElementById("batchNote").value.trim();
+      const user = document.getElementById("currentUserLabel").textContent || "admin";
       const nowStr = new Date().toLocaleTimeString("th-TH", { hour12: false });
       const newRows = [];
 
@@ -1075,7 +1143,7 @@
         const status = tr.children[7].querySelector("select").value;
         const reason = tr.children[8].querySelector("input").value.trim();
         if (mc && (ok > 0 || ng > 0 || unplanned > 0 || planned > 0 || reason)) {
-          newRows.push({ time: nowStr, shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote });
+          newRows.push({ time: nowStr, shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote, user });
         }
       });
 
@@ -1090,8 +1158,18 @@
       saveLocalState();
       renderProductionLogsTable();
       renderOeeSummary();
-      box.className = "msg ok";
-      box.textContent = `บันทึกลงในเครื่องเรียบร้อยแล้ว จำนวน ${newRows.length} รายการ`;
+
+      const sent = await postToSheet({ action: "addProductionBatch", rows: newRows });
+      if (sent.noUrl) {
+        box.className = "msg ok";
+        box.textContent = `บันทึกในเครื่องแล้ว ${newRows.length} รายการ (หากต้องการส่งเข้า Google Sheets ให้วาง URL ชีตด้านบนครับ)`;
+      } else if (sent.ok) {
+        box.className = "msg ok";
+        box.textContent = `บันทึกเข้า Google Sheets และเครื่องเรียบร้อยแล้ว จำนวน ${newRows.length} รายการ`;
+      } else {
+        box.className = "msg err";
+        box.textContent = `บันทึกในเครื่องแล้ว แต่ส่งเข้า Google Sheets ไม่สำเร็จ`;
+      }
     });
 
     /* ---------------- PACKING LOGIC ---------------- */
@@ -1195,7 +1273,7 @@
       }).join("");
     }
 
-    function addPackingRow() {
+    async function addPackingRow() {
       const dateVal = document.getElementById("pkDateInput").value;
       const cureRaw = document.getElementById("pkCureInput").value;
       const packRaw = document.getElementById("pkPackInput").value;
@@ -1214,22 +1292,27 @@
       const dName = dayNames[dt.getDay()];
       const label = `${dName} ${dt.getDate()} ${thaiMonths[dt.getMonth()]} ${dt.getFullYear() + 543}`;
 
-      packingRows.push({
+      const rowObj = {
         date: dateVal,
         label,
         day: dName,
         cure: cureRaw === "" ? null : Number(cureRaw),
         pack: packRaw === "" ? null : Number(packRaw),
-        remark: remark || "บันทึกในเครื่อง"
-      });
+        remark: remark || "บันทึกจากหน้าเว็บ"
+      };
 
+      packingRows.push(rowObj);
       saveLocalState();
       document.getElementById("pkCureInput").value = "";
       document.getElementById("pkPackInput").value = "";
       document.getElementById("pkRemarkInput").value = "";
       renderPackingTable();
+
+      const sent = await postToSheet({ action: "addPackingRow", row: rowObj });
       box.className = "msg ok";
-      box.textContent = `บันทึกข้อมูลวันที่ ${label} ลงในเครื่องเรียบร้อยแล้ว`;
+      box.textContent = sent.ok
+        ? `บันทึกวันที่ ${label} เข้า Google Sheets และเครื่องเรียบร้อยแล้ว`
+        : `บันทึกวันที่ ${label} ในเครื่องแล้ว`;
     }
 
     function exportPackingCsv() {
@@ -1408,7 +1491,7 @@
       box.textContent = text;
     }
 
-    function addRejectRow() {
+    async function addRejectRow() {
       const type = document.getElementById("rejFormType").value;
       const spec = document.getElementById("rejFormSpec").value.trim();
       const prod = Number(document.getElementById("rejFormProd").value || 0);
@@ -1444,7 +1527,11 @@
         document.getElementById(id).value = "";
       });
       renderRejectSection();
-      showRejectMessage("ok", `บันทึกข้อมูล Reject_${type} เบอร์ ${spec} ลงในเครื่องเรียบร้อยแล้ว`);
+
+      const sent = await postToSheet({ action: "addRejectRow", row: { type, spec, prod, repair, scrap, remark } });
+      showRejectMessage("ok", sent.ok
+        ? `บันทึก Reject_${type} เบอร์ ${spec} เข้า Google Sheets และเครื่องเรียบร้อยแล้ว`
+        : `บันทึก Reject_${type} เบอร์ ${spec} ในเครื่องเรียบร้อยแล้ว`);
     }
 
     function resetToNovDefault() {
@@ -1493,6 +1580,7 @@
     document.getElementById("loginForm").addEventListener("submit", function (e) {
       e.preventDefault();
       loadLocalState();
+      loadGasUrl();
       const user = document.getElementById("loginUser").value.trim() || "admin";
       document.getElementById("currentUserLabel").textContent = user;
       document.getElementById("loginSection").classList.add("hidden");
