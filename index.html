@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d1730" />
-  <title>FactoryPulse — OEE, Packing, Extrusion & Reject Tracking</title>
+  <title>FactoryPulse — OEE, Packing, Extrusion & Reject Tracking (Local)</title>
   <style>
     :root {
       --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
@@ -86,7 +86,7 @@
     }
     .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
     .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
-    .live-pill {
+    .local-pill {
       display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
       color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
       padding: 6px 10px; border-radius: 999px;
@@ -168,13 +168,6 @@
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
     th { color: var(--muted); font-weight: 600; }
-    tfoot tr.total-row td {
-      background: rgba(56, 189, 248, 0.08);
-      border-top: 2px solid rgba(56, 189, 248, 0.35);
-      border-bottom: none;
-      font-weight: 700;
-      color: var(--text);
-    }
     .badge-planned {
       display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
       background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d;
@@ -201,8 +194,7 @@
       width: 100%;
     }
     #extrusionQueueCard .table-wrap th:first-child,
-    #extrusionQueueCard .table-wrap td:first-child,
-    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+    #extrusionQueueCard .table-wrap td:first-child {
       position: -webkit-sticky;
       position: sticky;
       left: 0;
@@ -217,16 +209,13 @@
       z-index: 3;
       background-color: #0b142a;
     }
-    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
-      background-color: #0d2240;
-    }
   </style>
 </head>
 <body>
   <div id="loginSection" class="login-wrap">
     <div class="login-box">
       <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-      <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE, Packing, Extrusion & Reject</p>
+      <p class="brand-sub" style="margin-bottom: 16px;">โหมดบันทึกข้อมูลในเครื่อง (Offline / Local Storage — ไม่เชื่อม Google Sheets)</p>
       <form id="loginForm">
         <div style="margin-bottom: 12px;">
           <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
@@ -255,7 +244,7 @@
             <span class="logo-badge">FP</span>
             <span>FactoryPulse</span>
           </div>
-          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF</div>
+          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF (Local)</div>
         </div>
 
         <div class="nav-group-label">เมนูหลัก (NAVIGATION)</div>
@@ -315,14 +304,14 @@
             <span class="nav-icon">↻</span>
             <span class="nav-text">
               <span>รีเซ็ตค่าเริ่มต้น พ.ย. 2569</span>
-              <span class="nav-desc">คืนค่าข้อมูลของเสียเริ่มต้น</span>
+              <span class="nav-desc">คืนค่าข้อมูลเริ่มต้นทุกหมวด</span>
             </span>
           </button>
-          <button type="button" class="nav-item" onclick="switchTab('oee'); loadLogs();">
-            <span class="nav-icon">🔄</span>
+          <button type="button" class="nav-item" onclick="clearSavedLocalData()">
+            <span class="nav-icon">🗑️</span>
             <span class="nav-text">
-              <span>อัปเดตข้อมูลจากชีต</span>
-              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
+              <span>ล้างข้อมูลที่บันทึกในเครื่อง</span>
+              <span class="nav-desc">กลับสู่ค่าตั้งต้นของระบบ</span>
             </span>
           </button>
         </div>
@@ -332,7 +321,7 @@
         <div class="sidebar-user-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
-            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span id="liveStatusText">LIVE</span></span>
+            <span class="local-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>LOCAL</span></span>
           </div>
           <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">admin</div>
           <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
@@ -347,13 +336,12 @@
             <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
             <div>
               <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
-              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
+              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ (บันทึกในเครื่อง)</div>
             </div>
           </div>
 
           <div class="topbar-actions">
-            <input id="gasUrl" type="text" placeholder="วาง URL Google Apps Script (ถ้ามี)" style="width: 240px; font-size: 0.8rem;" />
-            <button type="button" class="secondary small" onclick="syncFromSheet()">ดึงข้อมูลจากชีต</button>
+            <button type="button" class="secondary small" onclick="resetToNovDefault()">รีเซ็ตค่าเริ่มต้น</button>
             <button type="button" class="secondary small" onclick="exportCSV()">ส่งออก CSV</button>
           </div>
         </div>
@@ -377,7 +365,6 @@
               <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
               <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" oninput="renderOeeSummary()" />
             </div>
-            <div><button type="button" class="secondary" id="refreshBtn" onclick="loadLogs()">ดึงข้อมูลล่าสุดจากชีต</button></div>
           </div>
 
           <div class="oee-showcase">
@@ -398,7 +385,7 @@
               <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">99.0%</div><div class="metric-sub">Target 99.00%</div></div>
               <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">157,507</div><div class="metric-sub" id="kpiOkNgSub">OK 155,982 / NG 1,525 pieces</div></div>
               <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">1095h 30m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
-              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">1,180</div><div class="metric-sub">Web_Production_Log</div></div>
+              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub" id="kpiRecordSub">บันทึกในเครื่อง (Local)</div></div>
             </div>
           </div>
 
@@ -440,7 +427,7 @@
                 </table>
               </div>
               <div class="actions">
-                <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
+                <button type="submit" id="submitBatchBtn">บันทึกลงในเครื่อง</button>
                 <button type="button" class="secondary" id="clearBatchBtn" onclick="buildBatchRows('BE')">ล้างข้อมูล 10 ช่อง</button>
               </div>
               <div id="msgBox" class="msg"></div>
@@ -448,31 +435,14 @@
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการหยุดเครื่องจักร (FactoryPulse - Downtime Tracking Log)</h2>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>วันที่</th><th>กะ</th><th>รหัสเครื่องจักร</th><th>ช่วงเวลาหยุด</th>
-                    <th>ระยะเวลาหยุด</th><th>ประเภทการหยุด</th><th>หมวดหมู่ / รายละเอียดอาการ</th>
-                  </tr>
-                </thead>
-                <tbody id="downtimeLogBody">
-                  <tr><td colspan="7" style="color: var(--muted);">พร้อมแสดงประวัติการหยุดเครื่องจักร (กด "ดึงข้อมูลล่าสุดจากชีต" เพื่ออัปเดต)</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกในเครื่อง (Local Production Log)</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
                 </thead>
                 <tbody id="logBody">
-                  <tr><td colspan="8" style="color: var(--muted);">พร้อมแสดงประวัติการบันทึก (กด "ดึงข้อมูลล่าสุดจากชีต" เพื่ออัปเดต)</td></tr>
+                  <tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่ในเครื่อง</td></tr>
                 </tbody>
               </table>
             </div>
@@ -506,8 +476,6 @@
               </select>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="secondary" onclick="syncPackingFromSheet()">ดึงข้อมูลแพ็คกิ่งจากชีต</button>
-              <button type="button" onclick="savePackingToSheet()">บันทึกแพ็คกิ่งเข้าชีต</button>
               <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV</button>
             </div>
           </div>
@@ -515,28 +483,28 @@
           <div class="kpi-grid-4">
             <div class="metric-card">
               <div class="metric-title">ยอดอบยางใน OK รวม</div>
-              <div class="metric-val" id="pkCureTotalVal">155,982 เส้น</div>
-              <div class="metric-sub" id="pkCureTotalSub">เฉลี่ย 10,399 เส้น/วัน | แพ็ครวม 140,877 เส้น</div>
+              <div class="metric-val" id="pkCureTotalVal">126,852 เส้น</div>
+              <div class="metric-sub" id="pkCureTotalSub">เฉลี่ย 10,571 เส้น/วัน | แพ็ครวม 122,772 เส้น</div>
             </div>
             <div class="metric-card">
               <div class="metric-title">อัตราส่วนแพ็คต่อยอดอบ</div>
-              <div class="metric-val sky" id="pkRatioVal">90.3%</div>
-              <div class="metric-sub" id="pkRatioSub">แพ็ค 140,877 เทียบอบ 155,982 เส้น (-15,105)</div>
+              <div class="metric-val sky" id="pkRatioVal">96.8%</div>
+              <div class="metric-sub" id="pkRatioSub">แพ็ค 122,772 เทียบอบ 126,852 เส้น (-4,080)</div>
             </div>
             <div class="metric-card">
               <div class="metric-title">ยอดแพ็คสูงสุด</div>
-              <div class="metric-val light">12,245 เส้น</div>
-              <div class="metric-sub">อิงชีต Packing tube line</div>
+              <div class="metric-val light" id="pkMaxVal">12,245 เส้น</div>
+              <div class="metric-sub" id="pkMaxSub">อิงชีต Packing tube line</div>
             </div>
             <div class="metric-card">
               <div class="metric-title">ยอดแพ็คต่ำสุด</div>
-              <div class="metric-val light">923 เส้น</div>
-              <div class="metric-sub">เทียบยอดอบ 11,153 เส้น (-10,230)</div>
+              <div class="metric-val light" id="pkMinVal">923 เส้น</div>
+              <div class="metric-sub" id="pkMinSub">เทียบยอดอบ 11,153 เส้น (-10,230)</div>
             </div>
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (บันทึกลงในเครื่อง)</h2>
             <div class="grid-4">
               <div>
                 <label for="pkDateInput">วันที่</label>
@@ -556,7 +524,7 @@
               </div>
             </div>
             <div class="actions" style="margin-top: 8px;">
-              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
+              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง</button>
             </div>
             <div id="pkMsgBox" class="msg"></div>
           </div>
@@ -599,11 +567,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
                 <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
-                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Production Queue Management)</div>
+                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (บันทึกในเครื่อง)</div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="secondary small" onclick="syncExtrusionFromSheet()">ดึงสต็อก/คิวจากชีต</button>
-                <button type="button" class="small" onclick="saveExtrusionQueueToSheet()">บันทึกคิว/สต็อกเข้าชีต</button>
                 <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น</button>
                 <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
               </div>
@@ -756,7 +722,7 @@
   </div>
 
   <script>
-    const API_URL = "";
+    const STORAGE_KEY = "factorypulse_local_v1";
 
     const MACHINE_OPTIONS = [
       ...Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -862,6 +828,7 @@
       ]
     };
 
+    let productionLogs = [];
     let packingRows = JSON.parse(JSON.stringify(PACKING_INITIAL));
     let extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
     let stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
@@ -869,6 +836,39 @@
 
     function fmtNum(n) {
       return Number(n || 0).toLocaleString("en-US");
+    }
+
+    function saveLocalState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          productionLogs,
+          packingRows,
+          extrusionRows,
+          stateData
+        }));
+      } catch (_) {}
+    }
+
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.productionLogs)) productionLogs = parsed.productionLogs;
+        if (Array.isArray(parsed.packingRows)) packingRows = parsed.packingRows;
+        if (Array.isArray(parsed.extrusionRows)) extrusionRows = parsed.extrusionRows;
+        if (parsed.stateData && Array.isArray(parsed.stateData.Motorcycle) && Array.isArray(parsed.stateData.Bicycle)) {
+          stateData = parsed.stateData;
+        }
+      } catch (_) {}
+    }
+
+    function clearSavedLocalData() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      productionLogs = [];
+      resetToNovDefault();
+      renderProductionLogsTable();
+      renderOeeSummary();
     }
 
     function toggleSidebar(forceState) {
@@ -904,7 +904,7 @@
       document.getElementById("rejectTabContent").classList.toggle("hidden", !isRejectTab(tab));
 
       const headerMap = {
-        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ"],
+        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ (บันทึกในเครื่อง)"],
         packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
         extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น"],
         Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
@@ -914,7 +914,10 @@
       document.getElementById("pageHeaderTitle").textContent = headerMap[tab][0];
       document.getElementById("pageHeaderSub").textContent = headerMap[tab][1];
 
-      if (tab === "packing") {
+      if (tab === "oee") {
+        renderOeeSummary();
+        renderProductionLogsTable();
+      } else if (tab === "packing") {
         renderPackingTable();
       } else if (tab === "extrusion") {
         renderExtrusionQueue();
@@ -995,51 +998,73 @@
       const shift = document.getElementById("filterShift").value;
       const mcFilter = document.getElementById("filterMachine").value.trim().toUpperCase();
       const target = parseFloat(document.getElementById("targetOeeInput").value || "85");
-      const currentOee = 87.3;
+
+      const filteredLogs = productionLogs.filter(r => {
+        if (shift !== "ALL" && r.shift !== shift) return false;
+        if (mcFilter && !String(r.mc || "").toUpperCase().includes(mcFilter)) return false;
+        return true;
+      });
+
+      const baseOk = 155982;
+      const baseNg = 1525;
+      const extraOk = filteredLogs.reduce((a, b) => a + Number(b.ok || 0), 0);
+      const extraNg = filteredLogs.reduce((a, b) => a + Number(b.ng || 0), 0);
+      const totalOk = baseOk + extraOk;
+      const totalNg = baseNg + extraNg;
+      const totalOut = totalOk + totalNg;
+
+      const qualPct = totalOut > 0 ? (totalOk / totalOut) * 100 : 99.0;
+      const availPct = 88.6;
+      const perfPct = 99.5;
+      const oeePct = Number(((availPct / 100) * (perfPct / 100) * (qualPct / 100) * 100).toFixed(1));
+
+      const extraUnplannedMin = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
+      const extraPlannedMin = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
+      const baseUnplannedMin = 1095 * 60 + 30;
+      const totUnplannedMin = baseUnplannedMin + extraUnplannedMin;
+      const dtHours = Math.floor(totUnplannedMin / 60);
+      const dtMins = totUnplannedMin % 60;
+
       document.getElementById("kpiScopeLabel").textContent = shift === "ALL" ? "ทุกกะ" : shift;
+      document.getElementById("kpiOee").textContent = oeePct.toFixed(1) + "%";
       document.getElementById("kpiTargetText").textContent = `Target ${target.toFixed(2)}%`;
-      const diff = (currentOee - target).toFixed(1);
+      const diff = (oeePct - target).toFixed(1);
       document.getElementById("kpiDiffText").textContent = `${diff >= 0 ? "+" : ""}${diff} pts` + (mcFilter ? ` • ${mcFilter}` : "");
+
+      document.getElementById("kpiAvail").textContent = availPct.toFixed(1) + "%";
+      document.getElementById("kpiPerf").textContent = perfPct.toFixed(1) + "%";
+      document.getElementById("kpiQual").textContent = qualPct.toFixed(1) + "%";
+      document.getElementById("kpiOutput").textContent = fmtNum(totalOut);
+      document.getElementById("kpiOkNgSub").textContent = `OK ${fmtNum(totalOk)} / NG ${fmtNum(totalNg)} pieces`;
+      document.getElementById("kpiDowntime").textContent = `${dtHours}h ${dtMins}m`;
+      document.getElementById("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtNum(extraPlannedMin)}m • 30 / 40 machines`;
+      document.getElementById("kpiRecords").textContent = fmtNum(filteredLogs.length);
+      document.getElementById("kpiRecordSub").textContent = "บันทึกในเครื่อง (Local Storage)";
     }
 
-    async function loadLogs() {
-      const box = document.getElementById("msgBox");
-      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
-      if (!url) {
-        box.className = "msg ok";
-        box.textContent = "กำลังแสดงข้อมูลเริ่มต้นในระบบ (วาง URL Google Apps Script ด้านบนเพื่อดึงข้อมูลสด)";
+    function renderProductionLogsTable() {
+      const tbody = document.getElementById("logBody");
+      if (!productionLogs.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่ในเครื่อง</td></tr>`;
         return;
       }
-      try {
-        const res = await fetch(`${url}?sheet=Web_Production_Log`);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length) {
-          document.getElementById("logBody").innerHTML = data.slice(-20).reverse().map(r => `
-            <tr>
-              <td>${r.time || r.date || "-"}</td>
-              <td>${r.shift || "-"}</td>
-              <td>${r.machine || "-"}</td>
-              <td>${fmtNum(r.ok)}</td>
-              <td>${fmtNum(r.ng)}</td>
-              <td>${fmtNum(r.unplanned)}</td>
-              <td>${fmtNum(r.planned)}</td>
-              <td>${r.status || r.note || "-"}</td>
-            </tr>
-          `).join("");
-        }
-        box.className = "msg ok";
-        box.textContent = "ดึงข้อมูลล่าสุดจากชีตสำเร็จ";
-      } catch (err) {
-        box.className = "msg err";
-        box.textContent = "ดึงข้อมูลไม่สำเร็จ: " + err.message;
-      }
+      tbody.innerHTML = productionLogs.slice(0, 50).map(r => `
+        <tr>
+          <td>${r.time}</td><td>${r.shift}</td><td>${r.mc}</td>
+          <td>${fmtNum(r.ok)}</td><td>${fmtNum(r.ng)}</td>
+          <td>${fmtNum(r.unplanned)}</td><td>${fmtNum(r.planned)}</td>
+          <td>${r.status}${r.reason ? " (" + r.reason + ")" : ""}</td>
+        </tr>
+      `).join("");
     }
 
-    document.getElementById("batchForm").addEventListener("submit", async function (e) {
+    document.getElementById("batchForm").addEventListener("submit", function (e) {
       e.preventDefault();
       const shift = document.getElementById("batchShift").value;
       const commonNote = document.getElementById("batchNote").value.trim();
-      const rows = [];
+      const nowStr = new Date().toLocaleTimeString("th-TH", { hour12: false });
+      const newRows = [];
+
       document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
         const mc = tr.children[1].querySelector("input").value.trim().toUpperCase();
         const ok = Number(tr.children[2].querySelector("input").value || 0);
@@ -1050,40 +1075,23 @@
         const status = tr.children[7].querySelector("select").value;
         const reason = tr.children[8].querySelector("input").value.trim();
         if (mc && (ok > 0 || ng > 0 || unplanned > 0 || planned > 0 || reason)) {
-          rows.push({ shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote });
+          newRows.push({ time: nowStr, shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote });
         }
       });
 
       const box = document.getElementById("msgBox");
-      if (!rows.length) {
+      if (!newRows.length) {
         box.className = "msg err";
         box.textContent = "กรุณากรอกยอดผลิตหรือเวลาหยุดอย่างน้อย 1 รายการก่อนบันทึกครับ";
         return;
       }
 
-      const nowStr = new Date().toLocaleTimeString("th-TH", { hour12: false });
-      document.getElementById("logBody").innerHTML = rows.map(r => `
-        <tr>
-          <td>${nowStr}</td><td>${r.shift}</td><td>${r.mc}</td>
-          <td>${fmtNum(r.ok)}</td><td>${fmtNum(r.ng)}</td>
-          <td>${fmtNum(r.unplanned)}</td><td>${fmtNum(r.planned)}</td>
-          <td>${r.status}${r.reason ? " (" + r.reason + ")" : ""}</td>
-        </tr>
-      `).join("") + document.getElementById("logBody").innerHTML;
-
-      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
-      if (url) {
-        try {
-          await fetch(url, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "save_production_batch", rows })
-          });
-        } catch (_) {}
-      }
+      productionLogs = [...newRows, ...productionLogs];
+      saveLocalState();
+      renderProductionLogsTable();
+      renderOeeSummary();
       box.className = "msg ok";
-      box.textContent = `บันทึกรายการยอดผลิต & Downtime จำนวน ${rows.length} แถวเรียบร้อยแล้ว`;
+      box.textContent = `บันทึกลงในเครื่องเรียบร้อยแล้ว จำนวน ${newRows.length} รายการ`;
     });
 
     /* ---------------- PACKING LOGIC ---------------- */
@@ -1098,7 +1106,36 @@
       return "NONE";
     }
 
+    function updatePackingKpis() {
+      const cureRows = packingRows.filter(x => x.cure !== null && x.cure !== "");
+      const packRows = packingRows.filter(x => x.pack !== null && x.pack !== "");
+      const sumCure = cureRows.reduce((a, b) => a + Number(b.cure || 0), 0);
+      const sumPack = packRows.reduce((a, b) => a + Number(b.pack || 0), 0);
+      const avgCure = cureRows.length > 0 ? Math.round(sumCure / cureRows.length) : 0;
+      const ratio = sumCure > 0 ? ((sumPack / sumCure) * 100).toFixed(1) + "%" : "-";
+      const diff = sumPack - sumCure;
+
+      document.getElementById("pkCureTotalVal").textContent = `${fmtNum(sumCure)} เส้น`;
+      document.getElementById("pkCureTotalSub").textContent = `เฉลี่ย ${fmtNum(avgCure)} เส้น/วัน | แพ็ครวม ${fmtNum(sumPack)} เส้น`;
+      document.getElementById("pkRatioVal").textContent = ratio;
+      document.getElementById("pkRatioSub").textContent = `แพ็ค ${fmtNum(sumPack)} เทียบอบ ${fmtNum(sumCure)} เส้น (${diff >= 0 ? "+" : ""}${fmtNum(diff)})`;
+
+      if (packRows.length > 0) {
+        const sortedPack = [...packRows].sort((a, b) => Number(b.pack) - Number(a.pack));
+        const maxItem = sortedPack[0];
+        const minItem = sortedPack[sortedPack.length - 1];
+        document.getElementById("pkMaxVal").textContent = `${fmtNum(maxItem.pack)} เส้น`;
+        document.getElementById("pkMaxSub").textContent = `${maxItem.label} • ${maxItem.remark || "Packing tube line"}`;
+        document.getElementById("pkMinVal").textContent = `${fmtNum(minItem.pack)} เส้น`;
+        const minDiff = minItem.cure !== null && minItem.cure !== "" ? Number(minItem.pack) - Number(minItem.cure) : null;
+        document.getElementById("pkMinSub").textContent = minDiff !== null
+          ? `เทียบยอดอบ ${fmtNum(minItem.cure)} เส้น (${minDiff >= 0 ? "+" : ""}${fmtNum(minDiff)})`
+          : `${minItem.label} • ${minItem.remark || "Packing tube line"}`;
+      }
+    }
+
     function renderPackingTable() {
+      updatePackingKpis();
       const stFilter = document.getElementById("packingStatusFilter").value;
       const dayFilter = document.getElementById("packingDayFilter").value;
       const tbody = document.getElementById("packingTableBody");
@@ -1183,15 +1220,16 @@
         day: dName,
         cure: cureRaw === "" ? null : Number(cureRaw),
         pack: packRaw === "" ? null : Number(packRaw),
-        remark: remark || "บันทึกจากหน้าเว็บ"
+        remark: remark || "บันทึกในเครื่อง"
       });
 
+      saveLocalState();
       document.getElementById("pkCureInput").value = "";
       document.getElementById("pkPackInput").value = "";
       document.getElementById("pkRemarkInput").value = "";
       renderPackingTable();
       box.className = "msg ok";
-      box.textContent = `เพิ่มข้อมูลวันที่ ${label} ลงตาราง Packing tube line เรียบร้อยแล้ว`;
+      box.textContent = `บันทึกข้อมูลวันที่ ${label} ลงในเครื่องเรียบร้อยแล้ว`;
     }
 
     function exportPackingCsv() {
@@ -1206,30 +1244,6 @@
       a.download = "Packing_Tube_Line_Nov2026.csv";
       a.click();
       URL.revokeObjectURL(url);
-    }
-
-    async function syncPackingFromSheet() {
-      const box = document.getElementById("pkMsgBox");
-      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
-      if (!url) {
-        box.className = "msg err";
-        box.textContent = "กรุณาวาง URL Google Apps Script ก่อนดึงข้อมูล Packing tube line";
-        return;
-      }
-      box.className = "msg ok";
-      box.textContent = "ซิงก์ข้อมูลชีต Packing tube line เรียบร้อยแล้ว";
-    }
-
-    async function savePackingToSheet() {
-      const box = document.getElementById("pkMsgBox");
-      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
-      if (!url) {
-        box.className = "msg err";
-        box.textContent = "กรุณาวาง URL Google Apps Script ก่อนบันทึกข้อมูล Packing tube line";
-        return;
-      }
-      box.className = "msg ok";
-      box.textContent = "ส่งข้อมูลหมวดแพ็คกิ่งเข้า Google Sheets แล้ว";
     }
 
     /* ---------------- EXTRUSION LOGIC ---------------- */
@@ -1292,12 +1306,13 @@
 
     function resetExtrusionQueueDefault() {
       extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
+      saveLocalState();
       renderExtrusionQueue();
     }
 
     function exportExtrusionQueueCsv() {
-      const lines = ["Spec,Type,Mold,Stock,Daily_Usage,Target_Stock,Net_Needed"];
-      extrusionRows.forEach(r => lines.push(`"${r.spec}",${r.type},${r.mold},${r.stock},${r.usage},0,0`));
+      const lines = ["Spec,Type,Mold,Stock,Daily_Usage"];
+      extrusionRows.forEach(r => lines.push(`"${r.spec}",${r.type},${r.mold},${r.stock},${r.usage}`));
       const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1305,18 +1320,6 @@
       a.download = "Extrusion_Queue_Plan.csv";
       a.click();
       URL.revokeObjectURL(url);
-    }
-
-    async function syncExtrusionFromSheet() {
-      const box = document.getElementById("eqMsgBox");
-      box.className = "msg ok";
-      box.textContent = "อัปเดตตารางคิวและสต็อกรีดยางเรียบร้อยแล้ว";
-    }
-
-    async function saveExtrusionQueueToSheet() {
-      const box = document.getElementById("eqMsgBox");
-      box.className = "msg ok";
-      box.textContent = "บันทึกคิวและสต็อกรีดยางพร้อมใช้งานแล้ว";
     }
 
     /* ---------------- REJECT TRACKING & DEFECT ANALYSIS LOGIC ---------------- */
@@ -1436,19 +1439,27 @@
         });
       }
 
+      saveLocalState();
       ["rejFormSpec", "rejFormProd", "rejFormRepair", "rejFormScrap", "rejFormRemark"].forEach(id => {
         document.getElementById(id).value = "";
       });
       renderRejectSection();
-      showRejectMessage("ok", `อัปเดตข้อมูล Reject_${type} สำหรับเบอร์ ${spec} เรียบร้อยแล้ว`);
+      showRejectMessage("ok", `บันทึกข้อมูล Reject_${type} เบอร์ ${spec} ลงในเครื่องเรียบร้อยแล้ว`);
     }
 
     function resetToNovDefault() {
+      packingRows = JSON.parse(JSON.stringify(PACKING_INITIAL));
+      extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
       stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
+      saveLocalState();
+      renderOeeSummary();
+      renderPackingTable();
+      renderExtrusionQueue();
       if (isRejectTab(currentTab)) {
         renderRejectSection();
-        showRejectMessage("ok", "รีเซ็ตข้อมูลของเสีย พ.ย. 2569 เป็นค่าเริ่มต้นเรียบร้อยแล้ว");
+        showRejectMessage("ok", "รีเซ็ตข้อมูล พ.ย. 2569 เป็นค่าเริ่มต้นเรียบร้อยแล้ว");
       }
+      toggleSidebar(false);
     }
 
     function exportCSV() {
@@ -1478,35 +1489,17 @@
       URL.revokeObjectURL(url);
     }
 
-    async function syncFromSheet() {
-      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
-      if (!url) {
-        alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
-        return;
-      }
-      if (currentTab === "oee") {
-        await loadLogs();
-        return;
-      }
-      const sheetTab = currentTab === "Both" ? "Motorcycle" : currentTab;
-      try {
-        const res = await fetch(`${url}?tab=Reject_${sheetTab}`);
-        const json = await res.json();
-        alert("เชื่อมต่อ Google Apps Script สำเร็จ ได้รับข้อมูล " + (Array.isArray(json) ? json.length : 1) + " รายการ");
-      } catch (err) {
-        alert("ไม่สามารถดึงข้อมูลจากชีตได้: " + err.message);
-      }
-    }
-
     /* ---------------- AUTH & INIT ---------------- */
     document.getElementById("loginForm").addEventListener("submit", function (e) {
       e.preventDefault();
+      loadLocalState();
       const user = document.getElementById("loginUser").value.trim() || "admin";
       document.getElementById("currentUserLabel").textContent = user;
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("appSection").classList.remove("hidden");
       buildBatchRows("BE");
       renderOeeSummary();
+      renderProductionLogsTable();
       renderPackingTable();
       renderExtrusionQueue();
       renderRejectSection();
