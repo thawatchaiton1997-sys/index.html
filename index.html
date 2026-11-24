@@ -858,6 +858,24 @@
       return Number(n || 0).toLocaleString("en-US");
     }
 
+    function dedupeProductionLogs_(logs) {
+      const seen = new Set();
+      return (Array.isArray(logs) ? logs : []).filter(r => {
+        const key = [
+          String(r.time || ""),
+          String(r.shift || ""),
+          String(r.mc || "").toUpperCase(),
+          Number(r.ok || 0),
+          Number(r.ng || 0),
+          Number(r.unplanned || 0),
+          Number(r.planned || 0)
+        ].join("|");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
     function getGasUrl() {
       const inp = document.getElementById("gasUrlInput");
       const val = (inp && inp.value.trim()) || localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL || "";
@@ -882,7 +900,7 @@
       try {
         const eqDateEl = document.getElementById("eqCheckDate");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          productionLogs,
+          productionLogs: dedupeProductionLogs_(productionLogs),
           packingRows,
           extrusionRows,
           extrusionCheckDate: eqDateEl ? eqDateEl.value : "2026-11-24",
@@ -896,7 +914,9 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.productionLogs)) productionLogs = parsed.productionLogs;
+        if (Array.isArray(parsed.productionLogs)) {
+          productionLogs = dedupeProductionLogs_(parsed.productionLogs);
+        }
         if (Array.isArray(parsed.packingRows)) packingRows = parsed.packingRows;
         if (Array.isArray(parsed.extrusionRows)) extrusionRows = parsed.extrusionRows;
         if (parsed.extrusionCheckDate) {
@@ -937,7 +957,9 @@
         const res = await fetch(`${url}${sep}action=getAll&t=${Date.now()}`);
         const data = await res.json();
         if (data) {
-          if (Array.isArray(data.productionLogs)) productionLogs = data.productionLogs;
+          if (Array.isArray(data.productionLogs)) {
+            productionLogs = dedupeProductionLogs_(data.productionLogs);
+          }
           if (Array.isArray(data.packingRows) && data.packingRows.length) packingRows = data.packingRows;
           if (Array.isArray(data.extrusionRows) && data.extrusionRows.length) extrusionRows = data.extrusionRows;
           if (data.rejectData && Array.isArray(data.rejectData.Motorcycle) && Array.isArray(data.rejectData.Bicycle)) {
@@ -1083,18 +1105,20 @@
       const mcFilter = document.getElementById("filterMachine").value.trim().toUpperCase();
       const target = parseFloat(document.getElementById("targetOeeInput").value || "85");
 
-      const filteredLogs = productionLogs.filter(r => {
+      const cleanLogs = dedupeProductionLogs_(productionLogs);
+      const filteredLogs = cleanLogs.filter(r => {
         if (shift !== "ALL" && r.shift !== shift) return false;
         if (mcFilter && !String(r.mc || "").toUpperCase().includes(mcFilter)) return false;
         return true;
       });
 
-      const baseOk = 155982;
-      const baseNg = 1525;
-      const extraOk = filteredLogs.reduce((a, b) => a + Number(b.ok || 0), 0);
-      const extraNg = filteredLogs.reduce((a, b) => a + Number(b.ng || 0), 0);
-      const totalOk = baseOk + extraOk;
-      const totalNg = baseNg + extraNg;
+      const hasSheetLogs = cleanLogs.length > 0;
+      const logOk = filteredLogs.reduce((a, b) => a + Number(b.ok || 0), 0);
+      const logNg = filteredLogs.reduce((a, b) => a + Number(b.ng || 0), 0);
+
+      // หากมีข้อมูลจากชีตแล้ว ใช้ยอดจากชีตโดยตรงเพื่อไม่ให้บวกซ้ำกับยอดตั้งต้น 155,982
+      const totalOk = hasSheetLogs ? logOk : (155982 + logOk);
+      const totalNg = hasSheetLogs ? logNg : (1525 + logNg);
       const totalOut = totalOk + totalNg;
 
       const qualPct = totalOut > 0 ? (totalOk / totalOut) * 100 : 99.0;
@@ -1104,7 +1128,7 @@
 
       const extraUnplannedMin = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
       const extraPlannedMin = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
-      const baseUnplannedMin = 1095 * 60 + 30;
+      const baseUnplannedMin = hasSheetLogs ? 0 : (1095 * 60 + 30);
       const totUnplannedMin = baseUnplannedMin + extraUnplannedMin;
       const dtHours = Math.floor(totUnplannedMin / 60);
       const dtMins = totUnplannedMin % 60;
@@ -1128,11 +1152,12 @@
 
     function renderProductionLogsTable() {
       const tbody = document.getElementById("logBody");
-      if (!productionLogs.length) {
+      const cleanLogs = dedupeProductionLogs_(productionLogs);
+      if (!cleanLogs.length) {
         tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่</td></tr>`;
         return;
       }
-      tbody.innerHTML = productionLogs.slice(0, 50).map(r => `
+      tbody.innerHTML = cleanLogs.slice(0, 50).map(r => `
         <tr>
           <td>${r.time}</td><td>${r.shift}</td><td>${r.mc}</td>
           <td>${fmtNum(r.ok)}</td><td>${fmtNum(r.ng)}</td>
@@ -1171,7 +1196,7 @@
         return;
       }
 
-      productionLogs = [...newRows, ...productionLogs];
+      productionLogs = dedupeProductionLogs_([...newRows, ...productionLogs]);
       saveLocalState();
       renderProductionLogsTable();
       renderOeeSummary();
