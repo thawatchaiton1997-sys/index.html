@@ -140,6 +140,7 @@
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
     .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; margin-bottom: 12px; }
     .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
     .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--muted); }
     label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
@@ -150,6 +151,11 @@
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    .eq-inline-input {
+      width: 82px; padding: 5px 7px; font-size: 0.84rem; text-align: right;
+      border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.35);
+      background: #060c1a; color: var(--text);
+    }
     .batch-table input, .batch-table select { padding: 6px 8px; font-size: 0.85rem; min-width: 72px; }
     .mc-cell { display: flex; gap: 4px; align-items: center; min-width: 150px; }
     .batch-table select.mc-select { min-width: 74px; padding: 6px 4px; }
@@ -273,7 +279,7 @@
             <span class="nav-icon">⚙️</span>
             <span class="nav-text">
               <span>หมวดรีดยาง (Extrusion)</span>
-              <span class="nav-desc">คิวผลิต & สต็อกรีดยาง</span>
+              <span class="nav-desc">เช็กสต็อกก่อนผลิต & จัดคิว</span>
             </span>
           </button>
 
@@ -572,17 +578,22 @@
           <div class="card" id="extrusionQueueCard">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
               <div>
-                <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
-                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น</div>
+                <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - เช็กสต็อกก่อนผลิต & จัดคิวรีดยาง (Extrusion)</h2>
+                <div class="brand-sub">กรอกวันที่เช็กสต็อก แก้ไขยอดสต็อกคงเหลือ / จำนวนพิมพ์รายเบอร์ แล้วคำนวณคิวและบันทึกเข้าชีต</div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="primary-blue small" onclick="saveExtrusionQueueToSheet()">บันทึกสต็อก & คิวเข้าชีต</button>
                 <button type="button" class="secondary small" onclick="syncAllFromSheet()">ดึงจากชีต</button>
                 <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น</button>
                 <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
               </div>
             </div>
 
-            <div class="grid-4" style="margin-bottom:12px;">
+            <div class="grid-5" style="margin-bottom:12px;">
+              <div>
+                <label for="eqCheckDate">วันที่เช็กสต็อกก่อนผลิต</label>
+                <input id="eqCheckDate" type="date" value="2026-11-24" onchange="saveLocalState()" />
+              </div>
               <div>
                 <label for="eqRatePerMold">อัตราใช้ต่อแม่พิมพ์/วัน (เส้น/พิมพ์)</label>
                 <input id="eqRatePerMold" type="number" min="1" step="1" value="300" oninput="renderExtrusionQueue()" />
@@ -611,7 +622,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>ขนาด / เบอร์ยาง</th><th>ประเภท</th><th>พิมพ์</th><th>สต็อกคงเหลือ</th>
+                    <th>ขนาด / เบอร์ยาง</th><th>ประเภท</th><th>พิมพ์ (แก้ได้)</th><th>สต็อกคงเหลือ (แก้ได้)</th>
                     <th>ใช้อบ/วัน</th><th>สต็อกอยู่ได้ (วัน)</th><th>เป้าหมาย</th><th>ยอดขาด</th>
                     <th>สั่งผลิตวันนี้</th><th>ยกไปพรุ่งนี้</th><th>สถานะ</th>
                   </tr>
@@ -869,10 +880,12 @@
 
     function saveLocalState() {
       try {
+        const eqDateEl = document.getElementById("eqCheckDate");
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           productionLogs,
           packingRows,
           extrusionRows,
+          extrusionCheckDate: eqDateEl ? eqDateEl.value : "2026-11-24",
           stateData
         }));
       } catch (_) {}
@@ -886,6 +899,10 @@
         if (Array.isArray(parsed.productionLogs)) productionLogs = parsed.productionLogs;
         if (Array.isArray(parsed.packingRows)) packingRows = parsed.packingRows;
         if (Array.isArray(parsed.extrusionRows)) extrusionRows = parsed.extrusionRows;
+        if (parsed.extrusionCheckDate) {
+          const eqDateEl = document.getElementById("eqCheckDate");
+          if (eqDateEl) eqDateEl.value = parsed.extrusionCheckDate;
+        }
         if (parsed.stateData && Array.isArray(parsed.stateData.Motorcycle) && Array.isArray(parsed.stateData.Bicycle)) {
           stateData = parsed.stateData;
         }
@@ -973,7 +990,7 @@
       const headerMap = {
         oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ"],
         packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
-        extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น"],
+        extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบเช็กสต็อกก่อนผลิต วางแผนสต็อก และจัดคิวสายการรีดยางเส้น"],
         Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
         Bicycle: ["หมวดของเสียยางในรถจักรยาน (Reject_Bicycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
         Both: ["เปรียบเทียบของเสียแยกตามขนาดเบอร์ยาง (มอเตอร์ไซค์ & จักรยาน)", "ภาพรวมทุกขนาดเบอร์ยางจากฟอร์มบันทึกของเสีย พ.ย. 2569 (ไม่แยกวันที่)"]
@@ -1330,16 +1347,15 @@
     }
 
     /* ---------------- EXTRUSION LOGIC ---------------- */
-    function renderExtrusionQueue() {
+    function computeExtrusionList() {
       const ratePerMold = Math.max(1, Number(document.getElementById("eqRatePerMold").value || 300));
       const dailyCap = Math.max(1, Number(document.getElementById("eqDailyCap").value || 12000));
       const targetDays = Math.max(0.1, Number(document.getElementById("eqTargetDays").value || 3));
-      const filterStatus = document.getElementById("eqStatusFilter").value;
 
       let capRem = dailyCap;
-      const computed = extrusionRows.map(item => {
-        const mold = Number(item.mold || 0);
-        const stock = Number(item.stock || 0);
+      return extrusionRows.map((item, idx) => {
+        const mold = Math.max(0, Number(item.mold || 0));
+        const stock = Math.max(0, Number(item.stock || 0));
         const usage = mold > 0 ? mold * ratePerMold : Number(item.usage || 0);
         const daysCover = usage > 0 ? (stock / usage) : 999;
         const targetStock = mold > 0 ? Math.round(usage * targetDays) : 0;
@@ -1354,28 +1370,65 @@
         }
 
         let statusKey = "ENOUGH";
+        let statusText = "สต็อกเพียงพอ";
         let badge = `<span class="badge-ok">สต็อกเพียงพอ</span>`;
         if (mold <= 0) {
           statusKey = "HOLD_NO_MOLD";
+          statusText = "พักคิว (ไม่มีพิมพ์)";
           badge = `<span class="badge-hold">พักคิว (ไม่มีพิมพ์)</span>`;
         } else if (todayOrder > 0) {
           statusKey = "TODAY";
+          statusText = "สั่งผลิตวันนี้";
           badge = `<span class="badge-low">สั่งผลิตวันนี้</span>`;
         } else if (carryover > 0) {
           statusKey = "CARRYOVER";
+          statusText = "ค้างยกไปพรุ่งนี้";
           badge = `<span class="badge-planned">ค้างยกไปพรุ่งนี้</span>`;
         }
 
-        return { ...item, mold, stock, usage, daysCover, targetStock, netNeeded, todayOrder, carryover, statusKey, badge };
+        return {
+          ...item,
+          _idx: idx,
+          mold,
+          stock,
+          usage,
+          daysCover,
+          targetStock,
+          netNeeded,
+          todayOrder,
+          carryover,
+          statusKey,
+          statusText,
+          badge
+        };
       });
+    }
 
+    function updateExtrusionCell(idx, field, val) {
+      if (!extrusionRows[idx]) return;
+      const num = Math.max(0, Number(val || 0));
+      extrusionRows[idx][field] = num;
+      saveLocalState();
+      renderExtrusionQueue();
+    }
+
+    function renderExtrusionQueue() {
+      const filterStatus = document.getElementById("eqStatusFilter").value;
+      const computed = computeExtrusionList();
       const visible = computed.filter(r => filterStatus === "ALL" || r.statusKey === filterStatus);
+
       document.getElementById("extrusionQueueBody").innerHTML = visible.map(r => `
         <tr>
           <td style="font-weight:700;">${r.spec}</td>
           <td>${r.type}</td>
-          <td>${r.mold}</td>
-          <td>${fmtNum(r.stock)}</td>
+          <td>
+            <input class="eq-inline-input" type="number" min="0" step="1" value="${r.mold}"
+              onchange="updateExtrusionCell(${r._idx}, 'mold', this.value)" />
+          </td>
+          <td>
+            <input class="eq-inline-input" style="width:96px;" type="number" min="0" step="1" value="${r.stock}"
+              onchange="updateExtrusionCell(${r._idx}, 'stock', this.value)" />
+          </td>
           <td>${fmtNum(r.usage)}</td>
           <td>${r.daysCover >= 999 ? "-" : r.daysCover.toFixed(2)}</td>
           <td>${fmtNum(r.targetStock)}</td>
@@ -1387,20 +1440,70 @@
       `).join("");
     }
 
+    async function saveExtrusionQueueToSheet() {
+      const checkDate = document.getElementById("eqCheckDate").value || "2026-11-24";
+      const ratePerMold = Number(document.getElementById("eqRatePerMold").value || 300);
+      const dailyCap = Number(document.getElementById("eqDailyCap").value || 12000);
+      const targetDays = Number(document.getElementById("eqTargetDays").value || 3);
+      const user = document.getElementById("currentUserLabel").textContent || "admin";
+      const box = document.getElementById("eqMsgBox");
+
+      saveLocalState();
+      const computed = computeExtrusionList().map((r, i) => ({
+        spec: r.spec,
+        type: r.type,
+        mold: r.mold,
+        stock: r.stock,
+        dailyUsage: r.usage,
+        daysCover: r.daysCover >= 999 ? 0 : Number(r.daysCover.toFixed(2)),
+        targetStock: r.targetStock,
+        netNeeded: r.netNeeded,
+        todayOrder: r.todayOrder,
+        carryover: r.carryover,
+        queueNo: r.todayOrder > 0 ? i + 1 : "",
+        status: r.statusText
+      }));
+
+      const sent = await postToSheet({
+        action: "saveExtrusionQueue",
+        timestamp: checkDate,
+        checkDate,
+        user,
+        params: { ratePerMold, dailyCap, targetDays },
+        records: computed
+      });
+
+      if (sent.noUrl) {
+        box.className = "msg ok";
+        box.textContent = `บันทึกสต็อกวันที่ ${checkDate} ในเครื่องเรียบร้อยแล้ว (ยังไม่ได้วาง URL ชีต)`;
+      } else if (sent.ok) {
+        box.className = "msg ok";
+        box.textContent = `บันทึกสต็อก & แผนคิววันที่ ${checkDate} เข้าชีต Extrusion_Queue เรียบร้อยแล้ว (${computed.length} รายการ)`;
+      } else {
+        box.className = "msg err";
+        box.textContent = `บันทึกในเครื่องแล้ว แต่ส่งเข้า Google Sheets ไม่สำเร็จ`;
+      }
+    }
+
     function resetExtrusionQueueDefault() {
       extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
+      const eqDateEl = document.getElementById("eqCheckDate");
+      if (eqDateEl) eqDateEl.value = "2026-11-24";
       saveLocalState();
       renderExtrusionQueue();
     }
 
     function exportExtrusionQueueCsv() {
-      const lines = ["Spec,Type,Mold,Stock,Daily_Usage"];
-      extrusionRows.forEach(r => lines.push(`"${r.spec}",${r.type},${r.mold},${r.stock},${r.usage}`));
+      const checkDate = document.getElementById("eqCheckDate").value || "2026-11-24";
+      const lines = ["Check_Date,Spec,Type,Mold,Stock,Daily_Usage,Target_Stock,Net_Needed,Today_Order,Carryover,Status"];
+      computeExtrusionList().forEach(r => {
+        lines.push(`${checkDate},"${r.spec}",${r.type},${r.mold},${r.stock},${r.usage},${r.targetStock},${r.netNeeded},${r.todayOrder},${r.carryover},"${r.statusText}"`);
+      });
       const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Extrusion_Queue_Plan.csv";
+      a.download = `Extrusion_Queue_${checkDate}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1537,6 +1640,8 @@
     function resetToNovDefault() {
       packingRows = JSON.parse(JSON.stringify(PACKING_INITIAL));
       extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
+      const eqDateEl = document.getElementById("eqCheckDate");
+      if (eqDateEl) eqDateEl.value = "2026-11-24";
       stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
       saveLocalState();
       renderOeeSummary();
@@ -1550,6 +1655,10 @@
     }
 
     function exportCSV() {
+      if (currentTab === "extrusion") {
+        exportExtrusionQueueCsv();
+        return;
+      }
       if (!isRejectTab(currentTab)) {
         exportPackingCsv();
         return;
