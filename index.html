@@ -384,10 +384,10 @@
                 <span class="hero-label">OEE</span>
                 <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
               </div>
-              <div class="hero-val" id="kpiOee">87.3%</div>
+              <div class="hero-val" id="kpiOee">87.2%</div>
               <div class="hero-foot">
                 <span id="kpiTargetText">Target 85.00%</span>
-                <span id="kpiDiffText">+2.3 pts</span>
+                <span id="kpiDiffText">+2.2 pts</span>
               </div>
             </div>
             <div class="sub-grid">
@@ -395,7 +395,7 @@
               <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">99.5%</div><div class="metric-sub">Target 95.00%</div></div>
               <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">99.0%</div><div class="metric-sub">Target 99.00%</div></div>
               <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">157,507</div><div class="metric-sub" id="kpiOkNgSub">OK 155,982 / NG 1,525 pieces</div></div>
-              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">1095h 30m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
+              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">976h 47m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
               <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub" id="kpiRecordSub">ซิงก์ Google Sheets + Local</div></div>
             </div>
           </div>
@@ -743,6 +743,7 @@
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
     const STORAGE_KEY = "factorypulse_sheet_local_v1";
     const GAS_URL_KEY = "factorypulse_gas_url_v1";
+    const SHIFT_MINUTES = 480; // ปรับจำนวนนาทีต่อกะ/รายการได้ที่นี่
 
     const MACHINE_OPTIONS = [
       ...Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -954,8 +955,23 @@
       saveGasUrl();
       try {
         const sep = url.includes("?") ? "&" : "?";
-        const res = await fetch(`${url}${sep}action=getAll&t=${Date.now()}`);
-        const data = await res.json();
+        const res = await fetch(`${url}${sep}action=getAll&t=${Date.now()}`, {
+          method: "GET",
+          redirect: "follow"
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const rawText = await res.text();
+        let data = null;
+        try {
+          data = JSON.parse(rawText);
+        } catch (_) {
+          throw new Error("ผลลัพธ์จากชีตไม่ใช่ JSON (ตรวจสอบสิทธิ์ Web App เป็น Anyone)");
+        }
+        if (data && data.ok === false) {
+          throw new Error(data.error || "Apps Script แจ้งข้อผิดพลาด");
+        }
         if (data) {
           if (Array.isArray(data.productionLogs)) {
             productionLogs = dedupeProductionLogs_(data.productionLogs);
@@ -973,7 +989,7 @@
           if (isRejectTab(currentTab)) renderRejectSection();
         }
       } catch (err) {
-        alert("ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ: " + (err && err.message ? err.message : "ตรวจสอบสิทธิ์ Web App"));
+        alert("ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ: " + (err && err.message ? err.message : "Load failed"));
       }
     }
 
@@ -1116,20 +1132,38 @@
       const logOk = filteredLogs.reduce((a, b) => a + Number(b.ok || 0), 0);
       const logNg = filteredLogs.reduce((a, b) => a + Number(b.ng || 0), 0);
 
-      // หากมีข้อมูลจากชีตแล้ว ใช้ยอดจากชีตโดยตรงเพื่อไม่ให้บวกซ้ำกับยอดตั้งต้น 155,982
       const totalOk = hasSheetLogs ? logOk : (155982 + logOk);
       const totalNg = hasSheetLogs ? logNg : (1525 + logNg);
       const totalOut = totalOk + totalNg;
 
+      const totalUnplannedMin = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
+      const totalPlannedMin = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
+
+      const idealMinutes = filteredLogs.reduce((a, b) => {
+        const outQty = Number(b.ok || 0) + Number(b.ng || 0);
+        const cyc = Number(b.cycle || 3.45);
+        return a + (outQty * cyc);
+      }, 0);
+
+      let availPct = 88.6;
+      let perfPct = 99.5;
+
+      if (filteredLogs.length > 0) {
+        const grossAvailableMin = Math.max(filteredLogs.length * SHIFT_MINUTES, 1);
+        const plannedProdMin = Math.max(grossAvailableMin - totalPlannedMin, 1);
+        const actualRunMin = Math.max(plannedProdMin - totalUnplannedMin, 0);
+
+        availPct = Math.min(100, Math.max(0, (actualRunMin / plannedProdMin) * 100));
+        perfPct = actualRunMin > 0
+          ? Math.min(100, Math.max(0, (idealMinutes / actualRunMin) * 100))
+          : 0;
+      }
+
       const qualPct = totalOut > 0 ? (totalOk / totalOut) * 100 : 99.0;
-      const availPct = 88.6;
-      const perfPct = 99.5;
       const oeePct = Number(((availPct / 100) * (perfPct / 100) * (qualPct / 100) * 100).toFixed(1));
 
-      const extraUnplannedMin = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
-      const extraPlannedMin = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
       const baseUnplannedMin = hasSheetLogs ? 0 : (1095 * 60 + 30);
-      const totUnplannedMin = baseUnplannedMin + extraUnplannedMin;
+      const totUnplannedMin = baseUnplannedMin + totalUnplannedMin;
       const dtHours = Math.floor(totUnplannedMin / 60);
       const dtMins = totUnplannedMin % 60;
 
@@ -1145,7 +1179,7 @@
       document.getElementById("kpiOutput").textContent = fmtNum(totalOut);
       document.getElementById("kpiOkNgSub").textContent = `OK ${fmtNum(totalOk)} / NG ${fmtNum(totalNg)} pieces`;
       document.getElementById("kpiDowntime").textContent = `${dtHours}h ${dtMins}m`;
-      document.getElementById("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtNum(extraPlannedMin)}m • 30 / 40 machines`;
+      document.getElementById("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtNum(totalPlannedMin)}m • 30 / 40 machines`;
       document.getElementById("kpiRecords").textContent = fmtNum(filteredLogs.length);
       document.getElementById("kpiRecordSub").textContent = getGasUrl() ? "เชื่อมต่อ Google Sheets แล้ว" : "ยังไม่ได้วาง URL ชีต (เก็บในเครื่อง)";
     }
