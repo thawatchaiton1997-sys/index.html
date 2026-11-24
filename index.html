@@ -3,430 +3,1335 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FactoryPulse — Reject Tracking & Defect Analysis</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#0d1730" />
+  <title>FactoryPulse — OEE, Packing, Extrusion & Reject Tracking</title>
   <style>
     :root {
-      --bg-main: #070d19;
-      --bg-sidebar: #0b1222;
-      --bg-card: #0f172a;
-      --bg-input: #111b30;
-      --border-subtle: #1e293b;
-      --accent-blue: #2563eb;
+      --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
+      --hero: linear-gradient(135deg, #27488a 0%, #3560b8 100%);
+      --text: #f8fafc; --muted: #93a4c3; --accent: #38bdf8;
+      --accent-green: #22c55e; --danger: #ef4444; --warn: #f59e0b;
+      --border: rgba(148, 163, 184, 0.18); --sidebar-w: 265px;
     }
+    * { box-sizing: border-box; }
     body {
-      background-color: var(--bg-main);
-      color: #f1f5f9;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top right, #13254c 0%, var(--bg) 55%);
+      color: var(--text); min-height: 100vh;
     }
-    .card {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
+
+    /* Login Box */
+    .login-wrap { padding: 16px; }
+    .login-box {
+      max-width: 400px; margin: 56px auto; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 16px; padding: 24px;
     }
-    .input-dark {
-      background-color: var(--bg-input);
-      border: 1px solid #283548;
-      color: #e2e8f0;
-      border-radius: 8px;
+    .pass-wrap { position: relative; display: flex; align-items: center; }
+    .pass-wrap input { padding-right: 65px; }
+    .toggle-pass {
+      position: absolute; right: 8px; background: #1e293b; color: var(--muted);
+      border: 1px solid var(--border); padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;
     }
-    .input-dark:focus {
-      outline: none;
-      border-color: #3b82f6;
+
+    /* App Layout with Left Sidebar */
+    .app-layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-w); background: rgba(11, 18, 34, 0.98);
+      border-right: 1px solid var(--border); padding: 18px 14px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      position: sticky; top: 0; height: 100vh; flex-shrink: 0; z-index: 40;
+      transition: transform 0.25s ease; overflow-y: auto;
     }
-    .nav-active {
-      background-color: var(--accent-blue);
-      color: #ffffff;
+    .sidebar-brand { padding: 4px 8px 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .sidebar-logo { font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .logo-badge {
+      width: 30px; height: 30px; border-radius: 8px; background: #2563eb;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: #fff;
     }
-    .nav-item:hover:not(.nav-active) {
-      background-color: rgba(30, 41, 59, 0.75);
+    .sidebar-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .nav-group-label {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); font-weight: 700; padding: 6px 10px; margin-top: 4px;
     }
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+    .nav-list { display: flex; flex-direction: column; gap: 6px; }
+    .nav-item {
+      width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+      background: transparent; color: var(--muted); border: 1px solid transparent;
+      border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 0.86rem;
+      cursor: pointer; transition: all 0.15s ease;
     }
-    ::-webkit-scrollbar-track {
-      background: #0b1222;
+    .nav-item:hover { background: rgba(56, 189, 248, 0.08); color: var(--text); }
+    .nav-item.active {
+      background: #2563eb; color: var(--text); border-color: rgba(96, 165, 250, 0.5);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.45);
     }
-    ::-webkit-scrollbar-thumb {
-      background: #263449;
-      border-radius: 4px;
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-text { display: flex; flex-direction: column; line-height: 1.25; }
+    .nav-desc { font-size: 0.7rem; font-weight: 400; opacity: 0.85; }
+    .sidebar-footer { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .sidebar-user-card { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; }
+    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.65); z-index: 35; }
+    .sidebar-backdrop.show { display: block; }
+
+    .main-area { flex: 1; min-width: 0; padding: 16px 20px; }
+    .container { max-width: 1320px; margin: 0 auto; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .menu-toggle-btn {
+      display: none; background: var(--panel); color: var(--text);
+      border: 1px solid var(--border); padding: 8px 11px; border-radius: 10px; font-size: 1rem;
+    }
+    .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
+    .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
+      color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
+      padding: 6px 10px; border-radius: 999px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
+
+    @media (max-width: 920px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .menu-toggle-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .main-area { padding: 14px; }
+    }
+
+    .filter-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel);
+      border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .filter-item { min-width: 150px; flex: 1; }
+    .oee-showcase { display: grid; grid-template-columns: 1.15fr 1.85fr; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 820px) { .oee-showcase { grid-template-columns: 1fr; } }
+    .oee-hero {
+      background: var(--hero); border-radius: 16px; padding: 20px; display: flex;
+      flex-direction: column; justify-content: space-between; min-height: 210px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .hero-top { display: flex; justify-content: space-between; align-items: center; }
+    .hero-label { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
+    .hero-scope { font-size: 0.8rem; background: rgba(9, 17, 36, 0.35); padding: 4px 10px; border-radius: 999px; }
+    .hero-val { font-size: clamp(2.8rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.05; margin: 12px 0; }
+    .hero-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; opacity: 0.92; }
+    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .sub-grid { grid-template-columns: 1fr; } }
+    .kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 960px) { .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .kpi-grid-4 { grid-template-columns: 1fr; } }
+    .metric-card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .metric-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .metric-val { font-size: 1.75rem; font-weight: 800; margin: 8px 0 4px; color: #4ade80; }
+    .metric-val.sky { color: var(--accent); }
+    .metric-val.light { color: var(--text); }
+    .metric-val.warn { color: #fbbf24; }
+    .metric-val.danger { color: #f87171; }
+    .metric-sub { font-size: 0.78rem; color: var(--muted); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--muted); }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    input, select {
+      width: 100%; padding: 8px 9px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card-2); color: var(--text); font-size: 0.9rem;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    .batch-table input, .batch-table select { padding: 6px 8px; font-size: 0.85rem; min-width: 72px; }
+    .mc-cell { display: flex; gap: 4px; align-items: center; min-width: 150px; }
+    .batch-table select.mc-select { min-width: 74px; padding: 6px 4px; }
+    .batch-table input.mc-input { min-width: 72px; text-transform: uppercase; }
+    .batch-table input.num-input { min-width: 64px; text-align: right; }
+    .batch-table select.status-input { min-width: 165px; }
+    .batch-table input.reason-input { min-width: 135px; }
+    button {
+      background: var(--accent); color: #041827; border: none; border-radius: 8px;
+      padding: 9px 15px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+    }
+    button.primary-blue { background: #2563eb; color: #ffffff; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.secondary { background: #1e293b; color: var(--text); border: 1px solid var(--border); }
+    button.small { padding: 6px 10px; font-size: 0.8rem; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .msg { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; display: none; }
+    .msg.ok { display: block; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--accent-green); color: #86efac; }
+    .msg.err { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; }
+    tfoot tr.total-row td {
+      background: rgba(56, 189, 248, 0.08);
+      border-top: 2px solid rgba(56, 189, 248, 0.35);
+      border-bottom: none;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .badge-planned {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d;
+    }
+    .badge-ok {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(34, 197, 94, 0.16); border: 1px solid rgba(34, 197, 94, 0.45); color: #86efac;
+    }
+    .badge-low {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.45); color: #fca5a5;
+    }
+    .badge-hold {
+      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+      background: rgba(148, 163, 184, 0.18); border: 1px solid rgba(148, 163, 184, 0.45); color: #cbd5e1;
+    }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .hidden { display: none !important; }
+
+    /* ล็อกคอลัมน์แรก (ขนาด / เบอร์ยาง) ในตารางคิวรีดยาง */
+    #extrusionQueueCard .table-wrap table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+    }
+    #extrusionQueueCard .table-wrap th:first-child,
+    #extrusionQueueCard .table-wrap td:first-child,
+    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+      position: -webkit-sticky;
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 135px;
+      max-width: 170px;
+      background-color: #0d1730;
+      border-right: 1px solid var(--border);
+      box-shadow: 4px 0 10px rgba(2, 6, 23, 0.55);
+    }
+    #extrusionQueueCard .table-wrap thead th:first-child {
+      z-index: 3;
+      background-color: #0b142a;
+    }
+    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
+      background-color: #0d2240;
     }
   </style>
 </head>
-<body class="min-h-screen flex">
+<body>
+  <div id="loginSection" class="login-wrap">
+    <div class="login-box">
+      <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
+      <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE, Packing, Extrusion & Reject</p>
+      <form id="loginForm">
+        <div style="margin-bottom: 12px;">
+          <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
+          <input id="loginUser" type="text" placeholder="เช่น admin, shiftA, shiftB" required autocomplete="username" />
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label for="loginPass">รหัสผ่าน (Password)</label>
+          <div class="pass-wrap">
+            <input id="loginPass" type="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password" />
+            <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
+          </div>
+        </div>
+        <button type="submit" class="primary-blue" style="width: 100%;">เข้าสู่ระบบ</button>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+    </div>
+  </div>
 
-  <!-- Sidebar -->
-  <aside class="w-64 shrink-0 bg-[#0b1222] border-r border-[#1e293b] flex flex-col justify-between p-4">
-    <div>
-      <!-- Brand Header -->
-      <div class="flex items-center gap-3 pb-4 border-b border-[#1e293b]">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm">
-          FP
-        </div>
-        <div>
-          <div class="font-bold text-base leading-tight text-white">FactoryPulse</div>
-          <div class="text-[11px] text-slate-400">ระบบติดตามการผลิตยางใน BKF</div>
-        </div>
-      </div>
+  <div id="appSection" class="app-layout hidden">
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
 
-      <!-- Navigation -->
-      <div class="mt-5">
-        <div class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase px-2 mb-2">
-          เมนูหลัก (NAVIGATION)
+    <aside id="leftSidebar" class="sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <div class="sidebar-logo">
+            <span class="logo-badge">FP</span>
+            <span>FactoryPulse</span>
+          </div>
+          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF</div>
         </div>
-        <nav class="space-y-1.5 text-sm">
-          <button onclick="switchTab('Motorcycle')" id="nav-Motorcycle"
-            class="nav-item nav-active w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition">
-            <span>🏍️</span>
-            <div>
-              <div class="font-medium leading-none">ของเสียยางมอเตอร์ไซค์</div>
-              <div class="text-[11px] text-blue-100/80 mt-1">Reject_Motorcycle (แยกเบอร์)</div>
-            </div>
+
+        <div class="nav-group-label">เมนูหลัก (NAVIGATION)</div>
+        <nav class="nav-list">
+          <button type="button" class="nav-item active" id="tabOeeBtn" onclick="switchTab('oee')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">
+              <span>หมวด OEE (การผลิต)</span>
+              <span class="nav-desc">ภาพรวม 40 เครื่อง & บันทึกยอด</span>
+            </span>
           </button>
 
-          <button onclick="switchTab('Bicycle')" id="nav-Bicycle"
-            class="nav-item w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 text-slate-300 transition">
-            <span>🚲</span>
-            <div>
-              <div class="font-medium leading-none">ของเสียยางจักรยาน</div>
-              <div class="text-[11px] text-slate-400 mt-1">Reject_Bicycle (แยกเบอร์)</div>
-            </div>
+          <button type="button" class="nav-item" id="tabPackingBtn" onclick="switchTab('packing')">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">
+              <span>หมวดแพ็คกิ่ง</span>
+              <span class="nav-desc">Packing tube line</span>
+            </span>
           </button>
 
-          <button onclick="switchTab('Both')" id="nav-Both"
-            class="nav-item w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 text-slate-300 transition">
-            <span>📊</span>
-            <div>
-              <div class="font-medium leading-none">เปรียบเทียบทั้ง 2 ไลน์</div>
-              <div class="text-[11px] text-slate-400 mt-1">สรุปรวมตามขนาดเบอร์ยาง</div>
-            </div>
+          <button type="button" class="nav-item" id="tabExtrusionBtn" onclick="switchTab('extrusion')">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">
+              <span>หมวดรีดยาง (Extrusion)</span>
+              <span class="nav-desc">คิวผลิต & สต็อกรีดยาง</span>
+            </span>
+          </button>
+
+          <button type="button" class="nav-item" id="tabRejectMotoBtn" onclick="switchTab('Motorcycle')">
+            <span class="nav-icon">🏍️</span>
+            <span class="nav-text">
+              <span>ของเสียยางมอเตอร์ไซค์</span>
+              <span class="nav-desc">Reject_Motorcycle (แยกเบอร์)</span>
+            </span>
+          </button>
+
+          <button type="button" class="nav-item" id="tabRejectBikeBtn" onclick="switchTab('Bicycle')">
+            <span class="nav-icon">🚲</span>
+            <span class="nav-text">
+              <span>ของเสียยางจักรยาน</span>
+              <span class="nav-desc">Reject_Bicycle (แยกเบอร์)</span>
+            </span>
+          </button>
+
+          <button type="button" class="nav-item" id="tabRejectBothBtn" onclick="switchTab('Both')">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">
+              <span>เปรียบเทียบทั้ง 2 ไลน์</span>
+              <span class="nav-desc">สรุปรวมตามขนาดเบอร์ยาง</span>
+            </span>
           </button>
         </nav>
-      </div>
 
-      <!-- Quick Actions -->
-      <div class="mt-6">
-        <div class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase px-2 mb-2">
-          ทางลัดการทำงาน
-        </div>
-        <div class="space-y-2">
-          <button onclick="resetToNovDefault()"
-            class="w-full text-left px-3 py-2 rounded-lg bg-[#0f172a] hover:bg-[#162238] border border-[#1e293b] text-xs text-slate-200 flex items-center gap-2 transition">
-            <span>↻</span>
-            <span>รีเซ็ตค่าเริ่มต้น พ.ย. 2569</span>
+        <div class="nav-group-label" style="margin-top: 14px;">ทางลัดการทำงาน</div>
+        <div class="nav-list">
+          <button type="button" class="nav-item" onclick="resetToNovDefault()">
+            <span class="nav-icon">↻</span>
+            <span class="nav-text">
+              <span>รีเซ็ตค่าเริ่มต้น พ.ย. 2569</span>
+              <span class="nav-desc">คืนค่าข้อมูลของเสียเริ่มต้น</span>
+            </span>
+          </button>
+          <button type="button" class="nav-item" onclick="switchTab('oee'); loadLogs();">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-text">
+              <span>อัปเดตข้อมูลจากชีต</span>
+              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
+            </span>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Bottom User Status -->
-    <div class="pt-4 border-t border-[#1e293b]">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>ผู้ใช้งานปัจจุบัน</span>
-        <span class="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> LIVE
-        </span>
-      </div>
-      <div class="text-sm font-semibold text-white">admin</div>
-    </div>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="flex-1 p-6 overflow-x-auto">
-    <!-- Top Header -->
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
-      <div>
-        <h1 id="pageTitle" class="text-2xl font-bold text-white">
-          หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)
-        </h1>
-        <p id="pageSubtitle" class="text-sm text-slate-400 mt-0.5">
-          สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)
-        </p>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2.5">
-        <input id="gasUrl" type="text" placeholder="วาง URL Google Apps Script (ถ้ามี)"
-          class="input-dark px-3 py-2 text-xs w-64" />
-        <button onclick="syncFromSheet()"
-          class="px-3.5 py-2 rounded-lg bg-[#0f172a] hover:bg-[#17233b] border border-[#283548] text-xs font-medium text-slate-200 transition">
-          ดึงข้อมูลจากชีต
-        </button>
-        <button onclick="exportCSV()"
-          class="px-3.5 py-2 rounded-lg bg-[#0f172a] hover:bg-[#17233b] border border-[#283548] text-xs font-medium text-slate-200 transition">
-          ส่งออก CSV
-        </button>
-      </div>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="card p-4 mb-5 flex flex-wrap items-end gap-4">
-      <div>
-        <label class="block text-xs text-slate-400 mb-1.5">กรองตามขนาดเบอร์ยาง (Spec)</label>
-        <select id="specFilter" onchange="renderAll()" class="input-dark px-3 py-2 text-sm min-w-[200px]">
-          <option value="ALL">ทุกขนาดเบอร์ยาง</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-xs text-slate-400 mb-1.5">เกณฑ์อ้างอิง % เสีย</label>
-        <select id="targetFilter" onchange="renderAll()" class="input-dark px-3 py-2 text-sm min-w-[180px]">
-          <option value="2.0">มาตรฐาน 2.00%</option>
-          <option value="1.0">เข้มงวด 1.00%</option>
-          <option value="1.5">เป้าหมาย 1.50%</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 4 KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">ยอดผลิตรวม (เส้น)</div>
-        <div id="kpiProd" class="text-3xl font-bold text-white mt-1.5">0</div>
-        <div id="kpiProdSub" class="text-xs text-slate-400 mt-1.5">-</div>
-      </div>
-
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">อัตราของเสียรวม (% Reject)</div>
-        <div id="kpiRate" class="text-3xl font-bold text-blue-400 mt-1.5">0.00%</div>
-        <div id="kpiRateSub" class="text-xs text-slate-400 mt-1.5">-</div>
-      </div>
-
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">ยอดเสียรวมทั้งหมด (เส้น)</div>
-        <div id="kpiReject" class="text-3xl font-bold text-amber-400 mt-1.5">0</div>
-        <div id="kpiRejectSub" class="text-xs text-slate-400 mt-1.5">-</div>
-      </div>
-
-      <div class="card p-4">
-        <div class="text-xs text-slate-400">อาการเสียสูงสุด (Top Defect)</div>
-        <div id="kpiTopDefect" class="text-xl font-bold text-rose-400 mt-2">-</div>
-        <div id="kpiTopDefectSub" class="text-xs text-slate-400 mt-1.5">-</div>
-      </div>
-    </div>
-
-    <!-- Add / Update Spec Row Form -->
-    <div class="card p-4 mb-5">
-      <div class="text-sm font-semibold text-white mb-3">
-        + เพิ่ม / อัปเดตยอดตามขนาดเบอร์ยาง (ไม่แยกวันที่)
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">ประเภท</label>
-          <select id="formType" class="input-dark w-full px-3 py-2 text-sm">
-            <option value="Motorcycle">ยางมอเตอร์ไซค์</option>
-            <option value="Bicycle">ยางจักรยาน</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">ขนาดเบอร์ยาง (Spec)</label>
-          <input id="formSpec" type="text" placeholder="เช่น 2.50-17 New" class="input-dark w-full px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">ยอดผลิต (เส้น)</label>
-          <input id="formProd" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">รวมซ่อม (เส้น)</label>
-          <input id="formRepair" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">รวมทิ้ง (เส้น)</label>
-          <input id="formScrap" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">อาการเสียหลัก / หมายเหตุ</label>
-          <input id="formRemark" type="text" placeholder="เช่น เป็นเม็ด/ติดเศษ" class="input-dark w-full px-3 py-2 text-sm" />
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
+            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span id="liveStatusText">LIVE</span></span>
+          </div>
+          <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">admin</div>
+          <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
         </div>
       </div>
-      <div class="mt-3">
-        <button onclick="addSpecRecord()"
-          class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition">
-          เพิ่มลงตาราง
-        </button>
-      </div>
-    </div>
+    </aside>
 
-    <!-- Main Table -->
-    <div class="card p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h2 id="tableTitle" class="text-base font-bold text-white">
-          ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง
-        </h2>
-        <span id="rowCountBadge" class="text-xs text-slate-400">0 รายการ</span>
-      </div>
+    <main class="main-area">
+      <div class="container">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
+            <div>
+              <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
+              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
+            </div>
+          </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left border-collapse">
-          <thead>
-            <tr class="border-b border-[#1e293b] text-slate-300 text-xs">
-              <th class="py-2.5 px-3">ประเภท</th>
-              <th class="py-2.5 px-3">ขนาดเบอร์ยาง (Spec)</th>
-              <th class="py-2.5 px-3 text-right">ยอดผลิต (เส้น)</th>
-              <th class="py-2.5 px-3 text-right">รวมซ่อม</th>
-              <th class="py-2.5 px-3 text-right">รวมทิ้ง</th>
-              <th class="py-2.5 px-3 text-right">รวมเสียทั้งหมด</th>
-              <th class="py-2.5 px-3 text-right">% เสีย</th>
-              <th class="py-2.5 px-3">สถานะเทียบเกณฑ์</th>
-              <th class="py-2.5 px-3">รายละเอียดโรค (ซ่อม / ทิ้ง)</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody" class="divide-y divide-[#1e293b]/70"></tbody>
-        </table>
+          <div class="topbar-actions">
+            <input id="gasUrl" type="text" placeholder="วาง URL Google Apps Script (ถ้ามี)" style="width: 240px; font-size: 0.8rem;" />
+            <button type="button" class="secondary small" onclick="syncFromSheet()">ดึงข้อมูลจากชีต</button>
+            <button type="button" class="secondary small" onclick="exportCSV()">ส่งออก CSV</button>
+          </div>
+        </div>
+
+        <!-- 1. OEE TAB -->
+        <div id="oeeTabContent">
+          <div class="filter-bar">
+            <div class="filter-item">
+              <label for="filterShift">กรองตามกะ</label>
+              <select id="filterShift" onchange="renderOeeSummary()">
+                <option value="ALL">ทุกกะ (All Shifts)</option>
+                <option value="กะ A">กะ A</option>
+                <option value="กะ B">กะ B</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="filterMachine">กรองตามเครื่องจักร</label>
+              <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" oninput="renderOeeSummary()" />
+            </div>
+            <div class="filter-item" style="max-width: 160px;">
+              <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
+              <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" oninput="renderOeeSummary()" />
+            </div>
+            <div><button type="button" class="secondary" id="refreshBtn" onclick="loadLogs()">ดึงข้อมูลล่าสุดจากชีต</button></div>
+          </div>
+
+          <div class="oee-showcase">
+            <div class="oee-hero">
+              <div class="hero-top">
+                <span class="hero-label">OEE</span>
+                <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
+              </div>
+              <div class="hero-val" id="kpiOee">87.3%</div>
+              <div class="hero-foot">
+                <span id="kpiTargetText">Target 85.00%</span>
+                <span id="kpiDiffText">+2.3 pts</span>
+              </div>
+            </div>
+            <div class="sub-grid">
+              <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">88.6%</div><div class="metric-sub">Target 90.00%</div></div>
+              <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">99.5%</div><div class="metric-sub">Target 95.00%</div></div>
+              <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">99.0%</div><div class="metric-sub">Target 99.00%</div></div>
+              <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">157,507</div><div class="metric-sub" id="kpiOkNgSub">OK 155,982 / NG 1,525 pieces</div></div>
+              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">1095h 30m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
+              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">1,180</div><div class="metric-sub">Web_Production_Log</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
+            <form id="batchForm">
+              <div class="grid-3">
+                <div>
+                  <label for="batchShift">กะการทำงาน (Shift)</label>
+                  <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
+                </div>
+                <div>
+                  <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
+                  <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" onchange="applyDefaultCycle()" />
+                </div>
+                <div>
+                  <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
+                  <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
+                </div>
+              </div>
+              <div class="preset-bar">
+                <span>เลือกเครื่องยกชุด 10 แถว:</span>
+                <button type="button" class="secondary small" id="presetBE" onclick="applyPreset('BE')">BE 1–10</button>
+                <button type="button" class="secondary small" id="presetBW" onclick="applyPreset('BW')">BW 1–10</button>
+                <button type="button" class="secondary small" id="presetDW" onclick="applyPreset('DW')">DW 1–10</button>
+                <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
+                <button type="button" class="secondary small" id="applyPrint60Btn" onclick="applyPlannedPrint60()">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
+              </div>
+              <div class="table-wrap">
+                <table class="batch-table">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
+                      <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
+                      <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
+                    </tr>
+                  </thead>
+                  <tbody id="batchRowsBody"></tbody>
+                </table>
+              </div>
+              <div class="actions">
+                <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
+                <button type="button" class="secondary" id="clearBatchBtn" onclick="buildBatchRows('BE')">ล้างข้อมูล 10 ช่อง</button>
+              </div>
+              <div id="msgBox" class="msg"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการหยุดเครื่องจักร (FactoryPulse - Downtime Tracking Log)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th><th>กะ</th><th>รหัสเครื่องจักร</th><th>ช่วงเวลาหยุด</th>
+                    <th>ระยะเวลาหยุด</th><th>ประเภทการหยุด</th><th>หมวดหมู่ / รายละเอียดอาการ</th>
+                  </tr>
+                </thead>
+                <tbody id="downtimeLogBody">
+                  <tr><td colspan="7" style="color: var(--muted);">พร้อมแสดงประวัติการหยุดเครื่องจักร (กด "ดึงข้อมูลล่าสุดจากชีต" เพื่ออัปเดต)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
+                </thead>
+                <tbody id="logBody">
+                  <tr><td colspan="8" style="color: var(--muted);">พร้อมแสดงประวัติการบันทึก (กด "ดึงข้อมูลล่าสุดจากชีต" เพื่ออัปเดต)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. PACKING TAB -->
+        <div id="packingTabContent" class="hidden">
+          <div class="filter-bar">
+            <div class="filter-item">
+              <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
+              <select id="packingStatusFilter" onchange="renderPackingTable()">
+                <option value="ALL">ทุกวันที่มีข้อมูล</option>
+                <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค</option>
+                <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ</option>
+                <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ</option>
+                <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว</option>
+                <option value="CURE_ONLY">มียอดอบอย่างเดียว</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="packingDayFilter">กรองตามวันในสัปดาห์</label>
+              <select id="packingDayFilter" onchange="renderPackingTable()">
+                <option value="ALL">ทุกวันในสัปดาห์</option>
+                <option value="จันทร์">จันทร์</option>
+                <option value="อังคาร">อังคาร</option>
+                <option value="พุธ">พุธ</option>
+                <option value="พฤหัส">พฤหัส</option>
+                <option value="ศุกร์">ศุกร์</option>
+                <option value="เสาร์">เสาร์</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="secondary" onclick="syncPackingFromSheet()">ดึงข้อมูลแพ็คกิ่งจากชีต</button>
+              <button type="button" onclick="savePackingToSheet()">บันทึกแพ็คกิ่งเข้าชีต</button>
+              <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid-4">
+            <div class="metric-card">
+              <div class="metric-title">ยอดอบยางใน OK รวม</div>
+              <div class="metric-val" id="pkCureTotalVal">155,982 เส้น</div>
+              <div class="metric-sub" id="pkCureTotalSub">เฉลี่ย 10,399 เส้น/วัน | แพ็ครวม 140,877 เส้น</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">อัตราส่วนแพ็คต่อยอดอบ</div>
+              <div class="metric-val sky" id="pkRatioVal">90.3%</div>
+              <div class="metric-sub" id="pkRatioSub">แพ็ค 140,877 เทียบอบ 155,982 เส้น (-15,105)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ยอดแพ็คสูงสุด</div>
+              <div class="metric-val light">12,245 เส้น</div>
+              <div class="metric-sub">อิงชีต Packing tube line</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ยอดแพ็คต่ำสุด</div>
+              <div class="metric-val light">923 เส้น</div>
+              <div class="metric-sub">เทียบยอดอบ 11,153 เส้น (-10,230)</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
+            <div class="grid-4">
+              <div>
+                <label for="pkDateInput">วันที่</label>
+                <input id="pkDateInput" type="date" value="2026-11-24" />
+              </div>
+              <div>
+                <label for="pkCureInput">ยอดอบยางใน OK (เส้น)</label>
+                <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+              </div>
+              <div>
+                <label for="pkPackInput">ยอดแพ็คยางใน (เส้น)</label>
+                <input id="pkPackInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
+              </div>
+              <div>
+                <label for="pkRemarkInput">หมายเหตุ</label>
+                <input id="pkRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม" />
+              </div>
+            </div>
+            <div class="actions" style="margin-top: 8px;">
+              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
+            </div>
+            <div id="pkMsgBox" class="msg"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน — Packing tube line</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th><th>วันเดือนปี</th><th>ยอดอบยางใน OK (เส้น)</th>
+                    <th>ยอดแพ็คยางใน (เส้น)</th><th>ส่วนต่าง (แพ็ค - อบ)</th>
+                    <th>อัตราส่วน แพ็ค/อบ (%)</th><th>สถานะข้อมูล</th><th>หมายเหตุ</th>
+                  </tr>
+                </thead>
+                <tbody id="packingTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ค่าเฉลี่ยยอดแพ็คแยกตามวันในสัปดาห์</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันในสัปดาห์</th><th>จำนวนวันที่มีข้อมูลแพ็ค</th>
+                    <th>ยอดแพ็ครวม (เส้น)</th><th>ค่าเฉลี่ยยอดแพ็ค / วัน (เส้น)</th>
+                  </tr>
+                </thead>
+                <tbody id="packingDayAvgBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. EXTRUSION TAB -->
+        <div id="extrusionTabContent" class="hidden">
+          <div class="card" id="extrusionQueueCard">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div>
+                <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
+                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Production Queue Management)</div>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="secondary small" onclick="syncExtrusionFromSheet()">ดึงสต็อก/คิวจากชีต</button>
+                <button type="button" class="small" onclick="saveExtrusionQueueToSheet()">บันทึกคิว/สต็อกเข้าชีต</button>
+                <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น</button>
+                <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
+              </div>
+            </div>
+
+            <div class="grid-4" style="margin-bottom:12px;">
+              <div>
+                <label for="eqRatePerMold">อัตราใช้ต่อแม่พิมพ์/วัน (เส้น/พิมพ์)</label>
+                <input id="eqRatePerMold" type="number" min="1" step="1" value="300" oninput="renderExtrusionQueue()" />
+              </div>
+              <div>
+                <label for="eqDailyCap">ขีดจำกัดรีดสูงสุด/วัน (เส้น/วัน)</label>
+                <input id="eqDailyCap" type="number" min="1" step="10" value="12000" oninput="renderExtrusionQueue()" />
+              </div>
+              <div>
+                <label for="eqTargetDays">เป้าหมายสำรองสต็อก (วัน)</label>
+                <input id="eqTargetDays" type="number" min="0.1" step="0.5" value="3" oninput="renderExtrusionQueue()" />
+              </div>
+              <div>
+                <label for="eqStatusFilter">กรองสถานะการผลิต / คิว</label>
+                <select id="eqStatusFilter" onchange="renderExtrusionQueue()">
+                  <option value="ALL">ทั้งหมด (ทุกแถว)</option>
+                  <option value="TODAY">สั่งผลิตวันนี้ (สั่งผลิตวันนี้ > 0)</option>
+                  <option value="CARRYOVER">มียอดค้างยกไปพรุ่งนี้</option>
+                  <option value="ENOUGH">สต็อกเพียงพอ</option>
+                  <option value="HOLD_NO_MOLD">พักคิว (ไม่มีพิมพ์)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ขนาด / เบอร์ยาง</th><th>ประเภท</th><th>พิมพ์</th><th>สต็อกคงเหลือ</th>
+                    <th>ใช้อบ/วัน</th><th>สต็อกอยู่ได้ (วัน)</th><th>เป้าหมาย</th><th>ยอดขาด</th>
+                    <th>สั่งผลิตวันนี้</th><th>ยกไปพรุ่งนี้</th><th>สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody id="extrusionQueueBody"></tbody>
+              </table>
+            </div>
+            <div id="eqMsgBox" class="msg"></div>
+          </div>
+        </div>
+
+        <!-- 4, 5, 6. REJECT TRACKING & DEFECT ANALYSIS TAB -->
+        <div id="rejectTabContent" class="hidden">
+          <div class="filter-bar">
+            <div class="filter-item">
+              <label for="rejectSpecFilter">กรองตามขนาดเบอร์ยาง (Spec)</label>
+              <select id="rejectSpecFilter" onchange="renderRejectSection()">
+                <option value="ALL">ทุกขนาดเบอร์ยาง</option>
+              </select>
+            </div>
+            <div class="filter-item" style="max-width: 200px;">
+              <label for="rejectTargetInput">เกณฑ์อ้างอิง % เสีย</label>
+              <select id="rejectTargetInput" onchange="renderRejectSection()">
+                <option value="2.0" selected>มาตรฐาน 2.00%</option>
+                <option value="1.0">เข้มงวด 1.00%</option>
+                <option value="1.5">เป้าหมาย 1.50%</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="kpi-grid-4">
+            <div class="metric-card">
+              <div class="metric-title">ยอดผลิตรวม (เส้น)</div>
+              <div class="metric-val light" id="rejKpiProd">0</div>
+              <div class="metric-sub" id="rejKpiProdSub">-</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">อัตราของเสียรวม (% Reject)</div>
+              <div class="metric-val sky" id="rejKpiRate">0.00%</div>
+              <div class="metric-sub" id="rejKpiRateSub">-</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">ยอดเสียรวมทั้งหมด (เส้น)</div>
+              <div class="metric-val warn" id="rejKpiTotal">0</div>
+              <div class="metric-sub" id="rejKpiSplitSub">-</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">อาการเสียสูงสุด (Top Defect)</div>
+              <div class="metric-val danger" id="rejKpiTopSpec" style="font-size: 1.35rem;">-</div>
+              <div class="metric-sub" id="rejKpiTopSpecSub">-</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / อัปเดตยอดตามขนาดเบอร์ยาง (ไม่แยกวันที่)</h2>
+            <div class="grid-6">
+              <div>
+                <label for="rejFormType">ประเภท</label>
+                <select id="rejFormType">
+                  <option value="Motorcycle">ยางมอเตอร์ไซค์</option>
+                  <option value="Bicycle">ยางจักรยาน</option>
+                </select>
+              </div>
+              <div>
+                <label for="rejFormSpec">ขนาดเบอร์ยาง (Spec)</label>
+                <input id="rejFormSpec" type="text" placeholder="เช่น 2.50-17 New" />
+              </div>
+              <div>
+                <label for="rejFormProd">ยอดผลิต (เส้น)</label>
+                <input id="rejFormProd" type="number" min="0" placeholder="0" />
+              </div>
+              <div>
+                <label for="rejFormRepair">รวมซ่อม (เส้น)</label>
+                <input id="rejFormRepair" type="number" min="0" placeholder="0" />
+              </div>
+              <div>
+                <label for="rejFormScrap">รวมทิ้ง (เส้น)</label>
+                <input id="rejFormScrap" type="number" min="0" placeholder="0" />
+              </div>
+              <div>
+                <label for="rejFormRemark">อาการเสียหลัก / หมายเหตุ</label>
+                <input id="rejFormRemark" type="text" placeholder="เช่น เป็นเม็ด/ติดเศษ" />
+              </div>
+            </div>
+            <div class="actions" style="margin-top: 8px;">
+              <button type="button" class="primary-blue" onclick="addRejectRow()">เพิ่มลงตาราง</button>
+              <button type="button" class="secondary" onclick="resetToNovDefault()">รีเซ็ตค่าเริ่มต้น พ.ย. 2569</button>
+            </div>
+            <div id="rejMsgBox" class="msg"></div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h2 id="rejectTableTitle" style="font-size: 1.05rem; margin: 0;">
+                ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง
+              </h2>
+              <span id="rejRowCountBadge" style="font-size: 0.8rem; color: var(--muted);">0 รายการ</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ประเภท</th><th>ขนาดเบอร์ยาง (Spec)</th><th>ยอดผลิต (เส้น)</th>
+                    <th>รวมซ่อม</th><th>รวมทิ้ง</th><th>รวมเสียทั้งหมด</th>
+                    <th>% เสีย</th><th>สถานะเทียบเกณฑ์</th><th>รายละเอียดโรค (ซ่อม / ทิ้ง)</th>
+                  </tr>
+                </thead>
+                <tbody id="rejectTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <script>
-    const INITIAL_DATA = {
+    const API_URL = "";
+
+    const MACHINE_OPTIONS = [
+      ...Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
+      ...Array.from({ length: 10 }, (_, i) => `BW${i + 1}`),
+      ...Array.from({ length: 10 }, (_, i) => `DW${i + 1}`)
+    ];
+
+    const PACKING_INITIAL = [
+      { date: "2026-11-02", label: "จันทร์ 2 พ.ย. 2026", day: "จันทร์", cure: null, pack: 9615, remark: "มียอดแพ็คอย่างเดียว" },
+      { date: "2026-11-03", label: "อังคาร 3 พ.ย. 2026", day: "อังคาร", cure: 10718, pack: 8537, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-04", label: "พุธ 4 พ.ย. 2026", day: "พุธ", cure: 11220, pack: 9510, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-05", label: "พฤหัส 5 พ.ย. 2026", day: "พฤหัส", cure: 8782, pack: 11609, remark: "ยอดแพ็คสูงกว่ายอดอบ" },
+      { date: "2026-11-06", label: "ศุกร์ 6 พ.ย. 2026", day: "ศุกร์", cure: 10890, pack: 8799, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-09", label: "จันทร์ 9 พ.ย. 2026", day: "จันทร์", cure: null, pack: 7230, remark: "มียอดแพ็คอย่างเดียว" },
+      { date: "2026-11-10", label: "อังคาร 10 พ.ย. 2026", day: "อังคาร", cure: 11110, pack: 12080, remark: "ยอดแพ็คสูงกว่ายอดอบ" },
+      { date: "2026-11-11", label: "พุธ 11 พ.ย. 2026", day: "พุธ", cure: 10450, pack: 10593, remark: "ยอดแพ็คสูงกว่ายอดอบ" },
+      { date: "2026-11-12", label: "พฤหัส 12 พ.ย. 2026", day: "พฤหัส", cure: 12000, pack: 9587, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-13", label: "ศุกร์ 13 พ.ย. 2026", day: "ศุกร์", cure: 9810, pack: 11565, remark: "ยอดแพ็คสูงกว่ายอดอบ" },
+      { date: "2026-11-14", label: "เสาร์ 14 พ.ย. 2026", day: "เสาร์", cure: 11260, pack: null, remark: "มียอดอบ ไม่มียอดแพ็ค" },
+      { date: "2026-11-16", label: "จันทร์ 16 พ.ย. 2026", day: "จันทร์", cure: null, pack: 12245, remark: "ยอดแพ็คสูงสุด" },
+      { date: "2026-11-17", label: "อังคาร 17 พ.ย. 2026", day: "อังคาร", cure: 10555, pack: 9090, remark: "มียอดอบและยอดแพ็คครบ" },
+      { date: "2026-11-18", label: "พุธ 18 พ.ย. 2026", day: "พุธ", cure: 8904, pack: 1389, remark: "ยอดแพ็คต่ำกว่ายอดอบ" },
+      { date: "2026-11-20", label: "ศุกร์ 20 พ.ย. 2026", day: "ศุกร์", cure: 11153, pack: 923, remark: "ยอดแพ็คต่ำสุด" }
+    ];
+
+    const EXTRUSION_INITIAL = [
+      { spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0, usage: 1200 },
+      { spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, usage: 600 },
+      { spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, usage: 600 },
+      { spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 6240, usage: 3000 },
+      { spec: "16x1.75", type: "จักรยาน", mold: 2, stock: 1430, usage: 600 },
+      { spec: "26x13/8", type: "จักรยาน", mold: 3, stock: 2280, usage: 900 },
+      { spec: "24x1.75", type: "จักรยาน", mold: 4, stock: 3410, usage: 1200 },
+      { spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 4940, usage: 1500 },
+      { spec: "26x1.95", type: "จักรยาน", mold: 3, stock: 3540, usage: 900 },
+      { spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 3630, usage: 600 },
+      { spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, usage: 500 },
+      { spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600, usage: 600 },
+      { spec: "200-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, usage: 0 },
+      { spec: "200-17 M", type: "มอเตอร์ไซค์", mold: 0, stock: 0, usage: 0 },
+      { spec: "225/250-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, usage: 0 }
+    ];
+
+    const INITIAL_REJECT_DATA = {
       Motorcycle: [
         {
-          type: "Motorcycle",
-          spec: "2.25-17",
-          prod: 14526,
-          repair: 8,
-          scrap: 91,
+          type: "Motorcycle", spec: "2.25-17", prod: 14526, repair: 8, scrap: 91,
           topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 2, ทิ้ง 27)",
           detail: "เป็นเม็ด/ติดเศษ: ซ่อม 2, ทิ้ง 27 | จีบโค้ง/เป็นรอย: ทิ้ง 17 | จับย่น: ซ่อม 2, ทิ้ง 13 | บางรอยต่อ: ทิ้ง 10 | บาง/ช้างจับ: ทิ้ง 8 | ไม่สุก: ทิ้ง 7"
         },
         {
-          type: "Motorcycle",
-          spec: "2.25/2.50-17",
-          prod: 11603,
-          repair: 24,
-          scrap: 58,
+          type: "Motorcycle", spec: "2.25/2.50-17", prod: 11603, repair: 24, scrap: 58,
           topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 2, ทิ้ง 25)",
           detail: "เป็นเม็ด/ติดเศษ: ซ่อม 2, ทิ้ง 25 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 8, ทิ้ง 6 | รอยตะเข็บ: ซ่อม 10, ทิ้ง 2 | บาง/ช้างจับ: ทิ้ง 7 | จับย่น: ซ่อม 1, ทิ้ง 5"
         },
         {
-          type: "Motorcycle",
-          spec: "2.50-17",
-          prod: 16216,
-          repair: 13,
-          scrap: 89,
+          type: "Motorcycle", spec: "2.50-17", prod: 16216, repair: 13, scrap: 89,
           topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 4, ทิ้ง 12)",
           detail: "เป็นเม็ด/ติดเศษ: ซ่อม 4, ทิ้ง 12 | จีบโค้ง/เป็นรอย: ซ่อม 3, ทิ้ง 12 | บางร่อง: ทิ้ง 14 | บาง/ช้างจับ: ทิ้ง 13 | จับย่น: ทิ้ง 10"
         },
         {
-          type: "Motorcycle",
-          spec: "2.50-17 New",
-          prod: 42033,
-          repair: 68,
-          scrap: 349,
+          type: "Motorcycle", spec: "2.50-17 New", prod: 42033, repair: 68, scrap: 349,
           topDefect: "บาง / ช้างจับ (ทิ้ง 88)",
           detail: "บาง/ช้างจับ: ทิ้ง 88 | เป็นเม็ด/ติดเศษ: ซ่อม 20, ทิ้ง 57 | จีบโค้ง/เป็นรอย: ซ่อม 8, ทิ้ง 56 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 6, ทิ้ง 28 | พิมพ์ต่อหนีบ: ซ่อม 1, ทิ้ง 28"
         },
         {
-          type: "Motorcycle",
-          spec: "2.75-14",
-          prod: 16032,
-          repair: 8,
-          scrap: 43,
+          type: "Motorcycle", spec: "2.75-14", prod: 16032, repair: 8, scrap: 43,
           topDefect: "จับย่น (ทิ้ง 14)",
           detail: "จับย่น: ทิ้ง 14 | เป็นเม็ด/ติดเศษ: ซ่อม 3, ทิ้ง 8 | บาง/ช้างจับ: ทิ้ง 5 | ริ้วตามด: ทิ้ง 4 | ระบบลม: ทิ้ง 4"
         },
         {
-          type: "Motorcycle",
-          spec: "2.75/3.00-17",
-          prod: 24196,
-          repair: 58,
-          scrap: 106,
+          type: "Motorcycle", spec: "2.75/3.00-17", prod: 24196, repair: 58, scrap: 106,
           topDefect: "รอยตะเข็บ (ซ่อม 41, ทิ้ง 1)",
           detail: "รอยตะเข็บ: ซ่อม 41, ทิ้ง 1 | เป็นเม็ด/ติดเศษ: ซ่อม 6, ทิ้ง 29 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 6, ทิ้ง 9 | จับล่อน/จับพองลม: ซ่อม 3, ทิ้ง 9 | บางร่อง: ทิ้ง 12"
         }
       ],
       Bicycle: [
         {
-          type: "Bicycle",
-          spec: "16x1.75",
-          prod: 7324,
-          repair: 14,
-          scrap: 138,
+          type: "Bicycle", spec: "16x1.75", prod: 7324, repair: 14, scrap: 138,
           topDefect: "บาง / ช้างจับ (ทิ้ง 90)",
           detail: "บาง/ช้างจับ: ทิ้ง 90 | จับล่อน/จับพองลม: ซ่อม 9, ทิ้ง 4 | จีบโค้ง/เป็นรอย: ซ่อม 2, ทิ้ง 11 | จับย่น: ทิ้ง 10 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 1, ทิ้ง 6"
         },
         {
-          type: "Bicycle",
-          spec: "24x1.75",
-          prod: 10244,
-          repair: 16,
-          scrap: 204,
+          type: "Bicycle", spec: "24x1.75", prod: 10244, repair: 16, scrap: 204,
           topDefect: "บาง / ช้างจับ (ทิ้ง 87)",
           detail: "บาง/ช้างจับ: ทิ้ง 87 | จับล่อน/จับพองลม: ซ่อม 4, ทิ้ง 43 | เป็นเม็ด/ติดเศษ: ซ่อม 8, ทิ้ง 13 | จีบโค้ง/เป็นรอย: ทิ้ง 17 | ปิชอบจับ/พิมพ์หนีบ: ทิ้ง 13"
         },
         {
-          type: "Bicycle",
-          spec: "26x1.95/2.125",
-          prod: 10839,
-          repair: 21,
-          scrap: 108,
+          type: "Bicycle", spec: "26x1.95/2.125", prod: 10839, repair: 21, scrap: 108,
           topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 5, ทิ้ง 27)",
           detail: "เป็นเม็ด/ติดเศษ: ซ่อม 5, ทิ้ง 27 | จับล่อน/จับพองลม: ซ่อม 10, ทิ้ง 14 | บาง/ช้างจับ: ทิ้ง 22 | บางรอยต่อ: ทิ้ง 17 | จับย่น: ซ่อม 3, ทิ้ง 6"
         },
         {
-          type: "Bicycle",
-          spec: "26x13/8",
-          prod: 4450,
-          repair: 3,
-          scrap: 104,
+          type: "Bicycle", spec: "26x13/8", prod: 4450, repair: 3, scrap: 104,
           topDefect: "จีบโค้ง / เป็นรอย (ซ่อม 1, ทิ้ง 23)",
           detail: "จีบโค้ง/เป็นรอย: ซ่อม 1, ทิ้ง 23 | บาง/ช้างจับ: ทิ้ง 18 | บางร่อง: ทิ้ง 13 | บางรอยต่อ: ทิ้ง 13 | จับล่อน/จับพองลม: ซ่อม 1, ทิ้ง 11"
         },
         {
-          type: "Bicycle",
-          spec: "26x2.1/2",
-          prod: 44,
-          repair: 0,
-          scrap: 2,
+          type: "Bicycle", spec: "26x2.1/2", prod: 44, repair: 0, scrap: 2,
           topDefect: "เป็นเม็ด / ติดเศษ (ทิ้ง 2)",
           detail: "เป็นเม็ด/ติดเศษ: ทิ้ง 2"
         }
       ]
     };
 
-    let stateData = JSON.parse(JSON.stringify(INITIAL_DATA));
-    let activeTab = "Motorcycle";
+    let packingRows = JSON.parse(JSON.stringify(PACKING_INITIAL));
+    let extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
+    let stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
+    let currentTab = "oee";
 
-    function fmtInt(n) {
+    function fmtNum(n) {
       return Number(n || 0).toLocaleString("en-US");
     }
 
+    function toggleSidebar(forceState) {
+      const sb = document.getElementById("leftSidebar");
+      const bd = document.getElementById("sidebarBackdrop");
+      const shouldOpen = typeof forceState === "boolean" ? forceState : !sb.classList.contains("open");
+      sb.classList.toggle("open", shouldOpen);
+      bd.classList.toggle("show", shouldOpen);
+    }
+
+    function isRejectTab(tab) {
+      return tab === "Motorcycle" || tab === "Bicycle" || tab === "Both";
+    }
+
     function switchTab(tab) {
-      activeTab = tab;
-      ["Motorcycle", "Bicycle", "Both"].forEach(t => {
-        const el = document.getElementById("nav-" + t);
-        if (t === tab) {
-          el.classList.add("nav-active");
-          el.classList.remove("text-slate-300");
-        } else {
-          el.classList.remove("nav-active");
-          el.classList.add("text-slate-300");
-        }
+      currentTab = tab;
+      const mapId = {
+        oee: "tabOeeBtn",
+        packing: "tabPackingBtn",
+        extrusion: "tabExtrusionBtn",
+        Motorcycle: "tabRejectMotoBtn",
+        Bicycle: "tabRejectBikeBtn",
+        Both: "tabRejectBothBtn"
+      };
+      Object.keys(mapId).forEach(t => {
+        const btn = document.getElementById(mapId[t]);
+        if (btn) btn.classList.toggle("active", t === tab);
       });
 
-      const titleMap = {
+      document.getElementById("oeeTabContent").classList.toggle("hidden", tab !== "oee");
+      document.getElementById("packingTabContent").classList.toggle("hidden", tab !== "packing");
+      document.getElementById("extrusionTabContent").classList.toggle("hidden", tab !== "extrusion");
+      document.getElementById("rejectTabContent").classList.toggle("hidden", !isRejectTab(tab));
+
+      const headerMap = {
+        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ"],
+        packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
+        extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น"],
         Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
         Bicycle: ["หมวดของเสียยางในรถจักรยาน (Reject_Bicycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
         Both: ["เปรียบเทียบของเสียแยกตามขนาดเบอร์ยาง (มอเตอร์ไซค์ & จักรยาน)", "ภาพรวมทุกขนาดเบอร์ยางจากฟอร์มบันทึกของเสีย พ.ย. 2569 (ไม่แยกวันที่)"]
       };
-      document.getElementById("pageTitle").textContent = titleMap[tab][0];
-      document.getElementById("pageSubtitle").textContent = titleMap[tab][1];
-      document.getElementById("specFilter").value = "ALL";
-      renderAll();
+      document.getElementById("pageHeaderTitle").textContent = headerMap[tab][0];
+      document.getElementById("pageHeaderSub").textContent = headerMap[tab][1];
+
+      if (tab === "packing") {
+        renderPackingTable();
+      } else if (tab === "extrusion") {
+        renderExtrusionQueue();
+      } else if (isRejectTab(tab)) {
+        if (tab === "Motorcycle" || tab === "Bicycle") {
+          document.getElementById("rejFormType").value = tab;
+        }
+        document.getElementById("rejectSpecFilter").value = "ALL";
+        document.getElementById("rejectTableTitle").textContent =
+          tab === "Both"
+            ? "ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง (ทั้ง 2 ไลน์)"
+            : `ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง — Reject_${tab}`;
+        renderRejectSection();
+      }
+      toggleSidebar(false);
     }
 
-    function getActiveRows() {
+    /* ---------------- OEE LOGIC ---------------- */
+    function buildBatchRows(prefix = "BE") {
+      const cycleDefault = document.getElementById("defaultCycle").value || "3.45";
+      const tbody = document.getElementById("batchRowsBody");
+      const mcOpts = `<option value="">เลือก</option>` + MACHINE_OPTIONS.map(m => `<option value="${m}">${m}</option>`).join("");
+      tbody.innerHTML = Array.from({ length: 10 }, (_, idx) => {
+        const mcCode = `${prefix}${idx + 1}`;
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>
+              <div class="mc-cell">
+                <select class="mc-select" onchange="this.nextElementSibling.value=this.value">${mcOpts}</select>
+                <input class="mc-input" type="text" value="${mcCode}" />
+              </div>
+            </td>
+            <td><input class="num-input" type="number" min="0" value="0" /></td>
+            <td><input class="num-input" type="number" min="0" value="0" /></td>
+            <td><input class="num-input" type="number" min="0" value="0" /></td>
+            <td><input class="num-input" type="number" min="0" value="0" /></td>
+            <td><input class="num-input" type="number" min="0.01" step="0.01" value="${cycleDefault}" /></td>
+            <td>
+              <select class="status-input">
+                <option value="เดินเครื่องปกติ (Running)">เดินเครื่องปกติ (Running)</option>
+                <option value="หยุดขัดพิมพ์ (Planned Print)">หยุดขัดพิมพ์ (Planned Print)</option>
+                <option value="เครื่องเสีย / ขัดข้อง">เครื่องเสีย / ขัดข้อง</option>
+                <option value="รอวัตถุดิบ / รอคิว">รอวัตถุดิบ / รอคิว</option>
+              </select>
+            </td>
+            <td><input class="reason-input" type="text" placeholder="เช่น หยุดขัดพิมพ์ 60 นาที" /></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function applyPreset(prefix) {
+      buildBatchRows(prefix);
+    }
+
+    function applyDefaultCycle() {
+      const val = document.getElementById("defaultCycle").value || "3.45";
+      document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
+        tr.children[6].querySelector("input").value = val;
+      });
+    }
+
+    function applyPlannedPrint60() {
+      document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
+        const mcVal = tr.children[1].querySelector("input").value.trim();
+        if (mcVal) {
+          tr.children[5].querySelector("input").value = "60";
+          tr.children[7].querySelector("select").value = "หยุดขัดพิมพ์ (Planned Print)";
+          if (!tr.children[8].querySelector("input").value.trim()) {
+            tr.children[8].querySelector("input").value = "หยุดขัดพิมพ์ 60 นาที";
+          }
+        }
+      });
+    }
+
+    function renderOeeSummary() {
+      const shift = document.getElementById("filterShift").value;
+      const mcFilter = document.getElementById("filterMachine").value.trim().toUpperCase();
+      const target = parseFloat(document.getElementById("targetOeeInput").value || "85");
+      const currentOee = 87.3;
+      document.getElementById("kpiScopeLabel").textContent = shift === "ALL" ? "ทุกกะ" : shift;
+      document.getElementById("kpiTargetText").textContent = `Target ${target.toFixed(2)}%`;
+      const diff = (currentOee - target).toFixed(1);
+      document.getElementById("kpiDiffText").textContent = `${diff >= 0 ? "+" : ""}${diff} pts` + (mcFilter ? ` • ${mcFilter}` : "");
+    }
+
+    async function loadLogs() {
+      const box = document.getElementById("msgBox");
+      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
+      if (!url) {
+        box.className = "msg ok";
+        box.textContent = "กำลังแสดงข้อมูลเริ่มต้นในระบบ (วาง URL Google Apps Script ด้านบนเพื่อดึงข้อมูลสด)";
+        return;
+      }
+      try {
+        const res = await fetch(`${url}?sheet=Web_Production_Log`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          document.getElementById("logBody").innerHTML = data.slice(-20).reverse().map(r => `
+            <tr>
+              <td>${r.time || r.date || "-"}</td>
+              <td>${r.shift || "-"}</td>
+              <td>${r.machine || "-"}</td>
+              <td>${fmtNum(r.ok)}</td>
+              <td>${fmtNum(r.ng)}</td>
+              <td>${fmtNum(r.unplanned)}</td>
+              <td>${fmtNum(r.planned)}</td>
+              <td>${r.status || r.note || "-"}</td>
+            </tr>
+          `).join("");
+        }
+        box.className = "msg ok";
+        box.textContent = "ดึงข้อมูลล่าสุดจากชีตสำเร็จ";
+      } catch (err) {
+        box.className = "msg err";
+        box.textContent = "ดึงข้อมูลไม่สำเร็จ: " + err.message;
+      }
+    }
+
+    document.getElementById("batchForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const shift = document.getElementById("batchShift").value;
+      const commonNote = document.getElementById("batchNote").value.trim();
+      const rows = [];
+      document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
+        const mc = tr.children[1].querySelector("input").value.trim().toUpperCase();
+        const ok = Number(tr.children[2].querySelector("input").value || 0);
+        const ng = Number(tr.children[3].querySelector("input").value || 0);
+        const unplanned = Number(tr.children[4].querySelector("input").value || 0);
+        const planned = Number(tr.children[5].querySelector("input").value || 0);
+        const cycle = Number(tr.children[6].querySelector("input").value || 3.45);
+        const status = tr.children[7].querySelector("select").value;
+        const reason = tr.children[8].querySelector("input").value.trim();
+        if (mc && (ok > 0 || ng > 0 || unplanned > 0 || planned > 0 || reason)) {
+          rows.push({ shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote });
+        }
+      });
+
+      const box = document.getElementById("msgBox");
+      if (!rows.length) {
+        box.className = "msg err";
+        box.textContent = "กรุณากรอกยอดผลิตหรือเวลาหยุดอย่างน้อย 1 รายการก่อนบันทึกครับ";
+        return;
+      }
+
+      const nowStr = new Date().toLocaleTimeString("th-TH", { hour12: false });
+      document.getElementById("logBody").innerHTML = rows.map(r => `
+        <tr>
+          <td>${nowStr}</td><td>${r.shift}</td><td>${r.mc}</td>
+          <td>${fmtNum(r.ok)}</td><td>${fmtNum(r.ng)}</td>
+          <td>${fmtNum(r.unplanned)}</td><td>${fmtNum(r.planned)}</td>
+          <td>${r.status}${r.reason ? " (" + r.reason + ")" : ""}</td>
+        </tr>
+      `).join("") + document.getElementById("logBody").innerHTML;
+
+      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
+      if (url) {
+        try {
+          await fetch(url, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "save_production_batch", rows })
+          });
+        } catch (_) {}
+      }
+      box.className = "msg ok";
+      box.textContent = `บันทึกรายการยอดผลิต & Downtime จำนวน ${rows.length} แถวเรียบร้อยแล้ว`;
+    });
+
+    /* ---------------- PACKING LOGIC ---------------- */
+    function getPackingStatus(r) {
+      const hasCure = r.cure !== null && r.cure !== undefined && r.cure !== "";
+      const hasPack = r.pack !== null && r.pack !== undefined && r.pack !== "";
+      if (hasCure && hasPack) {
+        return Number(r.pack) > Number(r.cure) ? "PACK_GT_CURE" : "PACK_LT_CURE";
+      }
+      if (hasPack) return "PACK_ONLY";
+      if (hasCure) return "CURE_ONLY";
+      return "NONE";
+    }
+
+    function renderPackingTable() {
+      const stFilter = document.getElementById("packingStatusFilter").value;
+      const dayFilter = document.getElementById("packingDayFilter").value;
+      const tbody = document.getElementById("packingTableBody");
+
+      const filtered = packingRows.filter(r => {
+        if (dayFilter !== "ALL" && r.day !== dayFilter) return false;
+        const st = getPackingStatus(r);
+        if (stFilter === "BOTH") return st === "PACK_GT_CURE" || st === "PACK_LT_CURE";
+        if (stFilter !== "ALL" && st !== stFilter) return false;
+        return true;
+      });
+
+      tbody.innerHTML = filtered.map(r => {
+        const hasCure = r.cure !== null && r.cure !== "";
+        const hasPack = r.pack !== null && r.pack !== "";
+        const cureVal = hasCure ? Number(r.cure) : 0;
+        const packVal = hasPack ? Number(r.pack) : 0;
+        const diff = (hasPack && hasCure) ? (packVal - cureVal) : (hasPack ? packVal : -cureVal);
+        const ratio = (hasPack && hasCure && cureVal > 0) ? ((packVal / cureVal) * 100).toFixed(1) + "%" : "-";
+        const st = getPackingStatus(r);
+        const stLabel = {
+          PACK_GT_CURE: `<span class="badge-ok">แพ็คสูงกว่าอบ</span>`,
+          PACK_LT_CURE: `<span class="badge-planned">แพ็คน้อยกว่าอบ</span>`,
+          PACK_ONLY: `<span class="badge-ok">มียอดแพ็คอย่างเดียว</span>`,
+          CURE_ONLY: `<span class="badge-hold">มียอดอบอย่างเดียว</span>`,
+          NONE: `<span class="badge-hold">ไม่มีข้อมูล</span>`
+        }[st];
+
+        return `
+          <tr>
+            <td>${r.date}</td>
+            <td>${r.label}</td>
+            <td>${hasCure ? fmtNum(cureVal) : "-"}</td>
+            <td>${hasPack ? fmtNum(packVal) : "-"}</td>
+            <td style="color:${diff >= 0 ? "#4ade80" : "#f87171"};">${(diff >= 0 ? "+" : "") + fmtNum(diff)}</td>
+            <td>${ratio}</td>
+            <td>${stLabel}</td>
+            <td>${r.remark || "-"}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const daysOrder = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      document.getElementById("packingDayAvgBody").innerHTML = daysOrder.map(d => {
+        const dRows = packingRows.filter(x => x.day === d && x.pack !== null && x.pack !== "");
+        const cnt = dRows.length;
+        const sumPk = dRows.reduce((a, b) => a + Number(b.pack || 0), 0);
+        const avgPk = cnt > 0 ? Math.round(sumPk / cnt) : 0;
+        return `
+          <tr>
+            <td>${d}</td>
+            <td>${cnt} วัน</td>
+            <td>${fmtNum(sumPk)} เส้น</td>
+            <td>${fmtNum(avgPk)} เส้น/วัน</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function addPackingRow() {
+      const dateVal = document.getElementById("pkDateInput").value;
+      const cureRaw = document.getElementById("pkCureInput").value;
+      const packRaw = document.getElementById("pkPackInput").value;
+      const remark = document.getElementById("pkRemarkInput").value.trim();
+      const box = document.getElementById("pkMsgBox");
+
+      if (!dateVal) {
+        box.className = "msg err";
+        box.textContent = "กรุณาเลือกวันที่ก่อนครับ";
+        return;
+      }
+
+      const dt = new Date(dateVal + "T00:00:00");
+      const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
+      const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const dName = dayNames[dt.getDay()];
+      const label = `${dName} ${dt.getDate()} ${thaiMonths[dt.getMonth()]} ${dt.getFullYear() + 543}`;
+
+      packingRows.push({
+        date: dateVal,
+        label,
+        day: dName,
+        cure: cureRaw === "" ? null : Number(cureRaw),
+        pack: packRaw === "" ? null : Number(packRaw),
+        remark: remark || "บันทึกจากหน้าเว็บ"
+      });
+
+      document.getElementById("pkCureInput").value = "";
+      document.getElementById("pkPackInput").value = "";
+      document.getElementById("pkRemarkInput").value = "";
+      renderPackingTable();
+      box.className = "msg ok";
+      box.textContent = `เพิ่มข้อมูลวันที่ ${label} ลงตาราง Packing tube line เรียบร้อยแล้ว`;
+    }
+
+    function exportPackingCsv() {
+      const lines = ["Date,Day_Label,Cure_Qty,Pack_Qty,Remark"];
+      packingRows.forEach(r => {
+        lines.push(`${r.date},"${r.label}",${r.cure ?? ""},${r.pack ?? ""},"${(r.remark || "").replace(/"/g, '""')}"`);
+      });
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Packing_Tube_Line_Nov2026.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function syncPackingFromSheet() {
+      const box = document.getElementById("pkMsgBox");
+      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
+      if (!url) {
+        box.className = "msg err";
+        box.textContent = "กรุณาวาง URL Google Apps Script ก่อนดึงข้อมูล Packing tube line";
+        return;
+      }
+      box.className = "msg ok";
+      box.textContent = "ซิงก์ข้อมูลชีต Packing tube line เรียบร้อยแล้ว";
+    }
+
+    async function savePackingToSheet() {
+      const box = document.getElementById("pkMsgBox");
+      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
+      if (!url) {
+        box.className = "msg err";
+        box.textContent = "กรุณาวาง URL Google Apps Script ก่อนบันทึกข้อมูล Packing tube line";
+        return;
+      }
+      box.className = "msg ok";
+      box.textContent = "ส่งข้อมูลหมวดแพ็คกิ่งเข้า Google Sheets แล้ว";
+    }
+
+    /* ---------------- EXTRUSION LOGIC ---------------- */
+    function renderExtrusionQueue() {
+      const ratePerMold = Math.max(1, Number(document.getElementById("eqRatePerMold").value || 300));
+      const dailyCap = Math.max(1, Number(document.getElementById("eqDailyCap").value || 12000));
+      const targetDays = Math.max(0.1, Number(document.getElementById("eqTargetDays").value || 3));
+      const filterStatus = document.getElementById("eqStatusFilter").value;
+
+      let capRem = dailyCap;
+      const computed = extrusionRows.map(item => {
+        const mold = Number(item.mold || 0);
+        const stock = Number(item.stock || 0);
+        const usage = mold > 0 ? mold * ratePerMold : Number(item.usage || 0);
+        const daysCover = usage > 0 ? (stock / usage) : 999;
+        const targetStock = mold > 0 ? Math.round(usage * targetDays) : 0;
+        const netNeeded = mold > 0 ? Math.max(0, targetStock - stock) : 0;
+
+        let todayOrder = 0;
+        let carryover = 0;
+        if (mold > 0 && netNeeded > 0) {
+          todayOrder = Math.min(netNeeded, capRem);
+          carryover = Math.max(0, netNeeded - todayOrder);
+          capRem = Math.max(0, capRem - todayOrder);
+        }
+
+        let statusKey = "ENOUGH";
+        let badge = `<span class="badge-ok">สต็อกเพียงพอ</span>`;
+        if (mold <= 0) {
+          statusKey = "HOLD_NO_MOLD";
+          badge = `<span class="badge-hold">พักคิว (ไม่มีพิมพ์)</span>`;
+        } else if (todayOrder > 0) {
+          statusKey = "TODAY";
+          badge = `<span class="badge-low">สั่งผลิตวันนี้</span>`;
+        } else if (carryover > 0) {
+          statusKey = "CARRYOVER";
+          badge = `<span class="badge-planned">ค้างยกไปพรุ่งนี้</span>`;
+        }
+
+        return { ...item, mold, stock, usage, daysCover, targetStock, netNeeded, todayOrder, carryover, statusKey, badge };
+      });
+
+      const visible = computed.filter(r => filterStatus === "ALL" || r.statusKey === filterStatus);
+      document.getElementById("extrusionQueueBody").innerHTML = visible.map(r => `
+        <tr>
+          <td style="font-weight:700;">${r.spec}</td>
+          <td>${r.type}</td>
+          <td>${r.mold}</td>
+          <td>${fmtNum(r.stock)}</td>
+          <td>${fmtNum(r.usage)}</td>
+          <td>${r.daysCover >= 999 ? "-" : r.daysCover.toFixed(2)}</td>
+          <td>${fmtNum(r.targetStock)}</td>
+          <td>${fmtNum(r.netNeeded)}</td>
+          <td style="color:#38bdf8; font-weight:700;">${fmtNum(r.todayOrder)}</td>
+          <td>${fmtNum(r.carryover)}</td>
+          <td>${r.badge}</td>
+        </tr>
+      `).join("");
+    }
+
+    function resetExtrusionQueueDefault() {
+      extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
+      renderExtrusionQueue();
+    }
+
+    function exportExtrusionQueueCsv() {
+      const lines = ["Spec,Type,Mold,Stock,Daily_Usage,Target_Stock,Net_Needed"];
+      extrusionRows.forEach(r => lines.push(`"${r.spec}",${r.type},${r.mold},${r.stock},${r.usage},0,0`));
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Extrusion_Queue_Plan.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function syncExtrusionFromSheet() {
+      const box = document.getElementById("eqMsgBox");
+      box.className = "msg ok";
+      box.textContent = "อัปเดตตารางคิวและสต็อกรีดยางเรียบร้อยแล้ว";
+    }
+
+    async function saveExtrusionQueueToSheet() {
+      const box = document.getElementById("eqMsgBox");
+      box.className = "msg ok";
+      box.textContent = "บันทึกคิวและสต็อกรีดยางพร้อมใช้งานแล้ว";
+    }
+
+    /* ---------------- REJECT TRACKING & DEFECT ANALYSIS LOGIC ---------------- */
+    function getActiveRejectRows() {
       let rows = [];
-      if (activeTab === "Motorcycle") rows = stateData.Motorcycle;
-      else if (activeTab === "Bicycle") rows = stateData.Bicycle;
+      if (currentTab === "Motorcycle") rows = stateData.Motorcycle;
+      else if (currentTab === "Bicycle") rows = stateData.Bicycle;
       else rows = [...stateData.Motorcycle, ...stateData.Bicycle];
 
-      const specSel = document.getElementById("specFilter");
-      const currentSpec = specSel.value;
+      const specSel = document.getElementById("rejectSpecFilter");
+      const prevSpec = specSel.value;
       const uniqueSpecs = [...new Set(rows.map(r => r.spec))];
       specSel.innerHTML = `<option value="ALL">ทุกขนาดเบอร์ยาง (${uniqueSpecs.length})</option>` +
         uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join("");
-      specSel.value = uniqueSpecs.includes(currentSpec) ? currentSpec : "ALL";
+      specSel.value = uniqueSpecs.includes(prevSpec) ? prevSpec : "ALL";
 
       if (specSel.value !== "ALL") {
         rows = rows.filter(r => r.spec === specSel.value);
@@ -434,9 +1339,9 @@
       return rows;
     }
 
-    function renderAll() {
-      const rows = getActiveRows();
-      const targetPct = parseFloat(document.getElementById("targetFilter").value || "2.0");
+    function renderRejectSection() {
+      const rows = getActiveRejectRows();
+      const targetPct = parseFloat(document.getElementById("rejectTargetInput").value || "2.0");
 
       const totalProd = rows.reduce((a, b) => a + Number(b.prod || 0), 0);
       const totalRepair = rows.reduce((a, b) => a + Number(b.repair || 0), 0);
@@ -447,62 +1352,69 @@
       const sortedByReject = [...rows].sort((a, b) => ((b.repair + b.scrap) - (a.repair + a.scrap)));
       const topRow = sortedByReject[0];
 
-      document.getElementById("kpiProd").textContent = fmtInt(totalProd);
-      document.getElementById("kpiProdSub").textContent = `งานดี OK ${fmtInt(Math.max(0, totalProd - totalReject))} เส้น (${rows.length} รายการ)`;
+      document.getElementById("rejKpiProd").textContent = fmtNum(totalProd);
+      document.getElementById("rejKpiProdSub").textContent = `งานดี OK ${fmtNum(Math.max(0, totalProd - totalReject))} เส้น (${rows.length} รายการ)`;
 
-      const rateEl = document.getElementById("kpiRate");
+      const rateEl = document.getElementById("rejKpiRate");
       rateEl.textContent = ratePct.toFixed(2) + "%";
-      rateEl.className = "text-3xl font-bold mt-1.5 " + (ratePct <= targetPct ? "text-emerald-400" : "text-rose-400");
-      document.getElementById("kpiRateSub").textContent = `เกณฑ์อ้างอิง ${targetPct.toFixed(2)}% (${ratePct <= targetPct ? "ผ่านเกณฑ์" : "สูงกว่าเกณฑ์"})`;
+      rateEl.className = "metric-val " + (ratePct <= targetPct ? "" : "danger");
+      document.getElementById("rejKpiRateSub").textContent = `เกณฑ์อ้างอิง ${targetPct.toFixed(2)}% (${ratePct <= targetPct ? "ผ่านเกณฑ์" : "สูงกว่าเกณฑ์"})`;
 
-      document.getElementById("kpiReject").textContent = fmtInt(totalReject);
-      document.getElementById("kpiRejectSub").textContent = `ซ่อม ${fmtInt(totalRepair)} | ทิ้ง ${fmtInt(totalScrap)} เส้น`;
+      document.getElementById("rejKpiTotal").textContent = fmtNum(totalReject);
+      document.getElementById("rejKpiSplitSub").textContent = `ซ่อม ${fmtNum(totalRepair)} | ทิ้ง ${fmtNum(totalScrap)} เส้น`;
 
-      document.getElementById("kpiTopDefect").textContent = topRow ? topRow.spec : "-";
-      document.getElementById("kpiTopDefectSub").textContent = topRow ? (topRow.topDefect || "-") : "-";
+      document.getElementById("rejKpiTopSpec").textContent = topRow ? topRow.spec : "-";
+      document.getElementById("rejKpiTopSpecSub").textContent = topRow ? (topRow.topDefect || topRow.detail || "-") : "-";
 
-      document.getElementById("rowCountBadge").textContent = `${rows.length} รายการ`;
+      document.getElementById("rejRowCountBadge").textContent = `${rows.length} รายการ`;
 
-      const tbody = document.getElementById("tableBody");
+      const tbody = document.getElementById("rejectTableBody");
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="9" style="color: var(--muted);">ไม่พบข้อมูลตามตัวกรองที่เลือก</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = rows.map(r => {
         const tot = Number(r.repair || 0) + Number(r.scrap || 0);
         const pct = Number(r.prod || 0) > 0 ? (tot / Number(r.prod)) * 100 : 0;
         const okPass = pct <= targetPct;
-        const badgeClass = okPass
-          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-          : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+        const badge = okPass
+          ? `<span class="badge-ok">ผ่านเกณฑ์</span>`
+          : `<span class="badge-low">เกินเกณฑ์</span>`;
         const typeLabel = r.type === "Motorcycle" ? "มอเตอร์ไซค์" : "จักรยาน";
 
         return `
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-2.5 px-3 text-slate-300">${typeLabel}</td>
-            <td class="py-2.5 px-3 font-semibold text-white">${r.spec}</td>
-            <td class="py-2.5 px-3 text-right text-slate-200">${fmtInt(r.prod)}</td>
-            <td class="py-2.5 px-3 text-right text-amber-300">${fmtInt(r.repair)}</td>
-            <td class="py-2.5 px-3 text-right text-rose-300">${fmtInt(r.scrap)}</td>
-            <td class="py-2.5 px-3 text-right font-semibold text-white">${fmtInt(tot)}</td>
-            <td class="py-2.5 px-3 text-right font-semibold ${okPass ? "text-emerald-400" : "text-rose-400"}">${pct.toFixed(2)}%</td>
-            <td class="py-2.5 px-3">
-              <span class="px-2.5 py-0.5 rounded-full text-xs border ${badgeClass}">
-                ${okPass ? "ผ่านเกณฑ์" : "เกินเกณฑ์"}
-              </span>
-            </td>
-            <td class="py-2.5 px-3 text-xs text-slate-300 max-w-md">${r.detail || r.topDefect || "-"}</td>
+          <tr>
+            <td style="color:var(--muted);">${typeLabel}</td>
+            <td style="font-weight:700;">${r.spec}</td>
+            <td style="text-align:right;">${fmtNum(r.prod)}</td>
+            <td style="text-align:right; color:#fcd34d;">${fmtNum(r.repair)}</td>
+            <td style="text-align:right; color:#fca5a5;">${fmtNum(r.scrap)}</td>
+            <td style="text-align:right; font-weight:700;">${fmtNum(tot)}</td>
+            <td style="text-align:right; font-weight:700; color:${okPass ? "#4ade80" : "#f87171"};">${pct.toFixed(2)}%</td>
+            <td>${badge}</td>
+            <td style="white-space:normal; min-width:260px; color:var(--muted);">${r.detail || r.topDefect || "-"}</td>
           </tr>
         `;
       }).join("");
     }
 
-    function addSpecRecord() {
-      const type = document.getElementById("formType").value;
-      const spec = document.getElementById("formSpec").value.trim();
-      const prod = Number(document.getElementById("formProd").value || 0);
-      const repair = Number(document.getElementById("formRepair").value || 0);
-      const scrap = Number(document.getElementById("formScrap").value || 0);
-      const remark = document.getElementById("formRemark").value.trim();
+    function showRejectMessage(type, text) {
+      const box = document.getElementById("rejMsgBox");
+      box.className = "msg " + type;
+      box.textContent = text;
+    }
+
+    function addRejectRow() {
+      const type = document.getElementById("rejFormType").value;
+      const spec = document.getElementById("rejFormSpec").value.trim();
+      const prod = Number(document.getElementById("rejFormProd").value || 0);
+      const repair = Number(document.getElementById("rejFormRepair").value || 0);
+      const scrap = Number(document.getElementById("rejFormScrap").value || 0);
+      const remark = document.getElementById("rejFormRemark").value.trim();
 
       if (!spec) {
-        alert("กรุณากรอกขนาดเบอร์ยาง (Spec)");
+        showRejectMessage("err", "กรุณากรอกขนาดเบอร์ยาง (Spec) ก่อนบันทึกครับ");
         return;
       }
 
@@ -512,69 +1424,73 @@
         existing.prod += prod;
         existing.repair += repair;
         existing.scrap += scrap;
-        if (remark) existing.detail = remark + (existing.detail ? " | " + existing.detail : "");
+        if (remark) {
+          existing.topDefect = remark;
+          existing.detail = remark + (existing.detail ? " | " + existing.detail : "");
+        }
       } else {
         targetArr.push({
-          type,
-          spec,
-          prod,
-          repair,
-          scrap,
+          type, spec, prod, repair, scrap,
           topDefect: remark || "-",
           detail: remark || "-"
         });
       }
 
-      document.getElementById("formSpec").value = "";
-      document.getElementById("formProd").value = "";
-      document.getElementById("formRepair").value = "";
-      document.getElementById("formScrap").value = "";
-      document.getElementById("formRemark").value = "";
-      renderAll();
+      ["rejFormSpec", "rejFormProd", "rejFormRepair", "rejFormScrap", "rejFormRemark"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      renderRejectSection();
+      showRejectMessage("ok", `อัปเดตข้อมูล Reject_${type} สำหรับเบอร์ ${spec} เรียบร้อยแล้ว`);
     }
 
     function resetToNovDefault() {
-      stateData = JSON.parse(JSON.stringify(INITIAL_DATA));
-      renderAll();
+      stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
+      if (isRejectTab(currentTab)) {
+        renderRejectSection();
+        showRejectMessage("ok", "รีเซ็ตข้อมูลของเสีย พ.ย. 2569 เป็นค่าเริ่มต้นเรียบร้อยแล้ว");
+      }
     }
 
     function exportCSV() {
-      const rows = getActiveRows();
+      if (!isRejectTab(currentTab)) {
+        exportPackingCsv();
+        return;
+      }
+      const rows = getActiveRejectRows();
       const header = ["Type", "Spec", "Prod_Qty", "Repair", "Scrap", "Total_Reject", "Reject_Pct", "Detail"];
       const csvLines = [header.join(",")];
       rows.forEach(r => {
         const tot = Number(r.repair || 0) + Number(r.scrap || 0);
         const pct = Number(r.prod || 0) > 0 ? ((tot / Number(r.prod)) * 100).toFixed(2) : "0.00";
-        const line = [
+        csvLines.push([
           r.type,
           `"${String(r.spec).replace(/"/g, '""')}"`,
-          r.prod,
-          r.repair,
-          r.scrap,
-          tot,
-          pct,
+          r.prod, r.repair, r.scrap, tot, pct,
           `"${String(r.detail || "").replace(/"/g, '""')}"`
-        ];
-        csvLines.push(line.join(","));
+        ].join(","));
       });
-
       const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `FactoryPulse_Reject_${activeTab}_Nov2026.csv`;
+      a.download = `FactoryPulse_Reject_${currentTab}_Nov2026.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
 
     async function syncFromSheet() {
-      const url = document.getElementById("gasUrl").value.trim();
+      const url = (document.getElementById("gasUrl")?.value || API_URL || "").trim();
       if (!url) {
         alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
         return;
       }
+      if (currentTab === "oee") {
+        await loadLogs();
+        return;
+      }
+      const sheetTab = currentTab === "Both" ? "Motorcycle" : currentTab;
       try {
-        const res = await fetch(`${url}?tab=Reject_${activeTab === "Both" ? "Motorcycle" : activeTab}`);
+        const res = await fetch(`${url}?tab=Reject_${sheetTab}`);
         const json = await res.json();
         alert("เชื่อมต่อ Google Apps Script สำเร็จ ได้รับข้อมูล " + (Array.isArray(json) ? json.length : 1) + " รายการ");
       } catch (err) {
@@ -582,7 +1498,31 @@
       }
     }
 
-    renderAll();
+    /* ---------------- AUTH & INIT ---------------- */
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const user = document.getElementById("loginUser").value.trim() || "admin";
+      document.getElementById("currentUserLabel").textContent = user;
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("appSection").classList.remove("hidden");
+      buildBatchRows("BE");
+      renderOeeSummary();
+      renderPackingTable();
+      renderExtrusionQueue();
+      renderRejectSection();
+    });
+
+    document.getElementById("togglePassBtn").addEventListener("click", function () {
+      const inp = document.getElementById("loginPass");
+      const isPass = inp.type === "password";
+      inp.type = isPass ? "text" : "password";
+      this.textContent = isPass ? "ซ่อน" : "แสดง";
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", function () {
+      document.getElementById("appSection").classList.add("hidden");
+      document.getElementById("loginSection").classList.remove("hidden");
+    });
   </script>
 </body>
 </html>
