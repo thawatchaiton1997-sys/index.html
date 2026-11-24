@@ -729,8 +729,7 @@
   </div>
 
   <script>
-    // ใส่อีเมล/ลิงก์ Google Apps Script Web App (.../exec) ของพี่ตรงนี้เพื่อให้ทุกเครื่องดึงได้อัตโนมัติ
-    const DEFAULT_GAS_URL = "";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
     const STORAGE_KEY = "factorypulse_sheet_local_v1";
     const GAS_URL_KEY = "factorypulse_gas_url_v1";
 
@@ -865,6 +864,7 @@
       if (!inp) return;
       const val = inp.value.trim();
       try { localStorage.setItem(GAS_URL_KEY, val); } catch (_) {}
+      renderOeeSummary();
     }
 
     function saveLocalState() {
