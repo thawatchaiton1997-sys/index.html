@@ -3,1748 +3,586 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d1730" />
-  <title>FactoryPulse - OEE & Production Tracker</title>
+  <title>FactoryPulse — Reject Tracking & Defect Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg: #070d1d; --panel: #0d1730; --card: #122042; --card-2: #091124;
-      --hero: linear-gradient(135deg, #27488a 0%, #3560b8 100%);
-      --text: #f8fafc; --muted: #93a4c3; --accent: #38bdf8;
-      --accent-green: #22c55e; --danger: #ef4444; --warn: #f59e0b;
-      --border: rgba(148, 163, 184, 0.18); --sidebar-w: 260px;
+      --bg-main: #070d19;
+      --bg-sidebar: #0b1222;
+      --bg-card: #0f172a;
+      --bg-input: #111b30;
+      --border-subtle: #1e293b;
+      --accent-blue: #2563eb;
     }
-    * { box-sizing: border-box; }
     body {
-      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(circle at top right, #13254c 0%, var(--bg) 55%);
-      color: var(--text); min-height: 100vh;
+      background-color: var(--bg-main);
+      color: #f1f5f9;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    /* Login Box */
-    .login-wrap { padding: 16px; }
-    .login-box {
-      max-width: 400px; margin: 56px auto; background: var(--panel);
-      border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
     }
-    .pass-wrap { position: relative; display: flex; align-items: center; }
-    .pass-wrap input { padding-right: 65px; }
-    .toggle-pass {
-      position: absolute; right: 8px; background: #1e293b; color: var(--muted);
-      border: 1px solid var(--border); padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;
+    .input-dark {
+      background-color: var(--bg-input);
+      border: 1px solid #283548;
+      color: #e2e8f0;
+      border-radius: 8px;
     }
-
-    /* App Layout with Left Sidebar */
-    .app-layout { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: var(--sidebar-w); background: rgba(13, 23, 48, 0.96);
-      border-right: 1px solid var(--border); padding: 18px 14px;
-      display: flex; flex-direction: column; justify-content: space-between;
-      position: sticky; top: 0; height: 100vh; flex-shrink: 0; z-index: 40;
-      transition: transform 0.25s ease;
+    .input-dark:focus {
+      outline: none;
+      border-color: #3b82f6;
     }
-    .sidebar-brand { padding: 4px 8px 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
-    .sidebar-logo { font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
-    .logo-badge {
-      width: 28px; height: 28px; border-radius: 8px; background: var(--hero);
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; font-weight: 800; color: #fff; border: 1px solid rgba(56, 189, 248, 0.4);
+    .nav-active {
+      background-color: var(--accent-blue);
+      color: #ffffff;
     }
-    .sidebar-sub { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
-    .nav-group-label {
-      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--muted); font-weight: 700; padding: 6px 10px; margin-top: 4px;
+    .nav-item:hover:not(.nav-active) {
+      background-color: rgba(30, 41, 59, 0.75);
     }
-    .nav-list { display: flex; flex-direction: column; gap: 6px; }
-    .nav-item {
-      width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
-      background: transparent; color: var(--muted); border: 1px solid transparent;
-      border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 0.86rem;
-      cursor: pointer; transition: all 0.15s ease;
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
     }
-    .nav-item:hover { background: rgba(56, 189, 248, 0.08); color: var(--text); }
-    .nav-item.active {
-      background: var(--hero); color: var(--text); border-color: rgba(56, 189, 248, 0.45);
-      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.45);
+    ::-webkit-scrollbar-track {
+      background: #0b1222;
     }
-    .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-    .nav-text { display: flex; flex-direction: column; line-height: 1.25; }
-    .nav-desc { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
-    .sidebar-footer { border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .sidebar-user-card { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; }
-    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.65); z-index: 35; }
-    .sidebar-backdrop.show { display: block; }
-
-    .main-area { flex: 1; min-width: 0; padding: 16px 20px; }
-    .container { max-width: 1280px; margin: 0 auto; }
-
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-    .topbar-left { display: flex; align-items: center; gap: 10px; }
-    .menu-toggle-btn {
-      display: none; background: var(--panel); color: var(--text);
-      border: 1px solid var(--border); padding: 8px 11px; border-radius: 10px; font-size: 1rem;
-    }
-    .brand-title { font-size: 1.28rem; font-weight: 700; margin: 0; }
-    .brand-sub { color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
-    .live-pill {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem;
-      color: #86efac; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.35);
-      padding: 6px 10px; border-radius: 999px;
-    }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
-
-    @media (max-width: 920px) {
-      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .menu-toggle-btn { display: inline-flex; align-items: center; justify-content: center; }
-      .main-area { padding: 14px; }
-    }
-
-    .filter-bar {
-      display: flex; gap: 10px; flex-wrap: wrap; align-items: end; background: var(--panel);
-      border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
-    }
-    .filter-item { min-width: 150px; flex: 1; }
-    .oee-showcase { display: grid; grid-template-columns: 1.15fr 1.85fr; gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 820px) { .oee-showcase { grid-template-columns: 1fr; } }
-    .oee-hero {
-      background: var(--hero); border-radius: 16px; padding: 20px; display: flex;
-      flex-direction: column; justify-content: space-between; min-height: 210px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    .hero-top { display: flex; justify-content: space-between; align-items: center; }
-    .hero-label { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
-    .hero-scope { font-size: 0.8rem; background: rgba(9, 17, 36, 0.35); padding: 4px 10px; border-radius: 999px; }
-    .hero-val { font-size: clamp(2.8rem, 6vw, 4.2rem); font-weight: 800; line-height: 1.05; margin: 12px 0; }
-    .hero-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; opacity: 0.92; }
-    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    @media (max-width: 640px) { .sub-grid { grid-template-columns: 1fr; } }
-    .kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 960px) { .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 560px) { .kpi-grid-4 { grid-template-columns: 1fr; } }
-    .metric-card {
-      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-      padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between;
-    }
-    .metric-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-    .metric-val { font-size: 1.75rem; font-weight: 800; margin: 8px 0 4px; color: #4ade80; }
-    .metric-val.sky { color: var(--accent); }
-    .metric-val.light { color: var(--text); }
-    .metric-sub { font-size: 0.78rem; color: var(--muted); }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .preset-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--muted); }
-    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
-    input, select {
-      width: 100%; padding: 8px 9px; border-radius: 8px; border: 1px solid var(--border);
-      background: var(--card-2); color: var(--text); font-size: 0.9rem;
-    }
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
-    .batch-table input, .batch-table select { padding: 6px 8px; font-size: 0.85rem; min-width: 72px; }
-    .mc-cell { display: flex; gap: 4px; align-items: center; min-width: 150px; }
-    .batch-table select.mc-select { min-width: 74px; padding: 6px 4px; }
-    .batch-table input.mc-input { min-width: 72px; text-transform: uppercase; }
-    .batch-table input.num-input { min-width: 64px; text-align: right; }
-    .batch-table select.status-input { min-width: 165px; }
-    .batch-table input.reason-input { min-width: 135px; }
-    button {
-      background: var(--accent); color: #041827; border: none; border-radius: 8px;
-      padding: 9px 15px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
-    }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    button.secondary { background: #1e293b; color: var(--text); border: 1px solid var(--border); }
-    button.small { padding: 6px 10px; font-size: 0.8rem; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-    .msg { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; display: none; }
-    .msg.ok { display: block; background: rgba(34, 197, 94, 0.15); border: 1px solid var(--accent-green); color: #86efac; }
-    .msg.err { display: block; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fca5a5; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
-    th { color: var(--muted); font-weight: 600; }
-    tfoot tr.total-row td {
-      background: rgba(56, 189, 248, 0.08);
-      border-top: 2px solid rgba(56, 189, 248, 0.35);
-      border-bottom: none;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .badge-planned {
-      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
-      background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d;
-    }
-    .badge-ok {
-      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
-      background: rgba(34, 197, 94, 0.16); border: 1px solid rgba(34, 197, 94, 0.45); color: #86efac;
-    }
-    .badge-low {
-      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
-      background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.45); color: #fca5a5;
-    }
-    .badge-hold {
-      display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
-      background: rgba(148, 163, 184, 0.18); border: 1px solid rgba(148, 163, 184, 0.45); color: #cbd5e1;
-    }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .hidden { display: none !important; }
-
-    /* ล็อกคอลัมน์แรก (ขนาด / เบอร์ยาง) ในตารางคิวรีดยาง */
-    #extrusionQueueCard .table-wrap table {
-      border-collapse: separate;
-      border-spacing: 0;
-      width: 100%;
-    }
-    #extrusionQueueCard .table-wrap th:first-child,
-    #extrusionQueueCard .table-wrap td:first-child,
-    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
-      position: -webkit-sticky;
-      position: sticky;
-      left: 0;
-      z-index: 2;
-      min-width: 135px;
-      max-width: 170px;
-      background-color: #0d1730;
-      border-right: 1px solid var(--border);
-      box-shadow: 4px 0 10px rgba(2, 6, 23, 0.55);
-    }
-    #extrusionQueueCard .table-wrap thead th:first-child {
-      z-index: 3;
-      background-color: #0b142a;
-    }
-    #extrusionQueueCard .table-wrap tfoot tr.total-row td:first-child {
-      background-color: #0d2240;
+    ::-webkit-scrollbar-thumb {
+      background: #263449;
+      border-radius: 4px;
     }
   </style>
 </head>
-<body>
-  <div id="loginSection" class="login-wrap">
-    <div class="login-box">
-      <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-      <p class="brand-sub" style="margin-bottom: 16px;">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งาน OEE, Packing Tube Line & Extrusion</p>
-      <form id="loginForm">
-        <div style="margin-bottom: 12px;">
-          <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
-          <input id="loginUser" type="text" placeholder="เช่น admin, shiftA, shiftB" required autocomplete="username" />
-        </div>
-        <div style="margin-bottom: 14px;">
-          <label for="loginPass">รหัสผ่าน (Password)</label>
-          <div class="pass-wrap">
-            <input id="loginPass" type="password" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password" />
-            <button type="button" class="toggle-pass" id="togglePassBtn">แสดง</button>
-          </div>
-        </div>
-        <button type="submit" style="width: 100%;">เข้าสู่ระบบ</button>
-        <div id="loginMsg" class="msg"></div>
-      </form>
-    </div>
-  </div>
+<body class="min-h-screen flex">
 
-  <div id="appSection" class="app-layout hidden">
-    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
-
-    <aside id="leftSidebar" class="sidebar">
-      <div>
-        <div class="sidebar-brand">
-          <div class="sidebar-logo">
-            <span class="logo-badge">FP</span>
-            <span>FactoryPulse</span>
-          </div>
-          <div class="sidebar-sub">ระบบติดตามการผลิตยางใน BKF</div>
+  <!-- Sidebar -->
+  <aside class="w-64 shrink-0 bg-[#0b1222] border-r border-[#1e293b] flex flex-col justify-between p-4">
+    <div>
+      <!-- Brand Header -->
+      <div class="flex items-center gap-3 pb-4 border-b border-[#1e293b]">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm">
+          FP
         </div>
+        <div>
+          <div class="font-bold text-base leading-tight text-white">FactoryPulse</div>
+          <div class="text-[11px] text-slate-400">ระบบติดตามการผลิตยางใน BKF</div>
+        </div>
+      </div>
 
-        <div class="nav-group-label">เมนูหลัก (Navigation)</div>
-        <nav class="nav-list">
-          <button type="button" class="nav-item active" id="tabOeeBtn" onclick="switchTab('oee')">
-            <span class="nav-icon">📊</span>
-            <span class="nav-text">
-              <span>หมวด OEE (การผลิต)</span>
-              <span class="nav-desc">ภาพรวม 40 เครื่อง & บันทึกยอด</span>
-            </span>
+      <!-- Navigation -->
+      <div class="mt-5">
+        <div class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase px-2 mb-2">
+          เมนูหลัก (NAVIGATION)
+        </div>
+        <nav class="space-y-1.5 text-sm">
+          <button onclick="switchTab('Motorcycle')" id="nav-Motorcycle"
+            class="nav-item nav-active w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition">
+            <span>🏍️</span>
+            <div>
+              <div class="font-medium leading-none">ของเสียยางมอเตอร์ไซค์</div>
+              <div class="text-[11px] text-blue-100/80 mt-1">Reject_Motorcycle (แยกเบอร์)</div>
+            </div>
           </button>
 
-          <button type="button" class="nav-item" id="tabPackingBtn" onclick="switchTab('packing')">
-            <span class="nav-icon">📦</span>
-            <span class="nav-text">
-              <span>หมวดแพ็คกิ่ง</span>
-              <span class="nav-desc">Packing tube line</span>
-            </span>
+          <button onclick="switchTab('Bicycle')" id="nav-Bicycle"
+            class="nav-item w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 text-slate-300 transition">
+            <span>🚲</span>
+            <div>
+              <div class="font-medium leading-none">ของเสียยางจักรยาน</div>
+              <div class="text-[11px] text-slate-400 mt-1">Reject_Bicycle (แยกเบอร์)</div>
+            </div>
           </button>
 
-          <button type="button" class="nav-item" id="tabExtrusionBtn" onclick="switchTab('extrusion')">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-text">
-              <span>หมวดรีดยาง (Extrusion)</span>
-              <span class="nav-desc">คิวผลิต & สต็อกรีดยาง</span>
-            </span>
+          <button onclick="switchTab('Both')" id="nav-Both"
+            class="nav-item w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 text-slate-300 transition">
+            <span>📊</span>
+            <div>
+              <div class="font-medium leading-none">เปรียบเทียบทั้ง 2 ไลน์</div>
+              <div class="text-[11px] text-slate-400 mt-1">สรุปรวมตามขนาดเบอร์ยาง</div>
+            </div>
           </button>
         </nav>
+      </div>
 
-        <div class="nav-group-label" style="margin-top: 14px;">ทางลัดการทำงาน</div>
-        <div class="nav-list">
-          <button type="button" class="nav-item" onclick="switchTab('oee'); loadLogs();">
-            <span class="nav-icon">🔄</span>
-            <span class="nav-text">
-              <span>อัปเดตข้อมูลจากชีต</span>
-              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
-            </span>
+      <!-- Quick Actions -->
+      <div class="mt-6">
+        <div class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase px-2 mb-2">
+          ทางลัดการทำงาน
+        </div>
+        <div class="space-y-2">
+          <button onclick="resetToNovDefault()"
+            class="w-full text-left px-3 py-2 rounded-lg bg-[#0f172a] hover:bg-[#162238] border border-[#1e293b] text-xs text-slate-200 flex items-center gap-2 transition">
+            <span>↻</span>
+            <span>รีเซ็ตค่าเริ่มต้น พ.ย. 2569</span>
           </button>
         </div>
       </div>
+    </div>
 
-      <div class="sidebar-footer">
-        <div class="sidebar-user-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
-            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span id="liveStatusText">READY</span></span>
-          </div>
-          <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">-</div>
-          <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
+    <!-- Bottom User Status -->
+    <div class="pt-4 border-t border-[#1e293b]">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>ผู้ใช้งานปัจจุบัน</span>
+        <span class="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> LIVE
+        </span>
+      </div>
+      <div class="text-sm font-semibold text-white">admin</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 overflow-x-auto">
+    <!-- Top Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+      <div>
+        <h1 id="pageTitle" class="text-2xl font-bold text-white">
+          หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)
+        </h1>
+        <p id="pageSubtitle" class="text-sm text-slate-400 mt-0.5">
+          สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <input id="gasUrl" type="text" placeholder="วาง URL Google Apps Script (ถ้ามี)"
+          class="input-dark px-3 py-2 text-xs w-64" />
+        <button onclick="syncFromSheet()"
+          class="px-3.5 py-2 rounded-lg bg-[#0f172a] hover:bg-[#17233b] border border-[#283548] text-xs font-medium text-slate-200 transition">
+          ดึงข้อมูลจากชีต
+        </button>
+        <button onclick="exportCSV()"
+          class="px-3.5 py-2 rounded-lg bg-[#0f172a] hover:bg-[#17233b] border border-[#283548] text-xs font-medium text-slate-200 transition">
+          ส่งออก CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card p-4 mb-5 flex flex-wrap items-end gap-4">
+      <div>
+        <label class="block text-xs text-slate-400 mb-1.5">กรองตามขนาดเบอร์ยาง (Spec)</label>
+        <select id="specFilter" onchange="renderAll()" class="input-dark px-3 py-2 text-sm min-w-[200px]">
+          <option value="ALL">ทุกขนาดเบอร์ยาง</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1.5">เกณฑ์อ้างอิง % เสีย</label>
+        <select id="targetFilter" onchange="renderAll()" class="input-dark px-3 py-2 text-sm min-w-[180px]">
+          <option value="2.0">มาตรฐาน 2.00%</option>
+          <option value="1.0">เข้มงวด 1.00%</option>
+          <option value="1.5">เป้าหมาย 1.50%</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4 KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">ยอดผลิตรวม (เส้น)</div>
+        <div id="kpiProd" class="text-3xl font-bold text-white mt-1.5">0</div>
+        <div id="kpiProdSub" class="text-xs text-slate-400 mt-1.5">-</div>
+      </div>
+
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">อัตราของเสียรวม (% Reject)</div>
+        <div id="kpiRate" class="text-3xl font-bold text-blue-400 mt-1.5">0.00%</div>
+        <div id="kpiRateSub" class="text-xs text-slate-400 mt-1.5">-</div>
+      </div>
+
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">ยอดเสียรวมทั้งหมด (เส้น)</div>
+        <div id="kpiReject" class="text-3xl font-bold text-amber-400 mt-1.5">0</div>
+        <div id="kpiRejectSub" class="text-xs text-slate-400 mt-1.5">-</div>
+      </div>
+
+      <div class="card p-4">
+        <div class="text-xs text-slate-400">อาการเสียสูงสุด (Top Defect)</div>
+        <div id="kpiTopDefect" class="text-xl font-bold text-rose-400 mt-2">-</div>
+        <div id="kpiTopDefectSub" class="text-xs text-slate-400 mt-1.5">-</div>
+      </div>
+    </div>
+
+    <!-- Add / Update Spec Row Form -->
+    <div class="card p-4 mb-5">
+      <div class="text-sm font-semibold text-white mb-3">
+        + เพิ่ม / อัปเดตยอดตามขนาดเบอร์ยาง (ไม่แยกวันที่)
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">ประเภท</label>
+          <select id="formType" class="input-dark w-full px-3 py-2 text-sm">
+            <option value="Motorcycle">ยางมอเตอร์ไซค์</option>
+            <option value="Bicycle">ยางจักรยาน</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">ขนาดเบอร์ยาง (Spec)</label>
+          <input id="formSpec" type="text" placeholder="เช่น 2.50-17 New" class="input-dark w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">ยอดผลิต (เส้น)</label>
+          <input id="formProd" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">รวมซ่อม (เส้น)</label>
+          <input id="formRepair" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">รวมทิ้ง (เส้น)</label>
+          <input id="formScrap" type="number" min="0" placeholder="0" class="input-dark w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">อาการเสียหลัก / หมายเหตุ</label>
+          <input id="formRemark" type="text" placeholder="เช่น เป็นเม็ด/ติดเศษ" class="input-dark w-full px-3 py-2 text-sm" />
         </div>
       </div>
-    </aside>
-
-    <main class="main-area">
-      <div class="container">
-        <div class="topbar">
-          <div class="topbar-left">
-            <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
-            <div>
-              <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
-              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- OEE TAB -->
-        <div id="oeeTabContent">
-          <div class="filter-bar">
-            <div class="filter-item">
-              <label for="filterShift">กรองตามกะ</label>
-              <select id="filterShift">
-                <option value="ALL">ทุกกะ (All Shifts)</option>
-                <option value="กะ A">กะ A</option>
-                <option value="กะ B">กะ B</option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label for="filterMachine">กรองตามเครื่องจักร</label>
-              <input id="filterMachine" type="text" placeholder="ทั้งหมด หรือระบุ เช่น BE1" />
-            </div>
-            <div class="filter-item" style="max-width: 160px;">
-              <label for="targetOeeInput">เป้าหมาย OEE (%)</label>
-              <input id="targetOeeInput" type="number" min="1" max="100" step="0.5" value="85" />
-            </div>
-            <div><button type="button" class="secondary" id="refreshBtn">ดึงข้อมูลล่าสุดจากชีต</button></div>
-          </div>
-
-          <div class="oee-showcase">
-            <div class="oee-hero">
-              <div class="hero-top">
-                <span class="hero-label">OEE</span>
-                <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
-              </div>
-              <div class="hero-val" id="kpiOee">-</div>
-              <div class="hero-foot">
-                <span id="kpiTargetText">Target 85.00%</span>
-                <span id="kpiDiffText">-</span>
-              </div>
-            </div>
-            <div class="sub-grid">
-              <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">-</div><div class="metric-sub">Target 90.00%</div></div>
-              <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">-</div><div class="metric-sub">Target 95.00%</div></div>
-              <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">-</div><div class="metric-sub">Target 99.00%</div></div>
-              <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">-</div><div class="metric-sub" id="kpiOkNgSub">OK 0 / NG 0 pieces</div></div>
-              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">-</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 0 / 40 machines logged</div></div>
-              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub">Web_Production_Log</div></div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ บันทึกยอดผลิต & Downtime พร้อมกัน (10 ช่อง/แถว)</h2>
-            <form id="batchForm">
-              <div class="grid-3">
-                <div>
-                  <label for="batchShift">กะการทำงาน (Shift)</label>
-                  <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
-                </div>
-                <div>
-                  <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
-                  <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" />
-                </div>
-                <div>
-                  <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
-                  <input id="batchNote" type="text" placeholder="ระบุหมายเหตุร่วมกัน (ถ้ามี)" />
-                </div>
-              </div>
-              <div class="preset-bar">
-                <span>เลือกเครื่องยกชุด 10 แถว:</span>
-                <button type="button" class="secondary small" id="presetBE">BE 1–10</button>
-                <button type="button" class="secondary small" id="presetBW">BW 1–10</button>
-                <button type="button" class="secondary small" id="presetDW">DW 1–10</button>
-                <span style="margin-left: 8px;">ตัวช่วยหยุดตามแผน:</span>
-                <button type="button" class="secondary small" id="applyPrint60Btn">ตั้งหยุดขัดพิมพ์ 60 นาที (แถวที่เลือก)</button>
-              </div>
-              <div class="table-wrap">
-                <table class="batch-table">
-                  <thead>
-                    <tr>
-                      <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
-                      <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
-                      <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
-                    </tr>
-                  </thead>
-                  <tbody id="batchRowsBody"></tbody>
-                </table>
-              </div>
-              <div class="actions">
-                <button type="submit" id="submitBatchBtn">บันทึกทั้งหมดเข้า Google Sheets</button>
-                <button type="button" class="secondary" id="clearBatchBtn">ล้างข้อมูล 10 ช่อง</button>
-              </div>
-              <div id="msgBox" class="msg"></div>
-            </form>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการหยุดเครื่องจักร (FactoryPulse - Downtime Tracking Log)</h2>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>วันที่</th>
-                    <th>กะ</th>
-                    <th>รหัสเครื่องจักร</th>
-                    <th>ช่วงเวลาหยุด</th>
-                    <th>ระยะเวลาหยุด</th>
-                    <th>ประเภทการหยุด</th>
-                    <th>หมวดหมู่ / รายละเอียดอาการ</th>
-                  </tr>
-                </thead>
-                <tbody id="downtimeLogBody">
-                  <tr><td colspan="7" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" เพื่อโหลดข้อมูล Downtime Tracking Log</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Web_Production_Log)</h2>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
-                </thead>
-                <tbody id="logBody">
-                  <tr><td colspan="8" style="color: var(--muted);">กด "ดึงข้อมูลล่าสุดจากชีต" หรือบันทึกข้อมูลใหม่</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- PACKING TAB -->
-        <div id="packingTabContent" class="hidden">
-          <div class="filter-bar">
-            <div class="filter-item">
-              <label for="packingStatusFilter">กรองตามสถานะข้อมูล (Packing tube line)</label>
-              <select id="packingStatusFilter" onchange="renderPackingTable()">
-                <option value="ALL">ทุกวันที่มีข้อมูล (18 วัน)</option>
-                <option value="BOTH">เฉพาะวันที่มียอดครบทั้งอบและแพ็ค (12 วัน)</option>
-                <option value="PACK_GT_CURE">เฉพาะวันที่ยอดแพ็คสูงกว่ายอดอบ (6 วัน)</option>
-                <option value="PACK_LT_CURE">เฉพาะวันที่ยอดแพ็คน้อยกว่ายอดอบ (6 วัน)</option>
-                <option value="PACK_ONLY">มียอดแพ็คอย่างเดียว (3 วัน)</option>
-                <option value="CURE_ONLY">มียอดอบอย่างเดียว (3 วัน)</option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label for="packingDayFilter">กรองตามวันในสัปดาห์</label>
-              <select id="packingDayFilter" onchange="renderPackingTable()">
-                <option value="ALL">ทุกวันในสัปดาห์</option>
-                <option value="จันทร์">จันทร์</option>
-                <option value="อังคาร">อังคาร</option>
-                <option value="พุธ">พุธ</option>
-                <option value="พฤหัส">พฤหัส</option>
-                <option value="ศุกร์">ศุกร์</option>
-                <option value="เสาร์">เสาร์</option>
-              </select>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="secondary" id="syncPackingBtn" onclick="syncPackingFromSheet()">ดึงข้อมูลแพ็คกิ่งจากชีต</button>
-              <button type="button" id="savePackingBtn" onclick="savePackingToSheet()">บันทึกแพ็คกิ่งเข้าชีต</button>
-              <button type="button" class="secondary" onclick="exportPackingCsv()">ส่งออก CSV (Packing tube line)</button>
-            </div>
-          </div>
-
-          <div class="kpi-grid-4">
-            <div class="metric-card">
-              <div class="metric-title">ยอดอบยางใน OK รวม (15 วัน)</div>
-              <div class="metric-val" id="pkCureTotalVal">155,982 เส้น</div>
-              <div class="metric-sub" id="pkCureTotalSub">เฉลี่ย 10,399 เส้น/วัน | ยอดแพ็ครวม 140,877 เส้น</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">อัตราส่วนแพ็คต่อยอดอบ</div>
-              <div class="metric-val sky" id="pkRatioVal">90.3%</div>
-              <div class="metric-sub" id="pkRatioSub">แพ็ค 140,877 เทียบอบ 155,982 เส้น (-15,105)</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">ยอดแพ็คสูงสุด (จ. 16 พ.ย. 2026)</div>
-              <div class="metric-val light">12,245 เส้น</div>
-              <div class="metric-sub">อิงชีต Packing tube line</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">ยอดแพ็คต่ำสุด (ศ. 20 พ.ย. 2026)</div>
-              <div class="metric-val light">923 เส้น</div>
-              <div class="metric-sub">เทียบยอดอบ 11,153 เส้น (-10,230)</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">+ เพิ่ม / บันทึกข้อมูลหมวดแพ็คกิ่ง (อิงโครงสร้าง Packing tube line)</h2>
-            <div class="grid-4">
-              <div>
-                <label for="pkDateInput">วันที่ (ระบบแปลงเป็นวันเดือนปีให้อัตโนมัติ)</label>
-                <input id="pkDateInput" type="date" value="2026-11-23" />
-              </div>
-              <div>
-                <label for="pkCureInput">ยอดอบยางใน OK (เส้น)</label>
-                <input id="pkCureInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
-              </div>
-              <div>
-                <label for="pkPackInput">ยอดแพ็คยางใน (เส้น)</label>
-                <input id="pkPackInput" type="number" min="0" placeholder="เว้นว่างหากไม่มี" />
-              </div>
-              <div>
-                <label for="pkRemarkInput">หมายเหตุ</label>
-                <input id="pkRemarkInput" type="text" placeholder="ระบุหมายเหตุเพิ่มเติม" />
-              </div>
-            </div>
-            <div class="actions" style="margin-top: 8px;">
-              <button type="button" onclick="addPackingRow()">เพิ่มลงตาราง (Packing tube line)</button>
-            </div>
-            <div id="pkMsgBox" class="msg"></div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ตารางเปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน — Packing tube line (พ.ย. 2026)</h2>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>วันที่</th>
-                    <th>วันเดือนปี</th>
-                    <th>ยอดอบยางใน OK (เส้น)</th>
-                    <th>ยอดแพ็คยางใน (เส้น)</th>
-                    <th>ส่วนต่าง (แพ็ค - อบ)</th>
-                    <th>อัตราส่วน แพ็ค/อบ (%)</th>
-                    <th>สถานะข้อมูล</th>
-                    <th>หมายเหตุ</th>
-                  </tr>
-                </thead>
-                <tbody id="packingTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ค่าเฉลี่ยยอดแพ็คแยกตามวันในสัปดาห์ (อิงเฉพาะวันที่มียอดแพ็คในชีต Packing tube line)</h2>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>วันในสัปดาห์</th>
-                    <th>จำนวนวันที่มีข้อมูลแพ็ค</th>
-                    <th>ยอดแพ็ครวม (เส้น)</th>
-                    <th>ค่าเฉลี่ยยอดแพ็ค / วัน (เส้น)</th>
-                  </tr>
-                </thead>
-                <tbody id="packingDayAvgBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- EXTRUSION QUEUE & STOCK TAB -->
-        <div id="extrusionTabContent" class="hidden">
-          <div class="card" id="extrusionQueueCard">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div>
-                <h2 style="font-size: 1.12rem; margin: 0;">FactoryPulse - Rubber Strip Extrusion Stock & Queue Planning</h2>
-                <div class="brand-sub">ระบบวางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Production Queue Management)</div>
-              </div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="secondary small" id="syncExtrusionBtn" onclick="syncExtrusionFromSheet()">ดึงสต็อก/คิวจากชีต</button>
-                <button type="button" class="small" id="saveExtrusionBtn" onclick="saveExtrusionQueueToSheet()">บันทึกคิว/สต็อกเข้าชีต</button>
-                <button type="button" class="secondary small" onclick="resetExtrusionQueueDefault()">รีเซ็ตค่าเริ่มต้น (15 รายการ)</button>
-                <button type="button" class="secondary small" onclick="exportExtrusionQueueCsv()">ส่งออก CSV คิวผลิต</button>
-              </div>
-            </div>
-
-            <div class="grid-4" style="margin-bottom:12px;">
-              <div>
-                <label for="eqRatePerMold">อัตราใช้ต่อแม่พิมพ์/วัน (เส้น/พิมพ์)</label>
-                <input id="eqRatePerMold" type="number" min="1" step="1" value="300" oninput="renderExtrusionQueue()" />
-              </div>
-              <div>
-                <label for="eqDailyCap">ขีดจำกัดรีดสูงสุด/วัน (เส้น/วัน)</label>
-                <input id="eqDailyCap" type="number" min="1" step="10" value="12000" oninput="renderExtrusionQueue()" />
-              </div>
-              <div>
-                <label for="eqTargetDays">เป้าหมายสำรองสต็อก (วัน)</label>
-                <input id="eqTargetDays" type="number" min="0.1" step="0.5" value="3" oninput="renderExtrusionQueue()" />
-              </div>
-              <div>
-                <label for="eqStatusFilter">กรองสถานะการผลิต / คิว</label>
-                <select id="eqStatusFilter" onchange="renderExtrusionQueue()">
-                  <option value="ALL">ทั้งหมด (ทุกแถว)</option>
-                  <option value="TODAY">สั่งผลิตวันนี้ (สั่งผลิตวันนี้ > 0)</option>
-                  <option value="CARRYOVER">มียอดค้างยกไปพรุ่งนี้</option>
-                  <option value="ENOUGH">สต็อกเพียงพอ</option>
-                  <option value="HOLD_NO_MOLD">พักคิว (ไม่มีพิมพ์)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="kpi-grid-4" style="margin-bottom:12px;">
-              <div class="metric-card">
-                <div class="metric-title">สต็อกคงเหลือรวม (Current Stock)</div>
-                <div class="metric-val light" id="eqTotalStockVal">-</div>
-                <div class="metric-sub" id="eqTotalStockSub">-</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">ยอดขาดตามแผน 3 วัน (Net Needed)</div>
-                <div class="metric-val sky" id="eqTotalNeededVal">-</div>
-                <div class="metric-sub" id="eqTotalNeededSub">-</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">สั่งผลิตวันนี้ (Today's Extrusion Cap)</div>
-                <div class="metric-val" id="eqTodayOrderVal">-</div>
-                <div class="metric-sub" id="eqTodayOrderSub">-</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">ค้างยกไปพรุ่งนี้ (Tomorrow Carryover)</div>
-                <div class="metric-val light" id="eqCarryoverVal">-</div>
-                <div class="metric-sub" id="eqCarryoverSub">ส่วนเกินจากเพดานรายวัน</div>
-              </div>
-            </div>
-
-            <div class="card" style="background:var(--card-2); margin-bottom:12px; padding:12px;">
-              <div style="font-size:0.88rem; font-weight:700; margin-bottom:8px;">+ เพิ่มรายการยางในคิวการผลิต</div>
-              <div class="grid-4" style="margin-bottom:8px;">
-                <div>
-                  <label for="eqNewSpec">ขนาด / เบอร์ยาง (Size / Spec)</label>
-                  <input id="eqNewSpec" type="text" placeholder="เช่น 20x1.75 หรือ 250-14" />
-                </div>
-                <div>
-                  <label for="eqNewType">ประเภท (Type)</label>
-                  <select id="eqNewType">
-                    <option value="จักรยาน">จักรยาน</option>
-                    <option value="มอเตอร์ไซค์">มอเตอร์ไซค์</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="eqNewMold">จำนวนแม่พิมพ์ (Mold)</label>
-                  <input id="eqNewMold" type="number" min="0" step="1" value="0" />
-                </div>
-                <div>
-                  <label for="eqNewStock">สต็อกคงเหลือ (Current Stock)</label>
-                  <input id="eqNewStock" type="number" min="0" step="1" value="0" />
-                </div>
-              </div>
-              <button type="button" class="small" onclick="addExtrusionQueueItem()">เพิ่มรายการเข้าตารางคิว</button>
-              <div id="eqMsgBox" class="msg"></div>
-            </div>
-
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ขนาด / เบอร์ยาง (Size / Spec)</th>
-                    <th>ประเภท (Type)</th>
-                    <th>จำนวนแม่พิมพ์ (Mold)</th>
-                    <th>สต็อกคงเหลือ (Current Stock)</th>
-                    <th>ใช้ต่อวัน (Daily Usage)</th>
-                    <th>สต็อกอยู่ได้ (วัน) (Days Cover)</th>
-                    <th>เป้าหมายสต็อก (Target Stock)</th>
-                    <th>ยอดขาดตามแผน (Net Needed)</th>
-                    <th>สั่งผลิตวันนี้ (Today Order)</th>
-                    <th>ยกไปพรุ่งนี้ (Carryover)</th>
-                    <th>ลำดับคิว (Queue)</th>
-                    <th>สถานะการผลิต (Production Status)</th>
-                  </tr>
-                </thead>
-                <tbody id="extrusionQueueBody"></tbody>
-                <tfoot id="extrusionQueueFoot"></tfoot>
-              </table>
-            </div>
-          </div>
-        </div>
+      <div class="mt-3">
+        <button onclick="addSpecRecord()"
+          class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition">
+          เพิ่มลงตาราง
+        </button>
       </div>
-    </main>
-  </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="tableTitle" class="text-base font-bold text-white">
+          ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง
+        </h2>
+        <span id="rowCountBadge" class="text-xs text-slate-400">0 รายการ</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left border-collapse">
+          <thead>
+            <tr class="border-b border-[#1e293b] text-slate-300 text-xs">
+              <th class="py-2.5 px-3">ประเภท</th>
+              <th class="py-2.5 px-3">ขนาดเบอร์ยาง (Spec)</th>
+              <th class="py-2.5 px-3 text-right">ยอดผลิต (เส้น)</th>
+              <th class="py-2.5 px-3 text-right">รวมซ่อม</th>
+              <th class="py-2.5 px-3 text-right">รวมทิ้ง</th>
+              <th class="py-2.5 px-3 text-right">รวมเสียทั้งหมด</th>
+              <th class="py-2.5 px-3 text-right">% เสีย</th>
+              <th class="py-2.5 px-3">สถานะเทียบเกณฑ์</th>
+              <th class="py-2.5 px-3">รายละเอียดโรค (ซ่อม / ทิ้ง)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-[#1e293b]/70"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
-    const USERS = { admin: "1234", shiftA: "1111", shiftB: "2222" };
-    const SESSION_KEY = "factorypulse_logged_user";
-    const PACKING_STORAGE_KEY = "factorypulse_packing_v1";
-    const EXTRUSION_QUEUE_STORAGE_KEY = "factorypulse_extrusion_queue_v3";
-    const ROW_COUNT = 10;
-    const MACHINE_GROUPS = {
-      BE: Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
-      BW: Array.from({ length: 10 }, (_, i) => `BW${i + 1}`),
-      DW: Array.from({ length: 10 }, (_, i) => `DW${i + 1}`)
-    };
-    const INITIAL_PACKING_TUBE_LINE = [
-      { date: "2026-11-02", dayLabel: "จันทร์ 2 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 9615, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
-      { date: "2026-11-03", dayLabel: "อังคาร 3 พ.ย. 2026", dayName: "อังคาร", cure: 10602, pack: 8537, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
-      { date: "2026-11-04", dayLabel: "พุธ 4 พ.ย. 2026", dayName: "พุธ", cure: 11115, pack: 9510, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
-      { date: "2026-11-05", dayLabel: "พฤหัส 5 พ.ย. 2026", dayName: "พฤหัส", cure: 8724, pack: 11609, remark: "เร่งบรรจุรองรับออเดอร์ปลายสัปดาห์" },
-      { date: "2026-11-06", dayLabel: "ศุกร์ 6 พ.ย. 2026", dayName: "ศุกร์", cure: 10817, pack: 8799, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
-      { date: "2026-11-07", dayLabel: "เสาร์ 7 พ.ย. 2026", dayName: "เสาร์", cure: 11131, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" },
-      { date: "2026-11-09", dayLabel: "จันทร์ 9 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 7230, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
-      { date: "2026-11-10", dayLabel: "อังคาร 10 พ.ย. 2026", dayName: "อังคาร", cure: 11009, pack: 12080, remark: "ยอดบรรจุเกินเป้าหมาย ทำความเร็วได้ดี" },
-      { date: "2026-11-11", dayLabel: "พุธ 11 พ.ย. 2026", dayName: "พุธ", cure: 10358, pack: 10593, remark: "เดินเครื่องบรรจุตามแผนปกติ" },
-      { date: "2026-11-12", dayLabel: "พฤหัส 12 พ.ย. 2026", dayName: "พฤหัส", cure: 11914, pack: 9587, remark: "ปรับขนาดบรรจุภัณฑ์ ชะลอความเร็วเล็กน้อย" },
-      { date: "2026-11-13", dayLabel: "ศุกร์ 13 พ.ย. 2026", dayName: "ศุกร์", cure: 9719, pack: 11565, remark: "ยอดบรรจุเกินเป้าหมาย" },
-      { date: "2026-11-14", dayLabel: "เสาร์ 14 พ.ย. 2026", dayName: "เสาร์", cure: 11151, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" },
-      { date: "2026-11-16", dayLabel: "จันทร์ 16 พ.ย. 2026", dayName: "จันทร์", cure: null, pack: 12245, remark: "เคลียร์สต็อกยางในอบค้างจากวันเสาร์" },
-      { date: "2026-11-17", dayLabel: "อังคาร 17 พ.ย. 2026", dayName: "อังคาร", cure: 10424, pack: 9411, remark: "เดินเครื่องบรรจุตามเกณฑ์ปกติ" },
-      { date: "2026-11-18", dayLabel: "พุธ 18 พ.ย. 2026", dayName: "พุธ", cure: 8773, pack: 9526, remark: "ยอดบรรจุเกินเป้าหมาย" },
-      { date: "2026-11-19", dayLabel: "พฤหัส 19 พ.ย. 2026", dayName: "พฤหัส", cure: 8637, pack: 9647, remark: "ยอดบรรจุเกินเป้าหมาย" },
-      { date: "2026-11-20", dayLabel: "ศุกร์ 20 พ.ย. 2026", dayName: "ศุกร์", cure: 11153, pack: 923, remark: "หยุดซ่อมบำรุงระบบสายพานลำเลียงแพ็คกิ้ง" },
-      { date: "2026-11-21", dayLabel: "เสาร์ 21 พ.ย. 2026", dayName: "เสาร์", cure: 10455, pack: null, remark: "ไลน์อบเดินเครื่อง / ไลน์แพ็คหยุดสัปดาห์" }
-    ];
-
-    let packingRecords = JSON.parse(JSON.stringify(INITIAL_PACKING_TUBE_LINE));
-    try {
-      const savedPk = localStorage.getItem(PACKING_STORAGE_KEY);
-      if (savedPk) {
-        const parsedPk = JSON.parse(savedPk);
-        if (Array.isArray(parsedPk) && parsedPk.length) packingRecords = parsedPk;
-      }
-    } catch (_) {}
-
-    const DEFAULT_EXTRUSION_QUEUE = [
-      { id: "q1", spec: "20x1.75", type: "จักรยาน", mold: 4, stock: 0, fixedDailyUsage: null },
-      { id: "q2", spec: "250-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
-      { id: "q3", spec: "300-14", type: "มอเตอร์ไซค์", mold: 2, stock: 0, fixedDailyUsage: null },
-      { id: "q4", spec: "275/300-17", type: "มอเตอร์ไซค์", mold: 5, stock: 2090, fixedDailyUsage: null },
-      { id: "q5", spec: "26x1.95", type: "จักรยาน", mold: 3, stock: 1340, fixedDailyUsage: null },
-      { id: "q6", spec: "24x1.75", type: "จักรยาน", mold: 4, stock: 2460, fixedDailyUsage: null },
-      { id: "q7", spec: "250-17 (ใหม่)", type: "มอเตอร์ไซค์", mold: 10, stock: 8900, fixedDailyUsage: null },
-      { id: "q8", spec: "16x1.75", type: "จักรยาน", mold: 2, stock: 2040, fixedDailyUsage: null },
-      { id: "q9", spec: "26x1.38", type: "จักรยาน", mold: 3, stock: 3470, fixedDailyUsage: null },
-      { id: "q10", spec: "275-14", type: "มอเตอร์ไซค์", mold: 2, stock: 4440, fixedDailyUsage: null },
-      { id: "q11", spec: "225-17", type: "มอเตอร์ไซค์", mold: 0, stock: 500, fixedDailyUsage: 500 },
-      { id: "q12", spec: "250-17 (เก่า)", type: "มอเตอร์ไซค์", mold: 0, stock: 600, fixedDailyUsage: 600 },
-      { id: "q13", spec: "200-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 },
-      { id: "q14", spec: "200-17 M", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 },
-      { id: "q15", spec: "225/250-17", type: "มอเตอร์ไซค์", mold: 0, stock: 0, fixedDailyUsage: 0 }
-    ];
-
-    let extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
-    try {
-      const savedQ = localStorage.getItem(EXTRUSION_QUEUE_STORAGE_KEY);
-      if (savedQ) {
-        const parsedQ = JSON.parse(savedQ);
-        if (Array.isArray(parsedQ) && parsedQ.length) extrusionQueueItems = parsedQ;
-      }
-    } catch (_) {}
-
-    let allSheetRows = [];
-    let allDowntimeRows = [];
-    let memorySessionUser = "";
-
-    const $ = (id) => document.getElementById(id);
-    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-    const toNum = (v, fb = 0) => { const n = Number(String(v ?? "").replace(/,/g, "").trim()); return Number.isFinite(n) ? n : fb; };
-
-    async function parseAppsScriptResponse(res) {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const text = await res.text();
-      if (!text) return {};
-      try {
-        const parsed = JSON.parse(text);
-        if (parsed && typeof parsed === "object" && parsed.ok === false) {
-          throw new Error(parsed.error || parsed.message || "Apps Script returned ok: false");
+    const INITIAL_DATA = {
+      Motorcycle: [
+        {
+          type: "Motorcycle",
+          spec: "2.25-17",
+          prod: 14526,
+          repair: 8,
+          scrap: 91,
+          topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 2, ทิ้ง 27)",
+          detail: "เป็นเม็ด/ติดเศษ: ซ่อม 2, ทิ้ง 27 | จีบโค้ง/เป็นรอย: ทิ้ง 17 | จับย่น: ซ่อม 2, ทิ้ง 13 | บางรอยต่อ: ทิ้ง 10 | บาง/ช้างจับ: ทิ้ง 8 | ไม่สุก: ทิ้ง 7"
+        },
+        {
+          type: "Motorcycle",
+          spec: "2.25/2.50-17",
+          prod: 11603,
+          repair: 24,
+          scrap: 58,
+          topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 2, ทิ้ง 25)",
+          detail: "เป็นเม็ด/ติดเศษ: ซ่อม 2, ทิ้ง 25 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 8, ทิ้ง 6 | รอยตะเข็บ: ซ่อม 10, ทิ้ง 2 | บาง/ช้างจับ: ทิ้ง 7 | จับย่น: ซ่อม 1, ทิ้ง 5"
+        },
+        {
+          type: "Motorcycle",
+          spec: "2.50-17",
+          prod: 16216,
+          repair: 13,
+          scrap: 89,
+          topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 4, ทิ้ง 12)",
+          detail: "เป็นเม็ด/ติดเศษ: ซ่อม 4, ทิ้ง 12 | จีบโค้ง/เป็นรอย: ซ่อม 3, ทิ้ง 12 | บางร่อง: ทิ้ง 14 | บาง/ช้างจับ: ทิ้ง 13 | จับย่น: ทิ้ง 10"
+        },
+        {
+          type: "Motorcycle",
+          spec: "2.50-17 New",
+          prod: 42033,
+          repair: 68,
+          scrap: 349,
+          topDefect: "บาง / ช้างจับ (ทิ้ง 88)",
+          detail: "บาง/ช้างจับ: ทิ้ง 88 | เป็นเม็ด/ติดเศษ: ซ่อม 20, ทิ้ง 57 | จีบโค้ง/เป็นรอย: ซ่อม 8, ทิ้ง 56 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 6, ทิ้ง 28 | พิมพ์ต่อหนีบ: ซ่อม 1, ทิ้ง 28"
+        },
+        {
+          type: "Motorcycle",
+          spec: "2.75-14",
+          prod: 16032,
+          repair: 8,
+          scrap: 43,
+          topDefect: "จับย่น (ทิ้ง 14)",
+          detail: "จับย่น: ทิ้ง 14 | เป็นเม็ด/ติดเศษ: ซ่อม 3, ทิ้ง 8 | บาง/ช้างจับ: ทิ้ง 5 | ริ้วตามด: ทิ้ง 4 | ระบบลม: ทิ้ง 4"
+        },
+        {
+          type: "Motorcycle",
+          spec: "2.75/3.00-17",
+          prod: 24196,
+          repair: 58,
+          scrap: 106,
+          topDefect: "รอยตะเข็บ (ซ่อม 41, ทิ้ง 1)",
+          detail: "รอยตะเข็บ: ซ่อม 41, ทิ้ง 1 | เป็นเม็ด/ติดเศษ: ซ่อม 6, ทิ้ง 29 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 6, ทิ้ง 9 | จับล่อน/จับพองลม: ซ่อม 3, ทิ้ง 9 | บางร่อง: ทิ้ง 12"
         }
-        return parsed;
-      } catch (err) {
-        if (err instanceof SyntaxError) return { raw: text };
-        throw err;
-      }
-    }
+      ],
+      Bicycle: [
+        {
+          type: "Bicycle",
+          spec: "16x1.75",
+          prod: 7324,
+          repair: 14,
+          scrap: 138,
+          topDefect: "บาง / ช้างจับ (ทิ้ง 90)",
+          detail: "บาง/ช้างจับ: ทิ้ง 90 | จับล่อน/จับพองลม: ซ่อม 9, ทิ้ง 4 | จีบโค้ง/เป็นรอย: ซ่อม 2, ทิ้ง 11 | จับย่น: ทิ้ง 10 | ปิชอบจับ/พิมพ์หนีบ: ซ่อม 1, ทิ้ง 6"
+        },
+        {
+          type: "Bicycle",
+          spec: "24x1.75",
+          prod: 10244,
+          repair: 16,
+          scrap: 204,
+          topDefect: "บาง / ช้างจับ (ทิ้ง 87)",
+          detail: "บาง/ช้างจับ: ทิ้ง 87 | จับล่อน/จับพองลม: ซ่อม 4, ทิ้ง 43 | เป็นเม็ด/ติดเศษ: ซ่อม 8, ทิ้ง 13 | จีบโค้ง/เป็นรอย: ทิ้ง 17 | ปิชอบจับ/พิมพ์หนีบ: ทิ้ง 13"
+        },
+        {
+          type: "Bicycle",
+          spec: "26x1.95/2.125",
+          prod: 10839,
+          repair: 21,
+          scrap: 108,
+          topDefect: "เป็นเม็ด / ติดเศษ (ซ่อม 5, ทิ้ง 27)",
+          detail: "เป็นเม็ด/ติดเศษ: ซ่อม 5, ทิ้ง 27 | จับล่อน/จับพองลม: ซ่อม 10, ทิ้ง 14 | บาง/ช้างจับ: ทิ้ง 22 | บางรอยต่อ: ทิ้ง 17 | จับย่น: ซ่อม 3, ทิ้ง 6"
+        },
+        {
+          type: "Bicycle",
+          spec: "26x13/8",
+          prod: 4450,
+          repair: 3,
+          scrap: 104,
+          topDefect: "จีบโค้ง / เป็นรอย (ซ่อม 1, ทิ้ง 23)",
+          detail: "จีบโค้ง/เป็นรอย: ซ่อม 1, ทิ้ง 23 | บาง/ช้างจับ: ทิ้ง 18 | บางร่อง: ทิ้ง 13 | บางรอยต่อ: ทิ้ง 13 | จับล่อน/จับพองลม: ซ่อม 1, ทิ้ง 11"
+        },
+        {
+          type: "Bicycle",
+          spec: "26x2.1/2",
+          prod: 44,
+          repair: 0,
+          scrap: 2,
+          topDefect: "เป็นเม็ด / ติดเศษ (ทิ้ง 2)",
+          detail: "เป็นเม็ด/ติดเศษ: ทิ้ง 2"
+        }
+      ]
+    };
 
-    function readStoredUser() {
-      try {
-        const s = sessionStorage.getItem(SESSION_KEY);
-        if (s && USERS[s]) return s;
-      } catch (_) {}
-      try {
-        const l = localStorage.getItem(SESSION_KEY);
-        if (l && USERS[l]) return l;
-      } catch (_) {}
-      return USERS[memorySessionUser] ? memorySessionUser : "";
-    }
+    let stateData = JSON.parse(JSON.stringify(INITIAL_DATA));
+    let activeTab = "Motorcycle";
 
-    function writeStoredUser(u) {
-      memorySessionUser = u || "";
-      try {
-        if (u) sessionStorage.setItem(SESSION_KEY, u);
-        else sessionStorage.removeItem(SESSION_KEY);
-      } catch (_) {}
-      try {
-        if (u) localStorage.setItem(SESSION_KEY, u);
-        else localStorage.removeItem(SESSION_KEY);
-      } catch (_) {}
-    }
-
-    function formatThaiDayLabel(dateStr) {
-      const dayNames = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
-      const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-      const dt = new Date(dateStr + "T00:00:00");
-      if (Number.isNaN(dt.getTime())) return { dayName: "เสาร์", dayLabel: dateStr };
-      const dayName = dayNames[dt.getDay()];
-      const dayNum = dt.getDate();
-      const monthLabel = monthNames[dt.getMonth()];
-      const yearAd = dt.getFullYear();
-      return { dayName, dayLabel: `${dayName} ${dayNum} ${monthLabel} ${yearAd}` };
-    }
-
-    function toggleSidebar(forceState) {
-      const sb = $("leftSidebar");
-      const bd = $("sidebarBackdrop");
-      const next = typeof forceState === "boolean" ? forceState : !sb.classList.contains("open");
-      sb.classList.toggle("open", next);
-      bd.classList.toggle("show", next);
+    function fmtInt(n) {
+      return Number(n || 0).toLocaleString("en-US");
     }
 
     function switchTab(tab) {
-      const isPacking = tab === "packing";
-      const isExtrusion = tab === "extrusion";
-
-      $("oeeTabContent").classList.toggle("hidden", isPacking || isExtrusion);
-      $("packingTabContent").classList.toggle("hidden", !isPacking);
-      $("extrusionTabContent").classList.toggle("hidden", !isExtrusion);
-
-      $("tabOeeBtn").classList.toggle("active", !isPacking && !isExtrusion);
-      $("tabPackingBtn").classList.toggle("active", isPacking);
-      $("tabExtrusionBtn").classList.toggle("active", isExtrusion);
-
-      if (isPacking) {
-        $("pageHeaderTitle").textContent = "หมวดแพ็คกิ่ง (Packing tube line)";
-        $("pageHeaderSub").textContent = "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน";
-        renderPackingTable();
-      } else if (isExtrusion) {
-        $("pageHeaderTitle").textContent = "หมวดรีดยาง (Extrusion)";
-        $("pageHeaderSub").textContent = "วางแผนสต็อกและจัดคิวการผลิตสายการรีดยางเส้น (Extrusion Stock & Queue Planning)";
-        renderExtrusionQueue();
-      } else {
-        $("pageHeaderTitle").textContent = "หมวด OEE (การผลิต & เครื่องจักร)";
-        $("pageHeaderSub").textContent = "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ";
-      }
-      toggleSidebar(false);
-    }
-
-    $("togglePassBtn").addEventListener("click", () => {
-      const inp = $("loginPass");
-      const show = inp.type === "password";
-      inp.type = show ? "text" : "password";
-      $("togglePassBtn").textContent = show ? "ซ่อน" : "แสดง";
-    });
-
-    function buildDropdown() {
-      const grp = (l, a) => `<optgroup label="${l}">${a.map((m) => `<option value="${m}">${m}</option>`).join("")}</optgroup>`;
-      return `<option value="">เลือก</option>${grp("BE 1-10", MACHINE_GROUPS.BE)}${grp("BW 1-10", MACHINE_GROUPS.BW)}${grp("DW 1-10", MACHINE_GROUPS.DW)}`;
-    }
-
-    function buildBatchRows() {
-      const ct = Number($("defaultCycle").value || 3.45);
-      const dd = buildDropdown();
-      $("batchRowsBody").innerHTML = Array.from({ length: ROW_COUNT }, (_, idx) => {
-        const i = idx + 1;
-        return `<tr data-row-index="${i}">
-          <td style="color:var(--muted);font-weight:700;">${i}</td>
-          <td><div class="mc-cell"><select class="mc-select">${dd}</select><input type="text" class="mc-input" placeholder="เช่น BE${i}" /></div></td>
-          <td><input type="number" class="num-input ok-input" min="0" value="0" /></td>
-          <td><input type="number" class="num-input ng-input" min="0" value="0" /></td>
-          <td><input type="number" class="num-input dt-input" min="0" step="0.1" value="0" /></td>
-          <td><input type="number" class="num-input pdt-input" min="0" step="1" value="0" placeholder="เช่น 60" /></td>
-          <td><input type="number" class="num-input ct-input" min="0.01" step="0.01" value="${ct}" /></td>
-          <td><select class="status-input">
-            <option value="เดินเครื่องปกติ (Running)">เดินเครื่องปกติ (Running)</option>
-            <option value="หยุดตามแผน / ขัดพิมพ์">หยุดตามแผน / ขัดพิมพ์</option>
-            <option value="หยุดเครื่องชั่วคราว (Downtime)">หยุดเครื่องชั่วคราว (Downtime)</option>
-            <option value="เปลี่ยนโมลด์/ไซส์">เปลี่ยนโมลด์/ไซส์</option>
-          </select></td>
-          <td><input type="text" class="reason-input" placeholder="เช่น หยุดขัดพิมพ์ 60 นาที" /></td>
-        </tr>`;
-      }).join("");
-
-      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
-        const sel = tr.querySelector(".mc-select"), inp = tr.querySelector(".mc-input");
-        const st = tr.querySelector(".status-input"), pdt = tr.querySelector(".pdt-input"), rs = tr.querySelector(".reason-input");
-        sel.addEventListener("change", () => { if (sel.value) inp.value = sel.value; });
-        inp.addEventListener("blur", () => { inp.value = inp.value.trim().toUpperCase(); });
-        st.addEventListener("change", () => {
-          if (st.value === "หยุดตามแผน / ขัดพิมพ์") {
-            if (!pdt.value || Number(pdt.value) === 0) pdt.value = "60";
-            if (!rs.value.trim()) rs.value = "หยุดขัดพิมพ์ 60 นาที";
-          }
-        });
-      });
-    }
-
-    function showMsg(text, ok = true) {
-      const box = $("msgBox");
-      box.className = "msg " + (ok ? "ok" : "err");
-      box.textContent = text;
-    }
-
-    function showPkMsg(text, ok = true) {
-      const box = $("pkMsgBox");
-      box.className = "msg " + (ok ? "ok" : "err");
-      box.textContent = text;
-    }
-
-    function showEqMsg(text, ok = true) {
-      const box = $("eqMsgBox");
-      if (!box) return;
-      box.className = "msg " + (ok ? "ok" : "err");
-      box.textContent = text;
-    }
-
-    $("applyPrint60Btn").addEventListener("click", () => {
-      let n = 0;
-      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
-        const mc = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim();
-        if (mc) {
-          tr.querySelector(".pdt-input").value = "60";
-          tr.querySelector(".status-input").value = "หยุดตามแผน / ขัดพิมพ์";
-          if (!tr.querySelector(".reason-input").value.trim()) tr.querySelector(".reason-input").value = "หยุดขัดพิมพ์ 60 นาที";
-          n++;
-        }
-      });
-      showMsg(n ? `ตั้งค่าหยุดขัดพิมพ์ 60 นาทีให้เครื่องที่เลือกแล้ว ${n} แถวครับ` : "กรุณาเลือกหรือกรอกรหัสเครื่องจักรอย่างน้อย 1 แถวก่อนครับ", Boolean(n));
-    });
-
-    const applyPreset = (k) => {
-      const list = MACHINE_GROUPS[k] || [];
-      $("batchRowsBody").querySelectorAll("tr").forEach((tr, i) => {
-        tr.querySelector(".mc-select").value = list[i] || "";
-        tr.querySelector(".mc-input").value = list[i] || "";
-      });
-    };
-    $("presetBE").addEventListener("click", () => applyPreset("BE"));
-    $("presetBW").addEventListener("click", () => applyPreset("BW"));
-    $("presetDW").addEventListener("click", () => applyPreset("DW"));
-    $("defaultCycle").addEventListener("change", () => {
-      const v = Number($("defaultCycle").value || 3.45);
-      $("batchRowsBody").querySelectorAll(".ct-input").forEach((i) => { i.value = v; });
-    });
-    $("clearBatchBtn").addEventListener("click", () => { buildBatchRows(); $("msgBox").className = "msg"; });
-    buildBatchRows();
-
-    function showApp(user) {
-      $("currentUserLabel").textContent = user;
-      if (user === "shiftB") {
-        $("batchShift").value = "กะ B";
-        $("filterShift").value = "กะ B";
-      } else if (user === "shiftA") {
-        $("batchShift").value = "กะ A";
-        $("filterShift").value = "กะ A";
-      }
-      $("loginSection").classList.add("hidden");
-      $("appSection").classList.remove("hidden");
-      renderPackingTable();
-      renderExtrusionQueue();
-    }
-
-    $("loginForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const u = $("loginUser").value.trim();
-      const p = $("loginPass").value;
-      if (USERS[u] && USERS[u] === p) {
-        writeStoredUser(u);
-        $("loginMsg").className = "msg";
-        $("loginMsg").textContent = "";
-        showApp(u);
-        loadLogs();
-      } else {
-        $("loginMsg").className = "msg err";
-        $("loginMsg").textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องครับ (admin/1234, shiftA/1111, shiftB/2222)";
-      }
-    });
-
-    $("logoutBtn").addEventListener("click", () => {
-      writeStoredUser("");
-      toggleSidebar(false);
-      $("appSection").classList.add("hidden");
-      $("loginSection").classList.remove("hidden");
-      $("loginForm").reset();
-      $("loginMsg").className = "msg";
-    });
-
-    const fmtDur = (m) => { const t = Math.max(0, Number(m) || 0), h = Math.floor(t / 60), r = Math.round(t % 60); return h > 0 ? `${h}h ${r}m` : `${r}m`; };
-    const fmtTime = (v) => { if (!v) return ""; const d = new Date(v); return !isNaN(d.getTime()) ? d.toLocaleString("th-TH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : String(v); };
-    const normShift = (s) => { const x = String(s || "").trim(); if (x === "B" || x.toLowerCase() === "shiftb" || x === "กะB") return "กะ B"; if (x === "A" || x.toLowerCase() === "shifta" || x === "กะA") return "กะ A"; return x; };
-
-    function normRec(item) {
-      if (Array.isArray(item)) {
-        const st = String(item[7] || "").trim(), plCol = toNum(item[8], 0), isPl = st.includes("หยุดตามแผน") || st.includes("ขัดพิมพ์");
-        return {
-          time: fmtTime(item[0]), shift: normShift(item[1]), machine: String(item[2] || "").trim().toUpperCase(),
-          ok: toNum(item[3]), ng: toNum(item[4]),
-          downtime: isPl && plCol === 0 ? 0 : toNum(item[5]),
-          plannedDowntime: plCol > 0 ? plCol : (isPl ? toNum(item[5]) : 0),
-          cycleTime: toNum(item[6], 3.45), status: st, reason: String(item[9] || "").trim()
-        };
-      }
-      const st = String(item.Status || item.status || "").trim();
-      const rs = String(item.Reason || item.reason || item.Note || item.note || "").trim();
-      const isPl = `${st} ${rs}`.includes("หยุดตามแผน") || `${st} ${rs}`.includes("ขัดพิมพ์") || String(item.Downtime_Type || "").toLowerCase() === "planned";
-      const exPl = toNum(item.Planned_Downtime ?? item.plannedDowntime ?? item.planned_downtime, 0);
-      const dt = toNum(item.Downtime ?? item.downtime, 0);
-      return {
-        time: fmtTime(item.Timestamp || item.timestamp || item.time || ""), shift: normShift(item.Shift || item.shift || ""),
-        machine: String(item.Machine_ID || item.machineId || item.machine_id || item.machine || "").trim().toUpperCase(),
-        ok: toNum(item.OK ?? item.ok), ng: toNum(item.NG ?? item.ng),
-        downtime: isPl && exPl === 0 ? 0 : dt, plannedDowntime: exPl > 0 ? exPl : (isPl ? dt : 0),
-        cycleTime: toNum(item.Cycle_Time ?? item.cycleTime ?? item.cycle_time, 3.45), status: st, reason: rs
-      };
-    }
-
-    function normDowntimeRec(item) {
-      if (Array.isArray(item)) {
-        const logId = String(item[0] ?? "").trim();
-        const dateVal = String(item[1] ?? "").trim();
-        const shift = normShift(item[2]);
-        const machine = String(item[3] ?? "").trim().toUpperCase();
-        const stopTime = String(item[4] ?? "").trim();
-        const startTime = String(item[5] ?? "").trim();
-        const minutes = Math.max(0, toNum(item[6], 0));
-        const category = String(item[7] ?? "").trim();
-        const detail = String(item[8] ?? "").trim();
-        const isPlanned = category.includes("พัก") || `${category} ${detail}`.includes("หยุดตามแผน");
-        return { logId, date: dateVal, shift, machine, stopTime, startTime, minutes, category, detail, isPlanned };
-      }
-      const logId = String(item.Log_ID ?? item.logId ?? "").trim();
-      const dateVal = String(item.Date ?? item.date ?? "").trim();
-      const shift = normShift(item.Shift ?? item.shift ?? "");
-      const machine = String(item.Machine_ID ?? item.machineId ?? item.machine ?? "").trim().toUpperCase();
-      const stopTime = String(item.Stop_Time ?? item.stopTime ?? "").trim();
-      const startTime = String(item.Start_Time ?? item.startTime ?? "").trim();
-      const minutes = Math.max(0, toNum(item.Downtime_Min ?? item.downtimeMin ?? item.minutes, 0));
-      const category = String(item.Category ?? item.category ?? "").trim();
-      const detail = String(item["Reason / Detail"] ?? item.Reason ?? item.detail ?? item.reason ?? "").trim();
-      const isPlanned = category.includes("พัก") || `${category} ${detail}`.includes("หยุดตามแผน");
-      return { logId, date: dateVal, shift, machine, stopTime, startTime, minutes, category, detail, isPlanned };
-    }
-
-    function getDowntimeSummaryFromLog(rows, sf, mf) {
-      let unplannedMin = 0;
-      let plannedMin = 0;
-      let eventCount = 0;
-      const machines = new Set();
-
-      const list = (Array.isArray(rows) ? rows : [])
-        .map(normDowntimeRec)
-        .filter((r) => {
-          const check = `${r.logId} ${r.date} ${r.machine}`.toLowerCase();
-          if (!r.machine && !r.category && !r.detail) return false;
-          if (check.includes("รวมระยะเวลาหยุดทั้งหมด") || check.includes("log_id")) return false;
-          return true;
-        })
-        .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
-
-      list.forEach((r) => {
-        eventCount += 1;
-        if (r.machine) machines.add(r.machine);
-        if (r.isPlanned) plannedMin += r.minutes;
-        else unplannedMin += r.minutes;
-      });
-
-      return { list, unplannedMin, plannedMin, eventCount, machineCount: machines.size };
-    }
-
-    function renderDowntimeTrackerSection(rows) {
-      const bodyEl = $("downtimeLogBody");
-      if (!bodyEl) return;
-      const sf = $("filterShift")?.value || "ALL";
-      const mf = ($("filterMachine")?.value || "").trim().toUpperCase();
-      const { list } = getDowntimeSummaryFromLog(rows, sf, mf);
-
-      bodyEl.innerHTML = list.length
-        ? list.slice(-20).reverse().map((r) => `<tr>
-            <td>${esc(r.date || "-")}</td>
-            <td>${esc(r.shift || "-")}</td>
-            <td><strong>${esc(r.machine || "-")}</strong></td>
-            <td>${esc(r.stopTime || "-")} - ${esc(r.startTime || "-")}</td>
-            <td>${r.minutes.toLocaleString()} น.</td>
-            <td>${r.isPlanned ? '<span class="badge-planned">หยุดตามแผน</span>' : '<span class="badge-low">หยุดนอกแผน</span>'}</td>
-            <td>${esc(r.category)}${r.detail ? " - " + esc(r.detail) : ""}</td>
-          </tr>`).join("")
-        : '<tr><td colspan="7" style="color:var(--muted);">ไม่พบข้อมูลการหยุดเครื่องจักรตามเงื่อนไขที่เลือก</td></tr>';
-    }
-
-    function calcRowOEE(r) {
-      const ok = toNum(r.ok, 0), ng = toNum(r.ng, 0), totalQty = ok + ng;
-      const cycleMin = toNum(r.cycleTime, 3.45) > 0 ? toNum(r.cycleTime, 3.45) : 3.45;
-      const plannedMin = 480, plannedStopMin = toNum(r.plannedDowntime, 0), unplannedStopMin = toNum(r.downtime, 0);
-      const netPlannedMin = Math.max(0, plannedMin - plannedStopMin);
-      const runTimeMin = Math.max(0, netPlannedMin - unplannedStopMin);
-      const standardTimeMin = totalQty * cycleMin;
-      const availability = netPlannedMin > 0 ? runTimeMin / netPlannedMin : 0;
-      const performance = runTimeMin > 0 ? Math.min(1, standardTimeMin / runTimeMin) : 0;
-      const quality = totalQty > 0 ? ok / totalQty : 1;
-      return {
-        totalQty, netPlannedMin, runTimeMin, standardTimeMin,
-        availabilityPct: availability * 100, performancePct: performance * 100,
-        qualityPct: quality * 100, oeePct: availability * performance * quality * 100
-      };
-    }
-
-    function summarizeOEE(records) {
-      let ok = 0, ng = 0, dt = 0, pdt = 0, ideal = 0, totalNetPlanned = 0, totalRun = 0;
-      const mcs = new Set();
-      records.forEach((r) => {
-        const c = calcRowOEE(r);
-        ok += r.ok; ng += r.ng; dt += r.downtime; pdt += r.plannedDowntime;
-        ideal += c.standardTimeMin; totalNetPlanned += c.netPlannedMin; totalRun += c.runTimeMin;
-        if (r.machine) mcs.add(r.machine);
-      });
-      const out = ok + ng;
-      const avail = totalNetPlanned > 0 ? (totalRun / totalNetPlanned) * 100 : 0;
-      const perf = totalRun > 0 ? Math.min(100, (ideal / totalRun) * 100) : 0;
-      const qual = out > 0 ? (ok / out) * 100 : 100;
-      return { ok, ng, out, dt, pdt, avail, perf, qual, oee: (avail / 100) * (perf / 100) * (qual / 100) * 100, machineCount: mcs.size };
-    }
-
-    function renderDashboard(rows) {
-      const sf = $("filterShift").value, mf = $("filterMachine").value.trim().toUpperCase(), tgt = toNum($("targetOeeInput").value, 85);
-      const filtered = rows.map(normRec)
-        .filter((r) => r.machine || r.ok > 0 || r.ng > 0 || r.downtime > 0 || r.plannedDowntime > 0)
-        .filter((r) => (sf === "ALL" || r.shift === sf) && (!mf || r.machine.includes(mf)));
-      const sum = summarizeOEE(filtered);
-      const dtLog = getDowntimeSummaryFromLog(allDowntimeRows, sf, mf);
-      const hasDtLog = dtLog.eventCount > 0;
-      const showUnplannedMin = hasDtLog ? dtLog.unplannedMin : sum.dt;
-      const showPlannedMin = hasDtLog ? dtLog.plannedMin : sum.pdt;
-      const diff = (sum.oee - tgt).toFixed(1);
-
-      $("kpiOee").textContent = sum.oee.toFixed(1) + "%";
-      $("kpiAvail").textContent = sum.avail.toFixed(1) + "%";
-      $("kpiPerf").textContent = sum.perf.toFixed(1) + "%";
-      $("kpiQual").textContent = sum.qual.toFixed(1) + "%";
-      $("kpiOutput").textContent = sum.out.toLocaleString();
-      $("kpiOkNgSub").textContent = `OK ${sum.ok.toLocaleString()} / NG ${sum.ng.toLocaleString()} pieces`;
-      $("kpiDowntime").textContent = fmtDur(showUnplannedMin);
-      $("kpiPlannedDtSub").textContent = hasDtLog
-        ? `หยุดตามแผน: ${fmtDur(showPlannedMin)} • ${dtLog.eventCount} เหตุการณ์ (${dtLog.machineCount} เครื่อง)`
-        : `หยุดตามแผน: ${fmtDur(showPlannedMin)} • ${sum.machineCount} / 40 machines logged`;
-      $("kpiRecords").textContent = filtered.length.toLocaleString();
-      $("kpiTargetText").textContent = `Target ${tgt.toFixed(2)}%`;
-      $("kpiDiffText").textContent = `${Number(diff) >= 0 ? "+" : ""}${diff} pts`;
-      $("kpiScopeLabel").textContent = `${sf === "ALL" ? "ทุกกะ" : sf}${mf ? " • " + mf : ""}`;
-
-      const recent = filtered.slice(-15).reverse();
-      $("logBody").innerHTML = recent.length ? recent.map((r) => `<tr>
-        <td>${esc(r.time)}</td><td>${esc(r.shift)}</td><td><strong>${esc(r.machine)}</strong></td>
-        <td>${r.ok}</td><td>${r.ng}</td><td>${r.downtime} น.</td>
-        <td>${r.plannedDowntime > 0 ? `<span class="badge-planned">${r.plannedDowntime} น.</span>` : "0 น."}</td>
-        <td>${esc(r.status)}${r.reason ? " - " + esc(r.reason) : ""}</td>
-      </tr>`).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr>';
-
-      renderDowntimeTrackerSection(allDowntimeRows);
-    }
-
-    function savePackingLocal() {
-      try { localStorage.setItem(PACKING_STORAGE_KEY, JSON.stringify(packingRecords)); } catch (_) {}
-    }
-
-    function getPackingStatusLabel(row) {
-      const hasCure = typeof row.cure === "number" && !Number.isNaN(row.cure);
-      const hasPack = typeof row.pack === "number" && !Number.isNaN(row.pack);
-      if (hasCure && hasPack) {
-        if (row.pack > row.cure) return '<span class="badge-ok">ครบตามแผน / แพ็คสูงกว่าอบ</span>';
-        if (row.pack < row.cure) return '<span class="badge-low">ต่ำกว่าแผน / แพ็คน้อยกว่าอบ</span>';
-        return '<span class="badge-planned">ยอดเท่ากัน</span>';
-      }
-      if (hasPack) return '<span class="badge-planned">แพ็คสต็อกสะสม</span>';
-      if (hasCure) return '<span class="badge-planned">รอการบรรจุ</span>';
-      return "-";
-    }
-
-    function renderPackingTable() {
-      const stFilter = $("packingStatusFilter") ? $("packingStatusFilter").value : "ALL";
-      const dayFilter = $("packingDayFilter") ? $("packingDayFilter").value : "ALL";
-      const filtered = packingRecords.filter((r) => {
-        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
-        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        if (dayFilter !== "ALL" && r.dayName !== dayFilter) return false;
-        if (stFilter === "BOTH") return hasCure && hasPack;
-        if (stFilter === "PACK_GT_CURE") return hasCure && hasPack && r.pack > r.cure;
-        if (stFilter === "PACK_LT_CURE") return hasCure && hasPack && r.pack < r.cure;
-        if (stFilter === "PACK_ONLY") return hasPack && !hasCure;
-        if (stFilter === "CURE_ONLY") return hasCure && !hasPack;
-        return true;
-      });
-
-      $("packingTableBody").innerHTML = filtered.length ? filtered.map((r) => {
-        const hasCure = typeof r.cure === "number" && !Number.isNaN(r.cure);
-        const hasPack = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        const diff = (hasCure && hasPack) ? (r.pack - r.cure) : (hasPack ? r.pack : (hasCure ? -r.cure : null));
-        const pct = (hasCure && hasPack && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasCure && !hasPack ? "0.0%" : "-");
-        return `<tr>
-          <td>${esc(r.date)}</td><td>${esc(r.dayLabel)}</td>
-          <td>${hasCure ? r.cure.toLocaleString() : "-"}</td><td>${hasPack ? r.pack.toLocaleString() : "-"}</td>
-          <td>${diff !== null ? (diff > 0 ? "+" + diff.toLocaleString() : diff.toLocaleString()) : "-"}</td>
-          <td>${pct}</td><td>${getPackingStatusLabel(r)}</td><td>${esc(r.remark || "-")}</td>
-        </tr>`;
-      }).join("") : '<tr><td colspan="8" style="color:var(--muted);">ไม่พบข้อมูลแพ็คกิ่งตามเงื่อนไขที่เลือก</td></tr>';
-
-      const cureRows = packingRecords.filter((r) => typeof r.cure === "number" && !Number.isNaN(r.cure));
-      const packRows = packingRecords.filter((r) => typeof r.pack === "number" && !Number.isNaN(r.pack));
-      const totalCure = cureRows.reduce((a, b) => a + b.cure, 0);
-      const totalPack = packRows.reduce((a, b) => a + b.pack, 0);
-      const avgCure = cureRows.length ? Math.round(totalCure / cureRows.length).toLocaleString() : "0";
-      const netDiff = totalPack - totalCure;
-      const totalPct = totalCure > 0 ? ((totalPack / totalCure) * 100).toFixed(1) + "%" : "-";
-
-      $("pkCureTotalVal").textContent = `${totalCure.toLocaleString()} เส้น`;
-      $("pkCureTotalSub").textContent = `เฉลี่ย ${avgCure} เส้น/วัน | ยอดแพ็ครวม ${totalPack.toLocaleString()} เส้น`;
-      $("pkRatioVal").textContent = totalPct;
-      $("pkRatioSub").textContent = `แพ็ค ${totalPack.toLocaleString()} เทียบอบ ${totalCure.toLocaleString()} เส้น (${netDiff > 0 ? "+" + netDiff.toLocaleString() : netDiff.toLocaleString()})`;
-
-      const days = ["จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"];
-      $("packingDayAvgBody").innerHTML = days.map((d) => {
-        const list = packRows.filter((r) => r.dayName === d);
-        const sum = list.reduce((a, b) => a + b.pack, 0);
-        const avg = list.length ? Math.round(sum / list.length).toLocaleString() : "-";
-        return `<tr><td>${esc(d)}</td><td>${list.length}</td><td>${list.length ? sum.toLocaleString() : "-"}</td><td>${avg}</td></tr>`;
-      }).join("");
-    }
-
-    function addPackingRow() {
-      const dateStr = $("pkDateInput").value || "2026-11-23";
-      const cureRaw = $("pkCureInput").value, packRaw = $("pkPackInput").value, remarkRaw = $("pkRemarkInput").value.trim();
-      if (cureRaw === "" && packRaw === "") return showPkMsg("กรุณากรอกยอดอบยางใน OK หรือยอดแพ็คยางในอย่างน้อย 1 ช่องครับ", false);
-      const cureNum = cureRaw === "" ? null : Math.max(0, toNum(cureRaw));
-      const packNum = packRaw === "" ? null : Math.max(0, toNum(packRaw));
-      const { dayName, dayLabel } = formatThaiDayLabel(dateStr);
-      packingRecords.push({
-        date: dateStr, dayLabel, dayName, cure: cureNum, pack: packNum,
-        remark: remarkRaw || (cureNum !== null && packNum !== null ? "มียอดอบและยอดแพ็คครบ" : "บันทึกจากหมวดแพ็คกิ่ง")
-      });
-      savePackingLocal();
-      $("pkCureInput").value = ""; $("pkPackInput").value = ""; $("pkRemarkInput").value = "";
-      showPkMsg(`เพิ่มข้อมูลวันที่ ${dayLabel} (${dateStr}) ลงตาราง Packing tube line เรียบร้อยครับ (กด "บันทึกแพ็คกิ่งเข้าชีต" เพื่อส่งเข้า Google Sheets)`, true);
-      renderPackingTable();
-    }
-
-    async function syncPackingFromSheet() {
-      const btn = $("syncPackingBtn");
-      if (btn) btn.disabled = true;
-      $("liveStatusText").textContent = "SYNCING...";
-      try {
-        const sep = WEB_APP_URL.includes("?") ? "&" : "?";
-        const res = await fetch(`${WEB_APP_URL}${sep}action=packingTubeLine`);
-        const json = await parseAppsScriptResponse(res);
-        const list = Array.isArray(json?.packingRecords) ? json.packingRecords
-          : Array.isArray(json?.records) ? json.records
-          : Array.isArray(json?.data) ? json.data : [];
-
-        if (!list.length) throw new Error("ไม่พบข้อมูลในชีต Packing_Tube_Line");
-
-        packingRecords = list.map((r) => {
-          const dateStr = String(r.date || r.Date || "").trim();
-          const info = formatThaiDayLabel(dateStr);
-          const cureVal = r.cure === "" || r.cure === null || r.cure === undefined ? null : toNum(r.cure, 0);
-          const packVal = r.pack === "" || r.pack === null || r.pack === undefined ? null : toNum(r.pack, 0);
-          return {
-            date: dateStr,
-            dayLabel: r.dayLabel || r.Day_Label || info.dayLabel,
-            dayName: r.dayName || r.Day_Name || info.dayName,
-            cure: cureVal,
-            pack: packVal,
-            remark: String(r.remark || r.Remark || "").trim()
-          };
-        });
-
-        savePackingLocal();
-        renderPackingTable();
-        $("liveStatusText").textContent = "LIVE";
-        showPkMsg(`ดึงข้อมูลแพ็คกิ่งจากชีตสำเร็จ ${packingRecords.length} รายการครับ`, true);
-      } catch (err) {
-        $("liveStatusText").textContent = "OFFLINE";
-        showPkMsg(`ดึงข้อมูลแพ็คกิ่งจากชีตไม่สำเร็จ: ${err.message}`, false);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    async function savePackingToSheet() {
-      const btn = $("savePackingBtn");
-      if (btn) btn.disabled = true;
-      $("liveStatusText").textContent = "SAVING...";
-      try {
-        const payload = {
-          action: "savePacking",
-          user: $("currentUserLabel")?.textContent || "unknown",
-          timestamp: new Date().toISOString(),
-          records: packingRecords
-        };
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        await parseAppsScriptResponse(res);
-        savePackingLocal();
-        $("liveStatusText").textContent = "LIVE";
-        showPkMsg(`บันทึกข้อมูลหมวดแพ็คกิ่ง ${packingRecords.length} รายการเข้า Google Sheets เรียบร้อยครับ`, true);
-      } catch (err) {
-        $("liveStatusText").textContent = "ERROR";
-        showPkMsg(`บันทึกข้อมูลแพ็คกิ่งเข้าชีตไม่สำเร็จ: ${err.message}`, false);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    function exportPackingCsv() {
-      const headers = ["Date", "Day_Label", "Cure_OK_Qty", "Pack_Qty", "Diff_Pack_Minus_Cure", "Pack_To_Cure_Pct", "Remark"];
-      const rows = [headers.join(",")];
-      packingRecords.forEach((r) => {
-        const hasC = typeof r.cure === "number" && !Number.isNaN(r.cure);
-        const hasP = typeof r.pack === "number" && !Number.isNaN(r.pack);
-        const diff = (hasC && hasP) ? (r.pack - r.cure) : (hasP ? r.pack : (hasC ? -r.cure : ""));
-        const pct = (hasC && hasP && r.cure > 0) ? ((r.pack / r.cure) * 100).toFixed(1) + "%" : (hasC && !hasP ? "0.0%" : "");
-        rows.push([r.date, `"${String(r.dayLabel || "").replace(/"/g, '""')}"`, hasC ? r.cure : "", hasP ? r.pack : "", diff, pct, `"${String(r.remark || "").replace(/"/g, '""')}"`].join(","));
-      });
-      const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "packing_tube_line_nov_2026.csv"; a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // --- EXTRUSION QUEUE & STOCK LOGIC ---
-    function saveExtrusionQueue() {
-      try { localStorage.setItem(EXTRUSION_QUEUE_STORAGE_KEY, JSON.stringify(extrusionQueueItems)); } catch (_) {}
-    }
-
-    function resetExtrusionQueueDefault() {
-      extrusionQueueItems = JSON.parse(JSON.stringify(DEFAULT_EXTRUSION_QUEUE));
-      if ($("eqRatePerMold")) $("eqRatePerMold").value = "300";
-      if ($("eqDailyCap")) $("eqDailyCap").value = "12000";
-      if ($("eqTargetDays")) $("eqTargetDays").value = "3";
-      saveExtrusionQueue();
-      showEqMsg("รีเซ็ตตารางคิวการผลิตเป็นค่าเริ่มต้น 15 รายการเรียบร้อยครับ", true);
-      renderExtrusionQueue();
-    }
-
-    function addExtrusionQueueItem() {
-      const spec = ($("eqNewSpec")?.value || "").trim();
-      const type = $("eqNewType")?.value || "มอเตอร์ไซค์";
-      const mold = Math.max(0, Math.floor(toNum($("eqNewMold")?.value, 0)));
-      const stock = Math.max(0, toNum($("eqNewStock")?.value, 0));
-      if (!spec) return showEqMsg("กรุณากรอกขนาด / เบอร์ยางก่อนเพิ่มรายการครับ", false);
-
-      extrusionQueueItems.push({
-        id: "q_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-        spec, type, mold, stock, fixedDailyUsage: null
-      });
-      saveExtrusionQueue();
-      $("eqNewSpec").value = ""; $("eqNewMold").value = "0"; $("eqNewStock").value = "0";
-      showEqMsg(`เพิ่มรายการ "${spec}" เข้าคิวการผลิตเรียบร้อยครับ`, true);
-      renderExtrusionQueue();
-    }
-
-    function updateQueueRowField(id, field, rawVal) {
-      const item = extrusionQueueItems.find((x) => x.id === id);
-      if (!item) return;
-      if (field === "mold") {
-        item.mold = Math.max(0, Math.floor(toNum(rawVal, 0)));
-        if (item.mold > 0) item.fixedDailyUsage = null;
-      }
-      if (field === "stock") {
-        item.stock = Math.max(0, toNum(rawVal, 0));
-      }
-      saveExtrusionQueue();
-      renderExtrusionQueue();
-    }
-
-    function mapSheetQueueRows(rawList) {
-      if (!Array.isArray(rawList) || !rawList.length) return [];
-      const mapped = [];
-      rawList.forEach((row, idx) => {
-        if (Array.isArray(row)) {
-          const spec = String(row[0] ?? "").trim();
-          const firstCell = spec.toLowerCase();
-          if (!spec || spec.includes("รวมทั้งสิ้น") || firstCell.includes("size") || firstCell.includes("ขนาด")) return;
-          const type = String(row[1] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
-          const mold = Math.max(0, Math.floor(toNum(row[2], 0)));
-          const stock = Math.max(0, toNum(row[3], 0));
-          const dailyCol = row[4] !== undefined && row[4] !== "" ? Math.max(0, toNum(row[4], 0)) : null;
-          mapped.push({
-            id: "sheet_q_" + idx + "_" + spec,
-            spec, type, mold, stock,
-            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
-          });
-        } else if (row && typeof row === "object") {
-          const spec = String(
-            row.spec ?? row.Spec ?? row["ขนาด / เบอร์ยาง"] ?? row["ขนาด/เบอร์ยาง"] ?? row["Size / Spec"] ?? ""
-          ).trim();
-          if (!spec || spec.includes("รวมทั้งสิ้น")) return;
-          const type = String(row.type ?? row.Type ?? row["ประเภท"] ?? "มอเตอร์ไซค์").trim() || "มอเตอร์ไซค์";
-          const mold = Math.max(0, Math.floor(toNum(row.mold ?? row.Mold ?? row["จำนวนแม่พิมพ์"] ?? row["แม่พิมพ์"], 0)));
-          const stock = Math.max(0, toNum(row.stock ?? row.Stock ?? row.currentStock ?? row["สต็อกคงเหลือ"] ?? row["สต็อก"], 0));
-          const rawUsage = row.dailyUsage ?? row.Daily_Usage ?? row["ใช้ต่อวัน"];
-          const dailyCol = rawUsage !== undefined && rawUsage !== "" ? Math.max(0, toNum(rawUsage, 0)) : null;
-          mapped.push({
-            id: String(row.id || ("sheet_q_" + idx + "_" + spec)),
-            spec, type, mold, stock,
-            fixedDailyUsage: mold === 0 && dailyCol !== null ? dailyCol : null
-          });
-        }
-      });
-      return mapped;
-    }
-
-    async function syncExtrusionFromSheet() {
-      const btn = $("syncExtrusionBtn");
-      if (btn) btn.disabled = true;
-      $("liveStatusText").textContent = "SYNCING...";
-      try {
-        const sep = WEB_APP_URL.includes("?") ? "&" : "?";
-        const res = await fetch(`${WEB_APP_URL}${sep}action=extrusionQueue`);
-        const json = await parseAppsScriptResponse(res);
-
-        const params = json?.params || json?.config || json?.settings || {};
-        if (params.ratePerMold && $("eqRatePerMold")) $("eqRatePerMold").value = toNum(params.ratePerMold, 300);
-        if (params.dailyCap && $("eqDailyCap")) $("eqDailyCap").value = toNum(params.dailyCap, 12000);
-        if (params.targetDays && $("eqTargetDays")) $("eqTargetDays").value = toNum(params.targetDays, 3);
-
-        const candidate = Array.isArray(json?.extrusionQueue) ? json.extrusionQueue
-          : Array.isArray(json?.queue) ? json.queue
-          : Array.isArray(json?.extrusion) ? json.extrusion
-          : Array.isArray(json?.data) ? json.data
-          : Array.isArray(json) ? json : [];
-
-        const parsed = mapSheetQueueRows(candidate);
-        if (!parsed.length) {
-          throw new Error("ชีตยังไม่ส่งข้อมูลรายการคิวรีดยางกลับมา");
-        }
-
-        extrusionQueueItems = parsed;
-        saveExtrusionQueue();
-        renderExtrusionQueue();
-        $("liveStatusText").textContent = "LIVE";
-        showEqMsg(`ดึงข้อมูลคิวและสต็อกรีดยางจากชีตสำเร็จจำนวน ${parsed.length} รายการครับ`, true);
-      } catch (err) {
-        $("liveStatusText").textContent = "OFFLINE";
-        showEqMsg(`ดึงข้อมูลจากชีตไม่สำเร็จ (${err.message}) — ระบบยังคงใช้ข้อมูลล่าสุดในเครื่องครับ`, false);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    async function saveExtrusionQueueToSheet() {
-      const btn = $("saveExtrusionBtn");
-      if (btn) btn.disabled = true;
-      $("liveStatusText").textContent = "SAVING...";
-      try {
-        const plan = computeExtrusionQueuePlan();
-        const payload = {
-          action: "saveExtrusionQueue",
-          user: $("currentUserLabel")?.textContent || "unknown",
-          timestamp: new Date().toISOString(),
-          params: {
-            ratePerMold: toNum($("eqRatePerMold")?.value, 300),
-            dailyCap: toNum($("eqDailyCap")?.value, 12000),
-            targetDays: toNum($("eqTargetDays")?.value, 3)
-          },
-          records: plan.rows.map((r) => ({
-            spec: r.spec,
-            type: r.type,
-            mold: r.mold,
-            stock: r.stock,
-            dailyUsage: r.dailyUsage,
-            daysCover: r.daysCover >= 999 ? 999 : Number(r.daysCover.toFixed(2)),
-            targetStock: r.targetStock,
-            netNeeded: r.netNeeded,
-            todayOrder: r.todayOrder,
-            carryover: r.carryover,
-            queueNo: r.queueNo,
-            status: r.statusText
-          }))
-        };
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        await parseAppsScriptResponse(res);
-        $("liveStatusText").textContent = "LIVE";
-        showEqMsg(`ส่งข้อมูลคิวและสต็อกรีดยาง ${payload.records.length} รายการไปที่ Google Sheets เรียบร้อยครับ`, true);
-      } catch (err) {
-        $("liveStatusText").textContent = "ERROR";
-        showEqMsg(`บันทึกคิวรีดยางเข้าชีตไม่สำเร็จ: ${err.message}`, false);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    function computeExtrusionQueuePlan() {
-      const ratePerMold = Math.max(1, toNum($("eqRatePerMold")?.value, 300));
-      const dailyCap = Math.max(0, toNum($("eqDailyCap")?.value, 12000));
-      const targetDays = Math.max(0, toNum($("eqTargetDays")?.value, 3));
-
-      const rows = extrusionQueueItems.map((it, idx) => {
-        const mold = Math.max(0, toNum(it.mold, 0));
-        const stock = Math.max(0, toNum(it.stock, 0));
-        const dailyUsage = mold > 0
-          ? mold * ratePerMold
-          : (typeof it.fixedDailyUsage === "number" && it.fixedDailyUsage > 0 ? it.fixedDailyUsage : 0);
-        const daysCover = dailyUsage > 0 ? stock / dailyUsage : 999;
-        const targetStock = dailyUsage * targetDays;
-        const netNeeded = Math.max(0, targetStock - stock);
-
-        return {
-          ...it,
-          origIdx: idx,
-          mold,
-          stock,
-          dailyUsage,
-          daysCover,
-          targetStock,
-          netNeeded,
-          queueNo: null,
-          todayOrder: 0,
-          carryover: 0,
-          statusCode: "ENOUGH",
-          statusText: "สต็อกเพียงพอ",
-          badgeClass: "badge-ok"
-        };
-      });
-
-      const moldRowsSorted = rows
-        .filter((r) => r.mold > 0)
-        .sort((a, b) => {
-          if (a.daysCover !== b.daysCover) return a.daysCover - b.daysCover;
-          if (b.netNeeded !== a.netNeeded) return b.netNeeded - a.netNeeded;
-          return a.origIdx - b.origIdx;
-        });
-
-      let rankCounter = 0;
-      let prevKey = null;
-      moldRowsSorted.forEach((r) => {
-        const key = `${r.daysCover.toFixed(6)}|${r.netNeeded}`;
-        if (key !== prevKey) {
-          rankCounter += 1;
-          prevKey = key;
-        }
-        r.queueNo = rankCounter;
-      });
-
-      let remainingCap = dailyCap;
-      moldRowsSorted
-        .filter((r) => r.netNeeded > 0)
-        .forEach((r) => {
-          const allocated = Math.max(0, Math.min(r.netNeeded, remainingCap));
-          r.todayOrder = allocated;
-          r.carryover = Math.max(0, r.netNeeded - allocated);
-          remainingCap = Math.max(0, remainingCap - allocated);
-        });
-
-      rows.forEach((r) => {
-        if (r.mold <= 0) {
-          r.statusCode = "HOLD_NO_MOLD";
-          r.statusText = "พักคิว (ไม่มีพิมพ์)";
-          r.badgeClass = "badge-hold";
-          r.todayOrder = 0;
-          r.carryover = 0;
-        } else if (r.todayOrder > 0) {
-          r.statusCode = "TODAY";
-          r.statusText = r.stock === 0 ? "สต็อก 0 / รีดด่วน" : "สั่งผลิตวันนี้";
-          r.badgeClass = r.stock === 0 ? "badge-low" : "badge-planned";
+      activeTab = tab;
+      ["Motorcycle", "Bicycle", "Both"].forEach(t => {
+        const el = document.getElementById("nav-" + t);
+        if (t === tab) {
+          el.classList.add("nav-active");
+          el.classList.remove("text-slate-300");
         } else {
-          r.statusCode = "ENOUGH";
-          r.statusText = "สต็อกเพียงพอ";
-          r.badgeClass = "badge-ok";
-          r.todayOrder = 0;
-          r.carryover = 0;
+          el.classList.remove("nav-active");
+          el.classList.add("text-slate-300");
         }
       });
 
-      return {
-        rows,
-        todayOrderCount: rows.filter((r) => r.todayOrder > 0).length
+      const titleMap = {
+        Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
+        Bicycle: ["หมวดของเสียยางในรถจักรยาน (Reject_Bicycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
+        Both: ["เปรียบเทียบของเสียแยกตามขนาดเบอร์ยาง (มอเตอร์ไซค์ & จักรยาน)", "ภาพรวมทุกขนาดเบอร์ยางจากฟอร์มบันทึกของเสีย พ.ย. 2569 (ไม่แยกวันที่)"]
       };
+      document.getElementById("pageTitle").textContent = titleMap[tab][0];
+      document.getElementById("pageSubtitle").textContent = titleMap[tab][1];
+      document.getElementById("specFilter").value = "ALL";
+      renderAll();
     }
 
-    function renderExtrusionQueue() {
-      const tbody = $("extrusionQueueBody");
-      const tfoot = $("extrusionQueueFoot");
-      if (!tbody) return;
+    function getActiveRows() {
+      let rows = [];
+      if (activeTab === "Motorcycle") rows = stateData.Motorcycle;
+      else if (activeTab === "Bicycle") rows = stateData.Bicycle;
+      else rows = [...stateData.Motorcycle, ...stateData.Bicycle];
 
-      const plan = computeExtrusionQueuePlan();
-      const statusFilter = $("eqStatusFilter")?.value || "ALL";
+      const specSel = document.getElementById("specFilter");
+      const currentSpec = specSel.value;
+      const uniqueSpecs = [...new Set(rows.map(r => r.spec))];
+      specSel.innerHTML = `<option value="ALL">ทุกขนาดเบอร์ยาง (${uniqueSpecs.length})</option>` +
+        uniqueSpecs.map(s => `<option value="${s}">${s}</option>`).join("");
+      specSel.value = uniqueSpecs.includes(currentSpec) ? currentSpec : "ALL";
 
-      const totalStock = plan.rows.reduce((a, b) => a + b.stock, 0);
-      const totalMold = plan.rows.reduce((a, b) => a + b.mold, 0);
-      const totalNeeded = plan.rows.reduce((a, b) => a + b.netNeeded, 0);
-      const totalUsage = plan.rows.reduce((a, b) => a + b.dailyUsage, 0);
-      const totalTarget = plan.rows.reduce((a, b) => a + b.targetStock, 0);
-      const totalToday = plan.rows.reduce((a, b) => a + b.todayOrder, 0);
-      const totalCarry = plan.rows.reduce((a, b) => a + b.carryover, 0);
-      const avgDaysCover = totalUsage > 0 ? (totalStock / totalUsage).toFixed(2) : "0.00";
-
-      if ($("eqTotalStockVal")) $("eqTotalStockVal").textContent = totalStock.toLocaleString();
-      if ($("eqTotalStockSub")) $("eqTotalStockSub").textContent = `แม่พิมพ์รวม ${totalMold.toLocaleString()} พิมพ์`;
-      if ($("eqTotalNeededVal")) $("eqTotalNeededVal").textContent = totalNeeded.toLocaleString();
-      if ($("eqTotalNeededSub")) $("eqTotalNeededSub").textContent = `ใช้ต่อวันรวม ${totalUsage.toLocaleString()} เส้น`;
-      if ($("eqTodayOrderVal")) $("eqTodayOrderVal").textContent = totalToday.toLocaleString();
-      if ($("eqTodayOrderSub")) $("eqTodayOrderSub").textContent = `${plan.todayOrderCount} รายการสั่งผลิตวันนี้`;
-      if ($("eqCarryoverVal")) $("eqCarryoverVal").textContent = totalCarry.toLocaleString();
-      if ($("eqCarryoverSub")) $("eqCarryoverSub").textContent = `ส่วนเกินจากเพดานรายวัน`;
-
-      const filtered = plan.rows.filter((r) => {
-        if (statusFilter === "TODAY") return r.todayOrder > 0;
-        if (statusFilter === "CARRYOVER") return r.carryover > 0;
-        if (statusFilter === "ENOUGH") return r.statusCode === "ENOUGH";
-        if (statusFilter === "HOLD_NO_MOLD") return r.statusCode === "HOLD_NO_MOLD";
-        return true;
-      });
-
-      tbody.innerHTML = filtered.length
-        ? filtered.map((r) => `<tr>
-            <td><strong>${esc(r.spec)}</strong></td>
-            <td>${esc(r.type)}</td>
-            <td><input type="number" min="0" step="1" value="${r.mold}" style="width:68px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'mold', this.value)" /></td>
-            <td><input type="number" min="0" step="1" value="${r.stock}" style="width:88px; padding:4px 6px;" onchange="updateQueueRowField('${r.id}', 'stock', this.value)" /></td>
-            <td>${r.dailyUsage.toLocaleString()}</td>
-            <td>${r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2)}</td>
-            <td>${r.targetStock.toLocaleString()}</td>
-            <td>${r.netNeeded.toLocaleString()}</td>
-            <td><strong>${r.todayOrder.toLocaleString()}</strong></td>
-            <td>${r.carryover > 0 ? `<span class="badge-low">${r.carryover.toLocaleString()}</span>` : "0"}</td>
-            <td>${r.queueNo ? `<strong>#${r.queueNo}</strong>` : "-"}</td>
-            <td><span class="${r.badgeClass}">${esc(r.statusText)}</span></td>
-          </tr>`).join("")
-        : '<tr><td colspan="12" style="color:var(--muted);">ไม่พบรายการคิวการผลิตตามตัวกรองที่เลือก</td></tr>';
-
-      if (tfoot) {
-        tfoot.innerHTML = `<tr class="total-row">
-          <td colspan="2">รวมทั้งสิ้น (Factory Total: ${plan.rows.length} รายการ)</td>
-          <td>${totalMold.toLocaleString()}</td>
-          <td>${totalStock.toLocaleString()}</td>
-          <td>${totalUsage.toLocaleString()}</td>
-          <td>${avgDaysCover}</td>
-          <td>${totalTarget.toLocaleString()}</td>
-          <td>${totalNeeded.toLocaleString()}</td>
-          <td>${totalToday.toLocaleString()}</td>
-          <td>${totalCarry.toLocaleString()}</td>
-          <td>-</td>
-          <td>${plan.todayOrderCount} รายการสั่งผลิตวันนี้</td>
-        </tr>`;
+      if (specSel.value !== "ALL") {
+        rows = rows.filter(r => r.spec === specSel.value);
       }
+      return rows;
     }
 
-    function exportExtrusionQueueCsv() {
-      const plan = computeExtrusionQueuePlan();
-      const headers = ["Spec", "Type", "Mold", "Current_Stock", "Daily_Usage", "Days_Cover", "Target_Stock", "Net_Needed", "Today_Order", "Carryover", "Queue_No", "Status"];
-      const lines = [headers.join(",")];
-      plan.rows.forEach((r) => {
-        lines.push([
-          `"${String(r.spec || "").replace(/"/g, '""')}"`,
-          `"${String(r.type || "").replace(/"/g, '""')}"`,
-          r.mold, r.stock, r.dailyUsage,
-          r.daysCover >= 999 ? "999.00" : r.daysCover.toFixed(2),
-          r.targetStock, r.netNeeded, r.todayOrder, r.carryover,
-          r.queueNo || "", `"${String(r.statusText || "").replace(/"/g, '""')}"`
-        ].join(","));
+    function renderAll() {
+      const rows = getActiveRows();
+      const targetPct = parseFloat(document.getElementById("targetFilter").value || "2.0");
+
+      const totalProd = rows.reduce((a, b) => a + Number(b.prod || 0), 0);
+      const totalRepair = rows.reduce((a, b) => a + Number(b.repair || 0), 0);
+      const totalScrap = rows.reduce((a, b) => a + Number(b.scrap || 0), 0);
+      const totalReject = totalRepair + totalScrap;
+      const ratePct = totalProd > 0 ? (totalReject / totalProd) * 100 : 0;
+
+      const sortedByReject = [...rows].sort((a, b) => ((b.repair + b.scrap) - (a.repair + a.scrap)));
+      const topRow = sortedByReject[0];
+
+      document.getElementById("kpiProd").textContent = fmtInt(totalProd);
+      document.getElementById("kpiProdSub").textContent = `งานดี OK ${fmtInt(Math.max(0, totalProd - totalReject))} เส้น (${rows.length} รายการ)`;
+
+      const rateEl = document.getElementById("kpiRate");
+      rateEl.textContent = ratePct.toFixed(2) + "%";
+      rateEl.className = "text-3xl font-bold mt-1.5 " + (ratePct <= targetPct ? "text-emerald-400" : "text-rose-400");
+      document.getElementById("kpiRateSub").textContent = `เกณฑ์อ้างอิง ${targetPct.toFixed(2)}% (${ratePct <= targetPct ? "ผ่านเกณฑ์" : "สูงกว่าเกณฑ์"})`;
+
+      document.getElementById("kpiReject").textContent = fmtInt(totalReject);
+      document.getElementById("kpiRejectSub").textContent = `ซ่อม ${fmtInt(totalRepair)} | ทิ้ง ${fmtInt(totalScrap)} เส้น`;
+
+      document.getElementById("kpiTopDefect").textContent = topRow ? topRow.spec : "-";
+      document.getElementById("kpiTopDefectSub").textContent = topRow ? (topRow.topDefect || "-") : "-";
+
+      document.getElementById("rowCountBadge").textContent = `${rows.length} รายการ`;
+
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = rows.map(r => {
+        const tot = Number(r.repair || 0) + Number(r.scrap || 0);
+        const pct = Number(r.prod || 0) > 0 ? (tot / Number(r.prod)) * 100 : 0;
+        const okPass = pct <= targetPct;
+        const badgeClass = okPass
+          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+          : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+        const typeLabel = r.type === "Motorcycle" ? "มอเตอร์ไซค์" : "จักรยาน";
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-3 text-slate-300">${typeLabel}</td>
+            <td class="py-2.5 px-3 font-semibold text-white">${r.spec}</td>
+            <td class="py-2.5 px-3 text-right text-slate-200">${fmtInt(r.prod)}</td>
+            <td class="py-2.5 px-3 text-right text-amber-300">${fmtInt(r.repair)}</td>
+            <td class="py-2.5 px-3 text-right text-rose-300">${fmtInt(r.scrap)}</td>
+            <td class="py-2.5 px-3 text-right font-semibold text-white">${fmtInt(tot)}</td>
+            <td class="py-2.5 px-3 text-right font-semibold ${okPass ? "text-emerald-400" : "text-rose-400"}">${pct.toFixed(2)}%</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2.5 py-0.5 rounded-full text-xs border ${badgeClass}">
+                ${okPass ? "ผ่านเกณฑ์" : "เกินเกณฑ์"}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-xs text-slate-300 max-w-md">${r.detail || r.topDefect || "-"}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function addSpecRecord() {
+      const type = document.getElementById("formType").value;
+      const spec = document.getElementById("formSpec").value.trim();
+      const prod = Number(document.getElementById("formProd").value || 0);
+      const repair = Number(document.getElementById("formRepair").value || 0);
+      const scrap = Number(document.getElementById("formScrap").value || 0);
+      const remark = document.getElementById("formRemark").value.trim();
+
+      if (!spec) {
+        alert("กรุณากรอกขนาดเบอร์ยาง (Spec)");
+        return;
+      }
+
+      const targetArr = stateData[type];
+      const existing = targetArr.find(item => item.spec.toLowerCase() === spec.toLowerCase());
+      if (existing) {
+        existing.prod += prod;
+        existing.repair += repair;
+        existing.scrap += scrap;
+        if (remark) existing.detail = remark + (existing.detail ? " | " + existing.detail : "");
+      } else {
+        targetArr.push({
+          type,
+          spec,
+          prod,
+          repair,
+          scrap,
+          topDefect: remark || "-",
+          detail: remark || "-"
+        });
+      }
+
+      document.getElementById("formSpec").value = "";
+      document.getElementById("formProd").value = "";
+      document.getElementById("formRepair").value = "";
+      document.getElementById("formScrap").value = "";
+      document.getElementById("formRemark").value = "";
+      renderAll();
+    }
+
+    function resetToNovDefault() {
+      stateData = JSON.parse(JSON.stringify(INITIAL_DATA));
+      renderAll();
+    }
+
+    function exportCSV() {
+      const rows = getActiveRows();
+      const header = ["Type", "Spec", "Prod_Qty", "Repair", "Scrap", "Total_Reject", "Reject_Pct", "Detail"];
+      const csvLines = [header.join(",")];
+      rows.forEach(r => {
+        const tot = Number(r.repair || 0) + Number(r.scrap || 0);
+        const pct = Number(r.prod || 0) > 0 ? ((tot / Number(r.prod)) * 100).toFixed(2) : "0.00";
+        const line = [
+          r.type,
+          `"${String(r.spec).replace(/"/g, '""')}"`,
+          r.prod,
+          r.repair,
+          r.scrap,
+          tot,
+          pct,
+          `"${String(r.detail || "").replace(/"/g, '""')}"`
+        ];
+        csvLines.push(line.join(","));
       });
-      const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+
+      const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = "extrusion_queue_plan.csv"; a.click();
+      a.href = url;
+      a.download = `FactoryPulse_Reject_${activeTab}_Nov2026.csv`;
+      a.click();
       URL.revokeObjectURL(url);
     }
 
-    $("filterShift").addEventListener("change", () => {
-      if ($("filterShift").value === "กะ A" || $("filterShift").value === "กะ B") $("batchShift").value = $("filterShift").value;
-      renderDashboard(allSheetRows);
-    });
-    $("filterMachine").addEventListener("input", () => renderDashboard(allSheetRows));
-    $("targetOeeInput").addEventListener("input", () => renderDashboard(allSheetRows));
-
-    async function loadLogs() {
-      $("liveStatusText").textContent = "LOADING...";
-      $("refreshBtn").disabled = true;
+    async function syncFromSheet() {
+      const url = document.getElementById("gasUrl").value.trim();
+      if (!url) {
+        alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
+        return;
+      }
       try {
-        const res = await fetch(WEB_APP_URL);
-        const json = await parseAppsScriptResponse(res);
-        let raw = Array.isArray(json) ? json : (json?.data || json?.rows || json?.records || []);
-        if (raw.length && Array.isArray(raw[0]) && ["timestamp", "shift"].includes(String(raw[0][0] || "").toLowerCase())) raw = raw.slice(1);
-        allSheetRows = raw;
-        allDowntimeRows = Array.isArray(json?.downtimeLogs) ? json.downtimeLogs : (Array.isArray(json?.downtime) ? json.downtime : []);
-        renderDashboard(allSheetRows);
-        $("liveStatusText").textContent = "LIVE";
+        const res = await fetch(`${url}?tab=Reject_${activeTab === "Both" ? "Motorcycle" : activeTab}`);
+        const json = await res.json();
+        alert("เชื่อมต่อ Google Apps Script สำเร็จ ได้รับข้อมูล " + (Array.isArray(json) ? json.length : 1) + " รายการ");
       } catch (err) {
-        $("liveStatusText").textContent = "OFFLINE";
-        showMsg("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้: " + err.message, false);
-      } finally {
-        $("refreshBtn").disabled = false;
+        alert("ไม่สามารถดึงข้อมูลจากชีตได้: " + err.message);
       }
     }
-    $("refreshBtn").addEventListener("click", loadLogs);
 
-    $("batchForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const shift = $("batchShift").value, note = $("batchNote").value.trim(), user = $("currentUserLabel").textContent || "unknown";
-      const records = [];
-      $("batchRowsBody").querySelectorAll("tr").forEach((tr) => {
-        const machine = (tr.querySelector(".mc-input").value || tr.querySelector(".mc-select").value || "").trim().toUpperCase();
-        const ok = toNum(tr.querySelector(".ok-input").value), ng = toNum(tr.querySelector(".ng-input").value);
-        const downtime = toNum(tr.querySelector(".dt-input").value), plannedDowntime = toNum(tr.querySelector(".pdt-input").value);
-        const cycleTime = toNum(tr.querySelector(".ct-input").value, 3.45), status = tr.querySelector(".status-input").value;
-        const rowReason = tr.querySelector(".reason-input").value.trim();
-        const reason = [rowReason, note].filter(Boolean).join(" | ");
-        if (machine && (ok > 0 || ng > 0 || downtime > 0 || plannedDowntime > 0 || rowReason)) {
-          records.push({ timestamp: new Date().toISOString(), shift, machine, ok, ng, downtime, plannedDowntime, cycleTime, status, reason, user });
-        }
-      });
-      if (!records.length) return showMsg("กรุณาระบุรหัสเครื่องจักรและยอดผลิต หรือเวลาหยุดอย่างน้อย 1 แถวก่อนบันทึกครับ", false);
-
-      $("submitBatchBtn").disabled = true;
-      $("submitBatchBtn").textContent = "กำลังบันทึก...";
-      $("liveStatusText").textContent = "SAVING...";
-      try {
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "batchInsert", records })
-        });
-        await parseAppsScriptResponse(res);
-        showMsg(`บันทึกข้อมูลสำเร็จจำนวน ${records.length} รายการเรียบร้อยครับ`, true);
-        buildBatchRows();
-        $("batchNote").value = "";
-        await loadLogs();
-      } catch (err) {
-        $("liveStatusText").textContent = "ERROR";
-        showMsg("บันทึกข้อมูลไม่สำเร็จ: " + err.message, false);
-      } finally {
-        $("submitBatchBtn").disabled = false;
-        $("submitBatchBtn").textContent = "บันทึกทั้งหมดเข้า Google Sheets";
-      }
-    });
-
-    const initialUser = readStoredUser();
-    if (initialUser) {
-      showApp(initialUser);
-      loadLogs();
-    }
+    renderAll();
   </script>
 </body>
 </html>
