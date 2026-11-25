@@ -225,7 +225,7 @@
   <div id="loginSection" class="login-wrap">
     <div class="login-box">
       <h1 style="font-size: 1.3rem; margin: 0 0 6px;">เข้าสู่ระบบ FactoryPulse</h1>
-      <p class="brand-sub" style="margin-bottom: 16px;">ระบบติดตามการผลิตยางใน BKF (เชื่อม Google Sheets + สำรองในเครื่อง)</p>
+      <p class="brand-sub" style="margin-bottom: 16px;">ระบบติดตามการผลิตยางใน BKF (อิงชีต Production_Log + เก็บสำรองในเครื่อง)</p>
       <form id="loginForm">
         <div style="margin-bottom: 12px;">
           <label for="loginUser">ชื่อผู้ใช้ (Username)</label>
@@ -263,7 +263,7 @@
             <span class="nav-icon">📊</span>
             <span class="nav-text">
               <span>หมวด OEE (การผลิต)</span>
-              <span class="nav-desc">ภาพรวม 40 เครื่อง & บันทึกยอด</span>
+              <span class="nav-desc">อิงชีต Production_Log (40 เครื่อง)</span>
             </span>
           </button>
 
@@ -314,14 +314,14 @@
             <span class="nav-icon">↻</span>
             <span class="nav-text">
               <span>รีเซ็ตค่าเริ่มต้น พ.ย. 2569</span>
-              <span class="nav-desc">คืนค่าข้อมูลเริ่มต้นทุกหมวด</span>
+              <span class="nav-desc">อิงฐานชีต Production_Log</span>
             </span>
           </button>
           <button type="button" class="nav-item" onclick="syncAllFromSheet()">
             <span class="nav-icon">🔄</span>
             <span class="nav-text">
               <span>อัปเดตข้อมูลจากชีต</span>
-              <span class="nav-desc">ซิงก์ Web_Production_Log</span>
+              <span class="nav-desc">ซิงก์ Production_Log</span>
             </span>
           </button>
         </div>
@@ -331,7 +331,7 @@
         <div class="sidebar-user-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
-            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>SHEET + LOCAL</span></span>
+            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>PRODUCTION_LOG</span></span>
           </div>
           <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">admin</div>
           <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
@@ -346,7 +346,7 @@
             <button type="button" class="menu-toggle-btn" onclick="toggleSidebar()" aria-label="เปิดเมนู">☰</button>
             <div>
               <div class="brand-title" id="pageHeaderTitle">หมวด OEE (การผลิต & เครื่องจักร)</div>
-              <div class="brand-sub" id="pageHeaderSub">ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ</div>
+              <div class="brand-sub" id="pageHeaderSub">อิงชีต Production_Log (40 เครื่องจักร) • รอบมาตรฐาน 3.17 นาที/เส้น • กะ 650/680 นาที</div>
             </div>
           </div>
 
@@ -381,22 +381,22 @@
           <div class="oee-showcase">
             <div class="oee-hero">
               <div class="hero-top">
-                <span class="hero-label">OEE</span>
+                <span class="hero-label">OEE (PRODUCTION_LOG)</span>
                 <span class="hero-scope" id="kpiScopeLabel">ทุกกะ</span>
               </div>
-              <div class="hero-val" id="kpiOee">87.2%</div>
+              <div class="hero-val" id="kpiOee">62.2%</div>
               <div class="hero-foot">
                 <span id="kpiTargetText">Target 85.00%</span>
-                <span id="kpiDiffText">+2.2 pts</span>
+                <span id="kpiDiffText">-22.8 pts</span>
               </div>
             </div>
             <div class="sub-grid">
-              <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">88.6%</div><div class="metric-sub">Target 90.00%</div></div>
-              <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">99.5%</div><div class="metric-sub">Target 95.00%</div></div>
+              <div class="metric-card"><div class="metric-title">AVAILABILITY</div><div class="metric-val" id="kpiAvail">90.9%</div><div class="metric-sub">Target 90.00%</div></div>
+              <div class="metric-card"><div class="metric-title">PERFORMANCE</div><div class="metric-val" id="kpiPerf">69.1%</div><div class="metric-sub">Target 95.00% • รอบ 3.17 น./เส้น</div></div>
               <div class="metric-card"><div class="metric-title">QUALITY</div><div class="metric-val sky" id="kpiQual">99.0%</div><div class="metric-sub">Target 99.00%</div></div>
-              <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">157,507</div><div class="metric-sub" id="kpiOkNgSub">OK 155,982 / NG 1,525 pieces</div></div>
-              <div class="metric-card"><div class="metric-title">DOWNTIME (นอกแผน / ตามแผน)</div><div class="metric-val light" id="kpiDowntime">976h 47m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดตามแผน: 0m • 30 / 40 machines logged</div></div>
-              <div class="metric-card"><div class="metric-title">RECORDS</div><div class="metric-val sky" id="kpiRecords">0</div><div class="metric-sub" id="kpiRecordSub">ซิงก์ Google Sheets + Local</div></div>
+              <div class="metric-card"><div class="metric-title">TOTAL OUTPUT</div><div class="metric-val light" id="kpiOutput">166,165</div><div class="metric-sub" id="kpiOkNgSub">OK 164,499 / NG 1,666 เส้น</div></div>
+              <div class="metric-card"><div class="metric-title">DOWNTIME รวม</div><div class="metric-val light" id="kpiDowntime">1268h 20m</div><div class="metric-sub" id="kpiPlannedDtSub">หยุดรวม: 76,100 นาที • แผน 837,900 นาที</div></div>
+              <div class="metric-card"><div class="metric-title">RECORDS (PRODUCTION_LOG)</div><div class="metric-val sky" id="kpiRecords">1,260</div><div class="metric-sub" id="kpiRecordSub">ซิงก์ Production_Log + Local</div></div>
             </div>
           </div>
 
@@ -409,8 +409,8 @@
                   <select id="batchShift"><option value="กะ A">กะ A</option><option value="กะ B">กะ B</option></select>
                 </div>
                 <div>
-                  <label for="defaultCycle">Cycle Time เริ่มต้นทุกรายการ (นาที/ชิ้น)</label>
-                  <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.45" onchange="applyDefaultCycle()" />
+                  <label for="defaultCycle">Cycle Time มาตรฐานทุกรายการ (นาที/เส้น)</label>
+                  <input id="defaultCycle" type="number" min="0.01" step="0.01" value="3.17" onchange="applyDefaultCycle()" />
                 </div>
                 <div>
                   <label for="batchNote">รายละเอียดเพิ่มเติมร่วมกัน (Note)</label>
@@ -429,7 +429,7 @@
                 <table class="batch-table">
                   <thead>
                     <tr>
-                      <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (ชิ้น)</th><th>ยอด NG (ชิ้น)</th>
+                      <th>#</th><th>รหัสเครื่อง (Machine ID)</th><th>ยอด OK (เส้น)</th><th>ยอด NG (เส้น)</th>
                       <th>หยุดนอกแผน (นาที)</th><th>หยุดตามแผน (นาที)</th><th>Cycle Time</th>
                       <th>สถานะเครื่องจักร</th><th>สาเหตุหยุด / หมายเหตุสั้น</th>
                     </tr>
@@ -438,7 +438,7 @@
                 </table>
               </div>
               <div class="actions">
-                <button type="submit" id="submitBatchBtn">บันทึกเข้าชีต & เครื่อง</button>
+                <button type="submit" id="submitBatchBtn">บันทึกเข้า Production_Log & เครื่อง</button>
                 <button type="button" class="secondary" id="clearBatchBtn" onclick="buildBatchRows('BE')">ล้างข้อมูล 10 ช่อง</button>
               </div>
               <div id="msgBox" class="msg"></div>
@@ -446,14 +446,14 @@
           </div>
 
           <div class="card">
-            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Production Log)</h2>
+            <h2 style="font-size: 1.05rem; margin: 0 0 12px;">ประวัติการบันทึกล่าสุด (Production_Log)</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr><th>เวลา</th><th>กะ</th><th>เครื่อง</th><th>OK</th><th>NG</th><th>หยุดนอกแผน</th><th>หยุดตามแผน</th><th>สถานะ / สาเหตุ</th></tr>
                 </thead>
                 <tbody id="logBody">
-                  <tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่</td></tr>
+                  <tr><td colspan="8" style="color: var(--muted);">อิงข้อมูลตั้งต้นจากชีต Production_Log (1,260 แถว) — บันทึกรายการใหม่เพื่อแสดงประวัติเพิ่ม</td></tr>
                 </tbody>
               </table>
             </div>
@@ -741,9 +741,22 @@
 
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzHaG_M0-sDK1_2BIPScFSeRdsk6K2Wwv_a_sqSbGK4Fob8ErKsXghKMp9WNlpW1TACNw/exec";
-    const STORAGE_KEY = "factorypulse_sheet_local_v1";
+    const STORAGE_KEY = "factorypulse_sheet_local_v2_prodlog";
     const GAS_URL_KEY = "factorypulse_gas_url_v1";
-    const SHIFT_MINUTES = 480; // ปรับจำนวนนาทีต่อกะ/รายการได้ที่นี่
+    const TARGET_SHEET_NAME = "Production_Log";
+    const IDEAL_CYCLE_DEFAULT = 3.17;
+    const DAY_SHIFT_MINUTES = 650;   // 08:00-19:50 (710 นาที) หักพัก 60 นาที = 650 นาที
+    const NIGHT_SHIFT_MINUTES = 680; // 19:50-08:10 (740 นาที) หักพัก 60 นาที = 680 นาที
+
+    // ค่าฐานจากชีต Production_Log (1,260 รายการ, 3-24 พ.ย. 2026)
+    const PROD_LOG_BASELINE = {
+      recordsCount: 1260,
+      plannedMin: 837900,
+      downtimeMin: 76100,
+      okQty: 164499,
+      ngQty: 1666,
+      cycleMin: 3.17
+    };
 
     const MACHINE_OPTIONS = [
       ...Array.from({ length: 10 }, (_, i) => `BE${i + 1}`),
@@ -859,6 +872,19 @@
       return Number(n || 0).toLocaleString("en-US");
     }
 
+    function getShiftMinutesForDate_(dateStr, shiftName) {
+      const dt = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
+      const tmp = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+      const dayNum = tmp.getUTCDay() || 7;
+      tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+      const aIsNight = ((48 - weekNo) % 2 + 2) % 2 === 0;
+      if (shiftName === "กะ A") return aIsNight ? NIGHT_SHIFT_MINUTES : DAY_SHIFT_MINUTES;
+      if (shiftName === "กะ B") return aIsNight ? DAY_SHIFT_MINUTES : NIGHT_SHIFT_MINUTES;
+      return Math.round((DAY_SHIFT_MINUTES + NIGHT_SHIFT_MINUTES) / 2);
+    }
+
     function dedupeProductionLogs_(logs) {
       const seen = new Set();
       return (Array.isArray(logs) ? logs : []).filter(r => {
@@ -933,10 +959,11 @@
     async function postToSheet(payload) {
       const url = getGasUrl();
       if (!url) return { ok: false, noUrl: true };
+      const bodyWithSource = Object.assign({ sourceSheet: TARGET_SHEET_NAME }, payload);
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(bodyWithSource)
       });
       const text = await res.text();
       try {
@@ -944,6 +971,24 @@
       } catch (_) {
         return { ok: true, raw: text };
       }
+    }
+
+    function normalizeSheetProductionRows_(rawRows) {
+      if (!Array.isArray(rawRows)) return [];
+      return rawRows.map(r => {
+        const ok = Number(r.ok ?? r["ยอดของดี OK (เส้น)"] ?? r.OK ?? 0);
+        const ng = Number(r.ng ?? r["ยอดของเสีย NG (เส้น)"] ?? r.NG ?? 0);
+        const totalDt = Number(r.downtime ?? r["เวลาเครื่องหยุดรวม (นาที)"] ?? 0);
+        const unplanned = Number(r.unplanned ?? totalDt ?? 0);
+        const planned = Number(r.planned ?? 0);
+        const cycle = Number(r.cycle ?? r["เวลารอบมาตรฐาน (นาที/เส้น)"] ?? IDEAL_CYCLE_DEFAULT);
+        const shift = String(r.shift ?? r["กะ (Shift)"] ?? "กะ A");
+        const mc = String(r.mc ?? r["รหัสเครื่องจักร (Machine_ID)"] ?? "").toUpperCase();
+        const time = String(r.time ?? r["วันที่ (Date)"] ?? "");
+        const status = String(r.status ?? r["สถานะ OEE"] ?? "เดินเครื่องปกติ (Running)");
+        const reason = String(r.reason ?? r.note ?? "");
+        return { time, shift, mc, ok, ng, unplanned, planned, cycle, status, reason };
+      }).filter(x => x.mc || x.ok > 0 || x.ng > 0 || x.unplanned > 0 || x.planned > 0);
     }
 
     async function syncAllFromSheet() {
@@ -955,7 +1000,7 @@
       saveGasUrl();
       try {
         const sep = url.includes("?") ? "&" : "?";
-        const res = await fetch(`${url}${sep}action=getAll&t=${Date.now()}`, {
+        const res = await fetch(`${url}${sep}action=getAll&sheet=${encodeURIComponent(TARGET_SHEET_NAME)}&t=${Date.now()}`, {
           method: "GET",
           redirect: "follow"
         });
@@ -973,8 +1018,11 @@
           throw new Error(data.error || "Apps Script แจ้งข้อผิดพลาด");
         }
         if (data) {
-          if (Array.isArray(data.productionLogs)) {
-            productionLogs = dedupeProductionLogs_(data.productionLogs);
+          const incomingProd = Array.isArray(data.productionLogRows)
+            ? data.productionLogRows
+            : (Array.isArray(data.productionLogs) ? data.productionLogs : null);
+          if (incomingProd) {
+            productionLogs = dedupeProductionLogs_(normalizeSheetProductionRows_(incomingProd));
           }
           if (Array.isArray(data.packingRows) && data.packingRows.length) packingRows = data.packingRows;
           if (Array.isArray(data.extrusionRows) && data.extrusionRows.length) extrusionRows = data.extrusionRows;
@@ -1026,7 +1074,7 @@
       document.getElementById("rejectTabContent").classList.toggle("hidden", !isRejectTab(tab));
 
       const headerMap = {
-        oee: ["หมวด OEE (การผลิต & เครื่องจักร)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) & บันทึกยอดประจำกะ"],
+        oee: ["หมวด OEE (อิงชีต Production_Log)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) • รอบมาตรฐาน 3.17 นาที/เส้น • กะ 650/680 นาที"],
         packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
         extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบเช็กสต็อกก่อนผลิต วางแผนสต็อก และจัดคิวสายการรีดยางเส้น"],
         Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
@@ -1057,9 +1105,9 @@
       toggleSidebar(false);
     }
 
-    /* ---------------- OEE LOGIC ---------------- */
+    /* ---------------- OEE LOGIC (อิงชีต Production_Log) ---------------- */
     function buildBatchRows(prefix = "BE") {
-      const cycleDefault = document.getElementById("defaultCycle").value || "3.45";
+      const cycleDefault = document.getElementById("defaultCycle").value || String(IDEAL_CYCLE_DEFAULT);
       const tbody = document.getElementById("batchRowsBody");
       const mcOpts = `<option value="">เลือก</option>` + MACHINE_OPTIONS.map(m => `<option value="${m}">${m}</option>`).join("");
       tbody.innerHTML = Array.from({ length: 10 }, (_, idx) => {
@@ -1097,7 +1145,7 @@
     }
 
     function applyDefaultCycle() {
-      const val = document.getElementById("defaultCycle").value || "3.45";
+      const val = document.getElementById("defaultCycle").value || String(IDEAL_CYCLE_DEFAULT);
       document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
         tr.children[6].querySelector("input").value = val;
       });
@@ -1132,40 +1180,45 @@
       const logOk = filteredLogs.reduce((a, b) => a + Number(b.ok || 0), 0);
       const logNg = filteredLogs.reduce((a, b) => a + Number(b.ng || 0), 0);
 
-      const totalOk = hasSheetLogs ? logOk : (155982 + logOk);
-      const totalNg = hasSheetLogs ? logNg : (1525 + logNg);
+      const ratioFactor = (shift === "ALL" && !mcFilter) ? 1 : 0.5;
+      const totalOk = hasSheetLogs ? logOk : Math.round(PROD_LOG_BASELINE.okQty * ratioFactor);
+      const totalNg = hasSheetLogs ? logNg : Math.round(PROD_LOG_BASELINE.ngQty * ratioFactor);
       const totalOut = totalOk + totalNg;
 
-      const totalUnplannedMin = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
-      const totalPlannedMin = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
+      const logUnplanned = filteredLogs.reduce((a, b) => a + Number(b.unplanned || 0), 0);
+      const logPlanned = filteredLogs.reduce((a, b) => a + Number(b.planned || 0), 0);
+      const totalDowntimeMin = hasSheetLogs
+        ? (logUnplanned + logPlanned)
+        : Math.round(PROD_LOG_BASELINE.downtimeMin * ratioFactor);
 
-      const idealMinutes = filteredLogs.reduce((a, b) => {
-        const outQty = Number(b.ok || 0) + Number(b.ng || 0);
-        const cyc = Number(b.cycle || 3.45);
-        return a + (outQty * cyc);
-      }, 0);
+      const totalPlannedTimeMin = hasSheetLogs
+        ? filteredLogs.reduce((a, b) => {
+            const m = Number(b.plannedMin || 0);
+            return a + (m > 0 ? m : getShiftMinutesForDate_(b.date, b.shift));
+          }, 0)
+        : Math.round(PROD_LOG_BASELINE.plannedMin * ratioFactor);
 
-      let availPct = 88.6;
-      let perfPct = 99.5;
+      const idealMinutes = hasSheetLogs
+        ? filteredLogs.reduce((a, b) => {
+            const outQty = Number(b.ok || 0) + Number(b.ng || 0);
+            const cyc = Number(b.cycle || IDEAL_CYCLE_DEFAULT);
+            return a + (outQty * cyc);
+          }, 0)
+        : (totalOut * PROD_LOG_BASELINE.cycleMin);
 
-      if (filteredLogs.length > 0) {
-        const grossAvailableMin = Math.max(filteredLogs.length * SHIFT_MINUTES, 1);
-        const plannedProdMin = Math.max(grossAvailableMin - totalPlannedMin, 1);
-        const actualRunMin = Math.max(plannedProdMin - totalUnplannedMin, 0);
-
-        availPct = Math.min(100, Math.max(0, (actualRunMin / plannedProdMin) * 100));
-        perfPct = actualRunMin > 0
-          ? Math.min(100, Math.max(0, (idealMinutes / actualRunMin) * 100))
-          : 0;
-      }
-
-      const qualPct = totalOut > 0 ? (totalOk / totalOut) * 100 : 99.0;
+      const operatingTimeMin = Math.max(totalPlannedTimeMin - totalDowntimeMin, 0);
+      const availPct = totalPlannedTimeMin > 0
+        ? Math.min(100, Math.max(0, (operatingTimeMin / totalPlannedTimeMin) * 100))
+        : 0;
+      const perfPct = operatingTimeMin > 0
+        ? Math.min(100, Math.max(0, (idealMinutes / operatingTimeMin) * 100))
+        : 0;
+      const qualPct = totalOut > 0 ? (totalOk / totalOut) * 100 : 0;
       const oeePct = Number(((availPct / 100) * (perfPct / 100) * (qualPct / 100) * 100).toFixed(1));
 
-      const baseUnplannedMin = hasSheetLogs ? 0 : (1095 * 60 + 30);
-      const totUnplannedMin = baseUnplannedMin + totalUnplannedMin;
-      const dtHours = Math.floor(totUnplannedMin / 60);
-      const dtMins = totUnplannedMin % 60;
+      const dtHours = Math.floor(totalDowntimeMin / 60);
+      const dtMins = totalDowntimeMin % 60;
+      const recCount = hasSheetLogs ? filteredLogs.length : Math.round(PROD_LOG_BASELINE.recordsCount * ratioFactor);
 
       document.getElementById("kpiScopeLabel").textContent = shift === "ALL" ? "ทุกกะ" : shift;
       document.getElementById("kpiOee").textContent = oeePct.toFixed(1) + "%";
@@ -1177,18 +1230,18 @@
       document.getElementById("kpiPerf").textContent = perfPct.toFixed(1) + "%";
       document.getElementById("kpiQual").textContent = qualPct.toFixed(1) + "%";
       document.getElementById("kpiOutput").textContent = fmtNum(totalOut);
-      document.getElementById("kpiOkNgSub").textContent = `OK ${fmtNum(totalOk)} / NG ${fmtNum(totalNg)} pieces`;
+      document.getElementById("kpiOkNgSub").textContent = `OK ${fmtNum(totalOk)} / NG ${fmtNum(totalNg)} เส้น`;
       document.getElementById("kpiDowntime").textContent = `${dtHours}h ${dtMins}m`;
-      document.getElementById("kpiPlannedDtSub").textContent = `หยุดตามแผน: ${fmtNum(totalPlannedMin)}m • 30 / 40 machines`;
-      document.getElementById("kpiRecords").textContent = fmtNum(filteredLogs.length);
-      document.getElementById("kpiRecordSub").textContent = getGasUrl() ? "เชื่อมต่อ Google Sheets แล้ว" : "ยังไม่ได้วาง URL ชีต (เก็บในเครื่อง)";
+      document.getElementById("kpiPlannedDtSub").textContent = `หยุดรวม: ${fmtNum(totalDowntimeMin)} นาที • แผน ${fmtNum(totalPlannedTimeMin)} นาที`;
+      document.getElementById("kpiRecords").textContent = fmtNum(recCount);
+      document.getElementById("kpiRecordSub").textContent = getGasUrl() ? `อิงชีต ${TARGET_SHEET_NAME} + Local` : `อิงฐาน ${TARGET_SHEET_NAME} (เก็บในเครื่อง)`;
     }
 
     function renderProductionLogsTable() {
       const tbody = document.getElementById("logBody");
       const cleanLogs = dedupeProductionLogs_(productionLogs);
       if (!cleanLogs.length) {
-        tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">ยังไม่มีรายการบันทึกใหม่</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="color: var(--muted);">อิงข้อมูลตั้งต้นจากชีต Production_Log (1,260 แถว) — บันทึกรายการใหม่เพื่อแสดงประวัติเพิ่ม</td></tr>`;
         return;
       }
       tbody.innerHTML = cleanLogs.slice(0, 50).map(r => `
@@ -1207,6 +1260,8 @@
       const commonNote = document.getElementById("batchNote").value.trim();
       const user = document.getElementById("currentUserLabel").textContent || "admin";
       const nowStr = new Date().toLocaleTimeString("th-TH", { hour12: false });
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const shiftPlannedMin = getShiftMinutesForDate_(todayStr, shift);
       const newRows = [];
 
       document.querySelectorAll("#batchRowsBody tr").forEach(tr => {
@@ -1215,11 +1270,25 @@
         const ng = Number(tr.children[3].querySelector("input").value || 0);
         const unplanned = Number(tr.children[4].querySelector("input").value || 0);
         const planned = Number(tr.children[5].querySelector("input").value || 0);
-        const cycle = Number(tr.children[6].querySelector("input").value || 3.45);
+        const cycle = Number(tr.children[6].querySelector("input").value || IDEAL_CYCLE_DEFAULT);
         const status = tr.children[7].querySelector("select").value;
         const reason = tr.children[8].querySelector("input").value.trim();
         if (mc && (ok > 0 || ng > 0 || unplanned > 0 || planned > 0 || reason)) {
-          newRows.push({ time: nowStr, shift, mc, ok, ng, unplanned, planned, cycle, status, reason: reason || commonNote, user });
+          newRows.push({
+            date: todayStr,
+            time: nowStr,
+            shift,
+            mc,
+            ok,
+            ng,
+            unplanned,
+            planned,
+            plannedMin: shiftPlannedMin,
+            cycle,
+            status,
+            reason: reason || commonNote,
+            user
+          });
         }
       });
 
@@ -1235,13 +1304,13 @@
       renderProductionLogsTable();
       renderOeeSummary();
 
-      const sent = await postToSheet({ action: "addProductionBatch", rows: newRows });
+      const sent = await postToSheet({ action: "addProductionBatch", targetTab: TARGET_SHEET_NAME, rows: newRows });
       if (sent.noUrl) {
         box.className = "msg ok";
-        box.textContent = `บันทึกในเครื่องแล้ว ${newRows.length} รายการ (หากต้องการส่งเข้า Google Sheets ให้วาง URL ชีตด้านบนครับ)`;
+        box.textContent = `บันทึกในเครื่องแล้ว ${newRows.length} รายการ (อิงชีต ${TARGET_SHEET_NAME})`;
       } else if (sent.ok) {
         box.className = "msg ok";
-        box.textContent = `บันทึกเข้า Google Sheets และเครื่องเรียบร้อยแล้ว จำนวน ${newRows.length} รายการ`;
+        box.textContent = `บันทึกเข้าชีต ${TARGET_SHEET_NAME} และเครื่องเรียบร้อยแล้ว จำนวน ${newRows.length} รายการ`;
       } else {
         box.className = "msg err";
         box.textContent = `บันทึกในเครื่องแล้ว แต่ส่งเข้า Google Sheets ไม่สำเร็จ`;
@@ -1708,7 +1777,7 @@
       renderExtrusionQueue();
       if (isRejectTab(currentTab)) {
         renderRejectSection();
-        showRejectMessage("ok", "รีเซ็ตข้อมูล พ.ย. 2569 เป็นค่าเริ่มต้นเรียบร้อยแล้ว");
+        showRejectMessage("ok", "รีเซ็ตข้อมูล พ.ย. 2569 เป็นค่าเริ่มต้น (อิง Production_Log) เรียบร้อยแล้ว");
       }
       toggleSidebar(false);
     }
