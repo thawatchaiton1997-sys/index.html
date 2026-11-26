@@ -646,9 +646,9 @@
             <div class="filter-item" style="max-width: 200px;">
               <label for="rejectTargetInput">เกณฑ์อ้างอิง % เสีย</label>
               <select id="rejectTargetInput" onchange="renderRejectSection()">
-                <option value="2.0" selected>มาตรฐาน 2.00%</option>
+                <option value="2.0">มาตรฐาน 2.00%</option>
+                <option value="1.5" selected>ต่ำกว่า 1.50%</option>
                 <option value="1.0">เข้มงวด 1.00%</option>
-                <option value="1.5">เป้าหมาย 1.50%</option>
               </select>
             </div>
           </div>
@@ -1683,7 +1683,7 @@
 
     function renderRejectSection() {
       const rows = getActiveRejectRows();
-      const targetPct = parseFloat(document.getElementById("rejectTargetInput").value || "2.0");
+      const targetPct = parseFloat(document.getElementById("rejectTargetInput").value || "1.5");
 
       const totalProd = rows.reduce((a, b) => a + Number(b.prod || 0), 0);
       const totalRepair = rows.reduce((a, b) => a + Number(b.repair || 0), 0);
@@ -1699,8 +1699,8 @@
 
       const rateEl = document.getElementById("rejKpiRate");
       rateEl.textContent = ratePct.toFixed(2) + "%";
-      rateEl.className = "metric-val " + (ratePct <= targetPct ? "" : "danger");
-      document.getElementById("rejKpiRateSub").textContent = `เกณฑ์อ้างอิง ${targetPct.toFixed(2)}% (${ratePct <= targetPct ? "ผ่านเกณฑ์" : "สูงกว่าเกณฑ์"})`;
+      rateEl.className = "metric-val " + (ratePct < targetPct ? "" : "danger");
+      document.getElementById("rejKpiRateSub").textContent = `เกณฑ์อ้างอิง < ${targetPct.toFixed(2)}% (${ratePct < targetPct ? "ผ่านเกณฑ์" : "เกินเกณฑ์"})`;
 
       document.getElementById("rejKpiTotal").textContent = fmtNum(totalReject);
       document.getElementById("rejKpiSplitSub").textContent = `ซ่อม ${fmtNum(totalRepair)} | ทิ้ง ${fmtNum(totalScrap)} เส้น`;
@@ -1719,7 +1719,7 @@
       tbody.innerHTML = rows.map(r => {
         const tot = Number(r.repair || 0) + Number(r.scrap || 0);
         const pct = Number(r.prod || 0) > 0 ? (tot / Number(r.prod)) * 100 : 0;
-        const okPass = pct <= targetPct;
+        const okPass = pct < targetPct;
         const badge = okPass
           ? `<span class="badge-ok">ผ่านเกณฑ์</span>`
           : `<span class="badge-low">เกินเกณฑ์</span>`;
