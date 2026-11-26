@@ -178,6 +178,13 @@
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
     th, td { border-bottom: 1px solid var(--border); padding: 8px 6px; text-align: left; white-space: nowrap; }
     th { color: var(--muted); font-weight: 600; }
+    .top3-list { display: flex; flex-direction: column; gap: 3px; line-height: 1.35; }
+    .top3-item { font-size: 0.81rem; color: var(--text); }
+    .top3-rank {
+      display: inline-block; min-width: 44px; font-weight: 700; font-size: 0.72rem;
+      color: #7dd3fc; margin-right: 4px;
+    }
+    .top3-val { color: #fbbf24; font-weight: 700; }
     .badge-planned {
       display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
       background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d;
@@ -717,7 +724,7 @@
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
               <h2 id="rejectTableTitle" style="font-size: 1.05rem; margin: 0;">
-                ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง
+                ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง (เรียงของเสียมากไปน้อย)
               </h2>
               <span id="rejRowCountBadge" style="font-size: 0.8rem; color: var(--muted);">0 รายการ</span>
             </div>
@@ -727,7 +734,7 @@
                   <tr>
                     <th>ประเภท</th><th>ขนาดเบอร์ยาง (Spec)</th><th>ยอดผลิต (เส้น)</th>
                     <th>รวมซ่อม</th><th>รวมทิ้ง</th><th>รวมเสียทั้งหมด</th>
-                    <th>% เสีย</th><th>สถานะเทียบเกณฑ์</th><th>รายละเอียดโรค (ซ่อม / ทิ้ง)</th>
+                    <th>% เสีย</th><th>สถานะเทียบเกณฑ์</th><th>TOP 3 โรคปัญหาของเสีย</th>
                   </tr>
                 </thead>
                 <tbody id="rejectTableBody"></tbody>
@@ -1102,9 +1109,9 @@
         oee: ["หมวด OEE (อิงชีต Production_Log)", "ภาพรวมประสิทธิภาพการผลิต (40 เครื่องจักร) • รอบมาตรฐาน 3.17 นาที/เส้น • กะ 650/680 นาที"],
         packing: ["หมวดแพ็คกิ่ง (Packing tube line)", "เปรียบเทียบยอดอบยางใน OK vs ยอดแพ็คยางใน และบันทึกข้อมูลรายวัน"],
         extrusion: ["หมวดรีดยาง (Extrusion Stock & Queue)", "ระบบเช็กสต็อกก่อนผลิต วางแผนสต็อก และจัดคิวสายการรีดยางเส้น"],
-        Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
-        Bicycle: ["หมวดของเสียยางในรถจักรยาน (Reject_Bicycle)", "สรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง แยกยอด ซ่อม / ทิ้ง (ไม่แยกวันที่ • พ.ย. 2569)"],
-        Both: ["เปรียบเทียบของเสียแยกตามขนาดเบอร์ยาง (มอเตอร์ไซค์ & จักรยาน)", "ภาพรวมทุกขนาดเบอร์ยางจากฟอร์มบันทึกของเสีย พ.ย. 2569 (ไม่แยกวันที่)"]
+        Motorcycle: ["หมวดของเสียยางในรถจักรยานยนต์ (Reject_Motorcycle)", "เรียงยอดเสียจากมากไปน้อย แยก TOP 3 โรคปัญหา (ซ่อม / ทิ้ง • ไม่แยกวันที่ • พ.ย. 2569)"],
+        Bicycle: ["หมวดของเสียยางในรถจักรยาน (Reject_Bicycle)", "เรียงยอดเสียจากมากไปน้อย แยก TOP 3 โรคปัญหา (ซ่อม / ทิ้ง • ไม่แยกวันที่ • พ.ย. 2569)"],
+        Both: ["เปรียบเทียบของเสียแยกตามขนาดเบอร์ยาง (มอเตอร์ไซค์ & จักรยาน)", "เรียงยอดเสียจากมากไปน้อย แยก TOP 3 โรคปัญหา พ.ย. 2569 (ไม่แยกวันที่)"]
       };
       document.getElementById("pageHeaderTitle").textContent = headerMap[tab][0];
       document.getElementById("pageHeaderSub").textContent = headerMap[tab][1];
@@ -1123,8 +1130,8 @@
         document.getElementById("rejectSpecFilter").value = "ALL";
         document.getElementById("rejectTableTitle").textContent =
           tab === "Both"
-            ? "ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง (ทั้ง 2 ไลน์)"
-            : `ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง — Reject_${tab}`;
+            ? "ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง (ทั้ง 2 ไลน์ • เรียงมากไปน้อย)"
+            : `ตารางสรุปยอดผลิตและของเสียแยกตามขนาดเบอร์ยาง — ${tab === "Bicycle" ? "Reject_Bicycle" : "Reject_Motorcycle"} (เรียงมากไปน้อย)`;
         renderRejectSection();
       }
       toggleSidebar(false);
@@ -1662,6 +1669,41 @@
     }
 
     /* ---------------- REJECT TRACKING & DEFECT ANALYSIS LOGIC ---------------- */
+    function parseTop3Defects(detailStr) {
+      const raw = String(detailStr || "").trim();
+      if (!raw || raw === "-") return [];
+      return raw
+        .split("|")
+        .map(part => part.trim())
+        .filter(Boolean)
+        .map(part => {
+          const colonIdx = part.indexOf(":");
+          const name = colonIdx > -1 ? part.slice(0, colonIdx).trim() : part;
+          const rest = colonIdx > -1 ? part.slice(colonIdx + 1).trim() : "";
+
+          let rep = 0;
+          let scr = 0;
+          const repMatch = rest.match(/ซ่อม\s*([\d,]+)/);
+          const scrMatch = rest.match(/ทิ้ง\s*([\d,]+)/);
+          if (repMatch) rep = Number(repMatch[1].replace(/,/g, "")) || 0;
+          if (scrMatch) scr = Number(scrMatch[1].replace(/,/g, "")) || 0;
+
+          let total = rep + scr;
+          if (!repMatch && !scrMatch) {
+            const numMatch = rest.match(/([\d,]+)/);
+            total = numMatch ? (Number(numMatch[1].replace(/,/g, "")) || 0) : 0;
+          }
+
+          return {
+            name,
+            total,
+            sub: rest || `รวม ${fmtNum(total)}`
+          };
+        })
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 3);
+    }
+
     function getActiveRejectRows() {
       let rows = [];
       if (currentTab === "Motorcycle") rows = stateData.Motorcycle;
@@ -1678,7 +1720,14 @@
       if (specSel.value !== "ALL") {
         rows = rows.filter(r => r.spec === specSel.value);
       }
-      return rows;
+
+      // เรียงลำดับจากมากไปน้อยตามยอดเสียทั้งหมด (ซ่อม + ทิ้ง)
+      return [...rows].sort((a, b) => {
+        const totA = Number(a.repair || 0) + Number(a.scrap || 0);
+        const totB = Number(b.repair || 0) + Number(b.scrap || 0);
+        if (totB !== totA) return totB - totA;
+        return Number(b.prod || 0) - Number(a.prod || 0);
+      });
     }
 
     function renderRejectSection() {
@@ -1691,8 +1740,7 @@
       const totalReject = totalRepair + totalScrap;
       const ratePct = totalProd > 0 ? (totalReject / totalProd) * 100 : 0;
 
-      const sortedByReject = [...rows].sort((a, b) => ((b.repair + b.scrap) - (a.repair + a.scrap)));
-      const topRow = sortedByReject[0];
+      const topRow = rows[0];
 
       document.getElementById("rejKpiProd").textContent = fmtNum(totalProd);
       document.getElementById("rejKpiProdSub").textContent = `งานดี OK ${fmtNum(Math.max(0, totalProd - totalReject))} เส้น (${rows.length} รายการ)`;
@@ -1706,9 +1754,11 @@
       document.getElementById("rejKpiSplitSub").textContent = `ซ่อม ${fmtNum(totalRepair)} | ทิ้ง ${fmtNum(totalScrap)} เส้น`;
 
       document.getElementById("rejKpiTopSpec").textContent = topRow ? topRow.spec : "-";
-      document.getElementById("rejKpiTopSpecSub").textContent = topRow ? (topRow.topDefect || topRow.detail || "-") : "-";
+      document.getElementById("rejKpiTopSpecSub").textContent = topRow
+        ? `เสียสูงสุด ${fmtNum(Number(topRow.repair || 0) + Number(topRow.scrap || 0))} เส้น • ${topRow.topDefect || "-"}`
+        : "-";
 
-      document.getElementById("rejRowCountBadge").textContent = `${rows.length} รายการ`;
+      document.getElementById("rejRowCountBadge").textContent = `${rows.length} รายการ (เรียงมาก → น้อย)`;
 
       const tbody = document.getElementById("rejectTableBody");
       if (!rows.length) {
@@ -1724,6 +1774,16 @@
           ? `<span class="badge-ok">ผ่านเกณฑ์</span>`
           : `<span class="badge-low">เกินเกณฑ์</span>`;
         const typeLabel = r.type === "Motorcycle" ? "มอเตอร์ไซค์" : "จักรยาน";
+        const top3 = parseTop3Defects(r.detail || r.topDefect);
+
+        const top3Html = top3.length
+          ? `<div class="top3-list">` + top3.map((d, idx) => `
+              <div class="top3-item">
+                <span class="top3-rank">TOP ${idx + 1}</span>
+                <strong>${d.name}</strong>: <span class="top3-val">${fmtNum(d.total)}</span> (${d.sub})
+              </div>
+            `).join("") + `</div>`
+          : `<span style="color:var(--muted);">${r.topDefect || "-"}</span>`;
 
         return `
           <tr>
@@ -1732,10 +1792,10 @@
             <td style="text-align:right;">${fmtNum(r.prod)}</td>
             <td style="text-align:right; color:#fcd34d;">${fmtNum(r.repair)}</td>
             <td style="text-align:right; color:#fca5a5;">${fmtNum(r.scrap)}</td>
-            <td style="text-align:right; font-weight:700;">${fmtNum(tot)}</td>
+            <td style="text-align:right; font-weight:700; color:#fbbf24;">${fmtNum(tot)}</td>
             <td style="text-align:right; font-weight:700; color:${okPass ? "#4ade80" : "#f87171"};">${pct.toFixed(2)}%</td>
             <td>${badge}</td>
-            <td style="white-space:normal; min-width:260px; color:var(--muted);">${r.detail || r.topDefect || "-"}</td>
+            <td style="white-space:normal; min-width:290px;">${top3Html}</td>
           </tr>
         `;
       }).join("");
@@ -1767,14 +1827,17 @@
         existing.repair += repair;
         existing.scrap += scrap;
         if (remark) {
+          const addSum = repair + scrap;
+          const addPart = `${remark}: ซ่อม ${repair}, ทิ้ง ${scrap}`;
           existing.topDefect = remark;
-          existing.detail = remark + (existing.detail ? " | " + existing.detail : "");
+          existing.detail = addPart + (existing.detail ? " | " + existing.detail : "");
+          if (addSum > 0) existing.topDefect = `${remark} (รวม ${addSum})`;
         }
       } else {
         targetArr.push({
           type, spec, prod, repair, scrap,
           topDefect: remark || "-",
-          detail: remark || "-"
+          detail: remark ? `${remark}: ซ่อม ${repair}, ทิ้ง ${scrap}` : "-"
         });
       }
 
@@ -1817,16 +1880,19 @@
         return;
       }
       const rows = getActiveRejectRows();
-      const header = ["Type", "Spec", "Prod_Qty", "Repair", "Scrap", "Total_Reject", "Reject_Pct", "Detail"];
+      const header = ["Type", "Spec", "Prod_Qty", "Repair", "Scrap", "Total_Reject", "Reject_Pct", "Top3_Defects"];
       const csvLines = [header.join(",")];
       rows.forEach(r => {
         const tot = Number(r.repair || 0) + Number(r.scrap || 0);
         const pct = Number(r.prod || 0) > 0 ? ((tot / Number(r.prod)) * 100).toFixed(2) : "0.00";
+        const top3Text = parseTop3Defects(r.detail || r.topDefect)
+          .map((d, i) => `TOP${i + 1} ${d.name} (${d.total}: ${d.sub})`)
+          .join(" / ");
         csvLines.push([
           r.type,
           `"${String(r.spec).replace(/"/g, '""')}"`,
           r.prod, r.repair, r.scrap, tot, pct,
-          `"${String(r.detail || "").replace(/"/g, '""')}"`
+          `"${String(top3Text || r.detail || "").replace(/"/g, '""')}"`
         ].join(","));
       });
       const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
