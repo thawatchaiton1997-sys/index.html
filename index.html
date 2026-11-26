@@ -321,7 +321,7 @@
             <span class="nav-icon">🔄</span>
             <span class="nav-text">
               <span>อัปเดตข้อมูลจากชีต</span>
-              <span class="nav-desc">ซิงก์ Production_Log</span>
+              <span class="nav-desc">ซิงก์ Production_Log (ออโต้ 3 นาที)</span>
             </span>
           </button>
         </div>
@@ -331,7 +331,7 @@
         <div class="sidebar-user-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="color:var(--muted); font-size:0.75rem;">ผู้ใช้งานปัจจุบัน</span>
-            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>PRODUCTION_LOG</span></span>
+            <span class="live-pill" style="padding:2px 8px; font-size:0.7rem;"><span class="dot"></span><span>AUTO 3m</span></span>
           </div>
           <div style="font-weight:700; font-size:0.92rem; margin-bottom:8px;" id="currentUserLabel">admin</div>
           <button type="button" class="secondary small" id="logoutBtn" style="width:100%;">ออกจากระบบ</button>
@@ -744,6 +744,7 @@
     const STORAGE_KEY = "factorypulse_sheet_local_v2_prodlog";
     const GAS_URL_KEY = "factorypulse_gas_url_v1";
     const TARGET_SHEET_NAME = "Production_Log";
+    const AUTO_SYNC_INTERVAL_MS = 3 * 60 * 1000; // ดึงข้อมูลอัตโนมัติทุก 3 นาที
     const IDEAL_CYCLE_DEFAULT = 3.17;
     const DAY_SHIFT_MINUTES = 650;   // 08:00-19:50 (710 นาที) หักพัก 60 นาที = 650 นาที
     const NIGHT_SHIFT_MINUTES = 680; // 19:50-08:10 (740 นาที) หักพัก 60 นาที = 680 นาที
@@ -867,6 +868,8 @@
     let extrusionRows = JSON.parse(JSON.stringify(EXTRUSION_INITIAL));
     let stateData = JSON.parse(JSON.stringify(INITIAL_REJECT_DATA));
     let currentTab = "oee";
+    let autoSyncTimer = null;
+    let isSyncing = false;
 
     function fmtNum(n) {
       return Number(n || 0).toLocaleString("en-US");
@@ -991,12 +994,14 @@
       }).filter(x => x.mc || x.ok > 0 || x.ng > 0 || x.unplanned > 0 || x.planned > 0);
     }
 
-    async function syncAllFromSheet() {
+    async function syncAllFromSheet(silent = false) {
+      if (isSyncing) return;
       const url = getGasUrl();
       if (!url) {
-        alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
+        if (!silent) alert("กรุณาวาง URL ของ Google Apps Script Web App ก่อนครับ");
         return;
       }
+      isSyncing = true;
       saveGasUrl();
       try {
         const sep = url.includes("?") ? "&" : "?";
@@ -1037,7 +1042,27 @@
           if (isRejectTab(currentTab)) renderRejectSection();
         }
       } catch (err) {
-        alert("ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ: " + (err && err.message ? err.message : "Load failed"));
+        if (!silent) {
+          alert("ดึงข้อมูลจาก Google Sheets ไม่สำเร็จ: " + (err && err.message ? err.message : "Load failed"));
+        }
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    function startAutoSync() {
+      stopAutoSync();
+      autoSyncTimer = setInterval(() => {
+        if (!document.hidden && !document.getElementById("appSection").classList.contains("hidden")) {
+          syncAllFromSheet(true);
+        }
+      }, AUTO_SYNC_INTERVAL_MS);
+    }
+
+    function stopAutoSync() {
+      if (autoSyncTimer) {
+        clearInterval(autoSyncTimer);
+        autoSyncTimer = null;
       }
     }
 
@@ -1828,6 +1853,7 @@
       renderPackingTable();
       renderExtrusionQueue();
       renderRejectSection();
+      startAutoSync();
     });
 
     document.getElementById("togglePassBtn").addEventListener("click", function () {
@@ -1838,6 +1864,7 @@
     });
 
     document.getElementById("logoutBtn").addEventListener("click", function () {
+      stopAutoSync();
       document.getElementById("appSection").classList.add("hidden");
       document.getElementById("loginSection").classList.remove("hidden");
     });
